@@ -11,7 +11,7 @@ const testimonials = [
 
 const TestimonialsSection = () => {
   return (
-    <section className="py-16 md:py-24 section-container">
+    <section className="py-16 md:py-24 section-container p-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-10">
         <div>
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-2">Trusted by many</p>

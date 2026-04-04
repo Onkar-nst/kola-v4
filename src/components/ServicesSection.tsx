@@ -1,4 +1,12 @@
-import { Rocket, Diamond, Monitor, Layout, Wand2, Box, MessageSquare } from "lucide-react";
+import {
+  Rocket,
+  Diamond,
+  Monitor,
+  Layout,
+  Wand2,
+  Box,
+  MessageSquare,
+} from "lucide-react";
 
 const services = [
   { icon: Rocket, label: "Framer Development" },
@@ -10,24 +18,46 @@ const services = [
   { icon: MessageSquare, label: "UX / UI Consultation" },
 ];
 
-const techStack = ["Figma", "Framer", "Webflow", "Rive", "Blender", "Trello", "ChatGPT", "Claude"];
+const techStack = [
+  "Figma",
+  "Framer",
+  "Webflow",
+  "Rive",
+  "Blender",
+  "Trello",
+  "ChatGPT",
+  "Claude",
+];
 
 const ServicesSection = () => {
   return (
-    <section id="services" className="py-16 md:py-24 section-container">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+    <section id="services" className="py-20 md:py-28 section-container p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+
+        {/* LEFT */}
         <div>
-          <h2 className="heading-lg">
-            <span className="text-text-tertiary">Services that</span>
+          <h2 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight">
+            <span className="text-muted-foreground font-medium">
+              Services that
+            </span>
             <br />
-            supercharge your business.
+            <span className="text-foreground font-semibold">
+              supercharge your business.
+            </span>
           </h2>
 
-          <div className="mt-10">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-4">My tech stack</p>
-            <div className="flex flex-wrap gap-2">
+          {/* TECH STACK */}
+          <div className="mt-12">
+            <p className="text-sm text-muted-foreground mb-5">
+              My tech stack
+            </p>
+
+            <div className="flex flex-wrap gap-3">
               {techStack.map((tech) => (
-                <span key={tech} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-2 text-sm font-medium">
+                <span
+                  key={tech}
+                  className="px-4 py-2 rounded-xl border border-border bg-muted/40 text-sm font-medium"
+                >
                   {tech}
                 </span>
               ))}
@@ -35,15 +65,26 @@ const ServicesSection = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
+        {/* RIGHT */}
+        <div className="flex flex-col gap-6">
+
           {services.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-4 py-4 px-2 rounded-xl hover:bg-secondary/50 transition-colors group cursor-pointer">
-              <div className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0">
-                <Icon size={20} />
+            <div
+              key={label}
+              className="flex items-center gap-5 group cursor-pointer"
+            >
+              {/* ICON */}
+              <div className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-md">
+                <Icon size={18} strokeWidth={2} />
               </div>
-              <span className="text-lg font-semibold">{label}</span>
+
+              {/* TEXT */}
+              <span className="text-lg md:text-xl font-medium text-foreground tracking-tight">
+                {label}
+              </span>
             </div>
           ))}
+
         </div>
       </div>
     </section>

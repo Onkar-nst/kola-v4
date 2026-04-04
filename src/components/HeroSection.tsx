@@ -3,7 +3,7 @@ import heroMockups from "@/assets/hero-mockups.jpg";
 
 const HeroSection = () => {
   return (
-    <section className="pt-32 pb-12 md:pb-20 section-container">
+    <section className="pt-32 pb-12 md:pb-20 section-container p-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         <div className="flex flex-col gap-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 w-fit text-sm">

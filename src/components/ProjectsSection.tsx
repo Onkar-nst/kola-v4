@@ -13,7 +13,7 @@ const projects = [
 
 const ProjectsSection = () => {
   return (
-    <section id="work" className="py-16 md:py-24 section-container">
+    <section id="work" className="py-16 md:py-24 section-container p-4">
       <div className="flex items-end justify-between mb-10">
         <h2 className="heading-lg">Latest Projects</h2>
         <a href="#" className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">

@@ -2,7 +2,7 @@ import avatarImg from "@/assets/avatar.jpg";
 
 const TestimonialBanner = () => {
   return (
-    <section className="py-16 md:py-24 section-container">
+    <section className="py-16 md:py-24 section-container p-4">
       <blockquote className="text-center max-w-3xl mx-auto">
         <p className="text-xl md:text-2xl lg:text-3xl leading-snug font-medium text-foreground">
           "Working with Joseph felt like having a seasoned design partner who truly understood our vision for KYMA and brought it to life in ways we hadn't even imagined."

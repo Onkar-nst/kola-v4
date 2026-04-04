@@ -9,7 +9,7 @@ const posts = [
 
 const BlogSection = () => {
   return (
-    <section id="blog" className="py-16 md:py-24 section-container">
+    <section id="blog" className="py-16 md:py-24 section-container p-4">
       <div className="flex items-end justify-between mb-10">
         <h2 className="heading-lg">
           <span className="text-text-tertiary">From the</span> Blog

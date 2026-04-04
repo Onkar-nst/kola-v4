@@ -2,7 +2,7 @@ import { Mail, Calendar, Twitter, Instagram, Dribbble, Linkedin } from "lucide-r
 
 const CTAFooter = () => {
   return (
-    <footer id="contact" className="dark-surface py-16 md:py-24 mt-8">
+    <footer id="contact" className="dark-surface py-16 md:py-24 mt-8 ">
       <div className="section-container">
         <h2 className="text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.05] tracking-[-0.03em] font-bold mb-16">
           <span className="text-text-tertiary">Lets build</span>
