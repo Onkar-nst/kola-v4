@@ -23,7 +23,7 @@ const HeroSection = () => {
           </p>
 
           <a href="#contact" className="inline-flex items-center gap-3 rounded-full bg-primary text-primary-foreground pl-2 pr-6 py-2 w-fit text-sm font-medium hover:opacity-90 transition-opacity group">
-            <img src={avatarImg} alt="Joseph" className="w-9 h-9 rounded-full object-cover border-2 border-foreground/20" width={36} height={36} />
+            <img src={avatarImg} alt="Kola Communications" className="w-9 h-9 rounded-full object-cover border-2 border-foreground/20" width={36} height={36} />
             Book a call with me
           </a>
         </div>

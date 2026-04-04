@@ -3,8 +3,8 @@ import project1 from "@/assets/project-1.jpg";
 import project2 from "@/assets/project-2.jpg";
 
 const posts = [
-  { title: "How to Build a Brand That Stands Out in 2025", date: "Apr 22, 2025", author: "Joseph Alexander", img: project1 },
-  { title: "The Future of Web Design: Trends to Watch", date: "Apr 1, 2025", author: "Joseph Alexander", img: project2 },
+  { title: "How to Build a Brand That Stands Out in 2025", date: "Apr 22, 2025", author: "Kola Communications", img: project1 },
+  { title: "The Future of Web Design: Trends to Watch", date: "Apr 1, 2025", author: "Kola Communications", img: project2 },
 ];
 
 const BlogSection = () => {

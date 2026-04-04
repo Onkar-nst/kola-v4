@@ -13,11 +13,17 @@ const AboutSection = () => {
 
   return (
     <section className="py-16 md:py-24 section-container">
+      {/* Heading first, full width */}
+      <h2 className="heading-lg mb-12">
+        <span className="text-text-tertiary">Designing experiences that</span>{" "}
+        solve real problems.
+      </h2>
+
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-12 items-start">
         <div className="flex flex-col gap-4">
-          <img src={aboutPhoto} alt="Joseph Alexander" className="w-full rounded-2xl object-cover aspect-[4/5]" loading="lazy" width={320} height={400} />
+          <img src={aboutPhoto} alt="Kola Communications" className="w-full rounded-2xl object-cover aspect-[4/5]" loading="lazy" width={320} height={400} />
           <div>
-            <p className="font-bold text-lg">Joseph Alexander</p>
+            <p className="font-bold text-lg">Kola Communications</p>
             <p className="text-sm text-muted-foreground">Full-stack Designer</p>
           </div>
           <div className="flex gap-2">
@@ -30,14 +36,9 @@ const AboutSection = () => {
         </div>
 
         <div>
-          <h2 className="heading-lg mb-8">
-            <span className="text-text-tertiary">Designing experiences that</span>{" "}
-            solve real problems.
-          </h2>
-
           <div className="space-y-4 body-md text-muted-foreground max-w-2xl">
-            <p>I love turning ideas into something real through design. What started as a hobby turned into a career when I discovered how design can make things both look great and work better.</p>
-            <p>I focus on creating user interfaces that serve a real purpose – making sure they're not just pretty, but actually solve problems. Whether I'm working on a mobile app or a website, my goal is to make something that feels natural and easy to use.</p>
+            <p><span className="font-semibold text-foreground">I love turning ideas into something real through design.</span> What started as a hobby turned into a career when I discovered how design can make things both look great and work better.</p>
+            <p><span className="font-semibold text-foreground">I focus on creating user interfaces that serve a real purpose –</span> making sure they're not just pretty, but actually solve problems. Whether I'm working on a mobile app or a website, my goal is to make something that feels natural and easy to use.</p>
             <p>I'm a bit of a perfectionist when it comes to the small stuff, but I think that's what makes good design great.</p>
           </div>
 

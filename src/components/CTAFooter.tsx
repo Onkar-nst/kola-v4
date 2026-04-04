@@ -13,7 +13,7 @@ const CTAFooter = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
           <div>
             <p className="text-sm text-text-tertiary mb-2">Email</p>
-            <a href="mailto:joseph@launchnow.design" className="font-semibold hover:underline">joseph@launchnow.design</a>
+            <a href="mailto:hello@kolacommunications.com" className="font-semibold hover:underline">hello@kolacommunications.com</a>
           </div>
           <div>
             <p className="text-sm text-text-tertiary mb-2">Call Me</p>
@@ -54,14 +54,14 @@ const CTAFooter = () => {
               </div>
             </div>
             <div className="flex items-end justify-start md:justify-end">
-              <p className="text-sm text-text-tertiary">© 2026 Joseph Alexander</p>
+              <p className="text-sm text-text-tertiary">© 2026 Kola Communications</p>
             </div>
           </div>
         </div>
 
         <div className="mt-16 overflow-hidden">
           <p className="text-[clamp(4rem,15vw,12rem)] font-black tracking-[-0.04em] text-text-tertiary/20 whitespace-nowrap leading-none select-none">
-            JOSEPH
+            KOLA
           </p>
         </div>
       </div>
