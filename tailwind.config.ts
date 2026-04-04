@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "Inter Placeholder", "sans-serif"],
-        display: ["Inter", "Inter Display", "sans-serif"],
+        display: ["Inter Display", "Inter", "sans-serif"],
         mono: ["Fragment Mono", "monospace"],
       },
       colors: {

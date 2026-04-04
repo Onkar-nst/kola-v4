@@ -10,20 +10,33 @@ import TestimonialsSection from "@/components/TestimonialsSection";
 import FAQSection from "@/components/FAQSection";
 import BlogSection from "@/components/BlogSection";
 import CTAFooter from "@/components/CTAFooter";
+import ColumnGuides from "@/components/ColumnGuides";
+import CustomCursor from "@/components/CustomCursor";
+import SectionDivider from "@/components/SectionDivider";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background cursor-none">
+      <CustomCursor />
+      <ColumnGuides />
       <Navbar />
       <HeroSection />
       <ClientLogos />
+      <SectionDivider />
       <ProjectsSection />
+      <SectionDivider />
       <TestimonialBanner />
+      <SectionDivider />
       <ServicesSection />
+      <SectionDivider />
       <AboutSection />
+      <SectionDivider />
       <PricingSection />
+      <SectionDivider />
       <TestimonialsSection />
+      <SectionDivider />
       <FAQSection />
+      <SectionDivider />
       <BlogSection />
       <CTAFooter />
     </div>
