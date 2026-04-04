@@ -1,142 +1,250 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import avatarJoseph from "@/assets/avatar.jpg";
 import { Twitter, Instagram, Dribbble, Linkedin } from "lucide-react";
+import AnimatedHeading from "@/components/AnimatedHeading";
+
+/* ---------------- DATA ---------------- */
+
+const paragraphs = [
+  {
+    bold: "I love turning ideas into something real through design.",
+    text: "What started as a hobby turned into a career when I discovered how design can make things both look great and work better.",
+  },
+  {
+    bold: "I focus on creating user interfaces that serve a real purpose",
+    text: "making sure they're not just pretty, but actually solve problems. Whether I'm working on a mobile app or a website, my goal is to make something that feels natural and easy to use.",
+  },
+  {
+    bold: "I'm a bit of a perfectionist when it comes to the small stuff,",
+    text: "but I think that's what makes good design great. This attention to detail helps me build strong relationships with clients.",
+  },
+];
+
+const history = [
+  { company: "KYMA", role: "Full-Stack Designer", year: "2012–2024" },
+  { company: "Mugen", role: "Staff Product Designer", year: "2020–2022" },
+  { company: "Axiom", role: "Designer", year: "2016–2020" },
+];
+
+/* ---------------- COMPONENT ---------------- */
 
 const AboutSection = () => {
+  const [open, setOpen] = useState(false);
+
   return (
-    <section className="py-24 section-container border-t border-border p-4">
+    <section className="py-24 md:py-32 border-t border-border section-container p-10">
+      <div className="mx-auto max-w-[1080px]">
 
-      {/* HEADING */}
-      <motion.h2
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6 }}
-        className="text-[clamp(2.5rem,5vw,4rem)] leading-[1.1] tracking-tight mb-20"
-      >
-        <span className="text-muted-foreground font-medium">
-          Designing experiences
-        </span>
-        <br />
-        <span className="text-foreground font-semibold">
-          that solve real problems.
-        </span>
-      </motion.h2>
+        {/* ===== HEADING ===== */}
+        <AnimatedHeading
+          lines={[
+            "Designing experiences",
+            "that solve real problems.",
+          ]}
+          className="
+          hidden md:block
+            text-[clamp(2.6rem,5vw,4rem)]
+            leading-[1.05]
+            tracking-[-0.025em]
+            mb-20 md:mb-24
+            max-w-[760px]
+          "
+        />
+        <AnimatedHeading
+          lines={[
+            "Designing",
+            "experiences",
+            "that solve",
+            "real problems.",
+          ]}
+          className="
+          md:hidden 
+            text-[clamp(2.6rem,5vw,4rem)]
+            leading-[1.05]
+            tracking-[-0.025em]
+            mb-20 md:mb-24
+            max-w-[760px]
+          "
+        />
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+        {/* ===== GRID ===== */}
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-16 lg:gap-24">
 
-        {/* LEFT */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          {/* IMAGE */}
-          <div className="relative rounded-2xl overflow-hidden w-[320px] aspect-[4/5] shadow-sm">
-            <img
-              src={avatarJoseph}
-              alt="Joseph Alexander"
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+          {/* ================= LEFT ================= */}
+          <div>
 
-            {/* SOCIAL OVERLAY */}
-            <div className="absolute bottom-4 left-4 flex items-center gap-2">
-              
-              <div className="flex items-center gap-1.5 bg-black/80 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full">
-                <Twitter size={14} /> 1,214
+            {/* IMAGE */}
+            <div className="relative w-full max-w-[320px] aspect-[4/5] rounded-2xl overflow-hidden">
+              <img
+                src={avatarJoseph}
+                alt="Joseph Alexander"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+
+              {/* SOCIAL BAR */}
+              <div className="absolute bottom-4 left-4 flex gap-2">
+                <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full">
+                  <Twitter size={14} /> 1,214
+                </div>
+
+                {[Instagram, Dribbble, Linkedin].map((Icon, i) => (
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center text-white"
+                  >
+                    <Icon size={14} />
+                  </div>
+                ))}
               </div>
+            </div>
 
-              {[Instagram, Dribbble, Linkedin].map((Icon, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full bg-black/80 backdrop-blur-md flex items-center justify-center text-white"
+            {/* NAME */}
+            <div className="mt-6">
+              <h3 className="text-[17px] font-semibold">
+                Joseph Alexander
+              </h3>
+              <p className="text-[13px] text-muted-foreground">
+                Full-stack Designer
+              </p>
+            </div>
+
+            {/* ===== WORK HISTORY ===== */}
+            <div className="mt-14">
+              <p className="text-[15px] font-medium mb-6">
+                My work history
+              </p>
+
+              <div className="max-w-[420px]">
+
+                {/* STACK CARD */}
+                <motion.div
+                  layout
+                  onClick={() => setOpen((prev) => !prev)}
+                  className="relative cursor-pointer"
                 >
-                  <Icon size={14} />
-                </div>
-              ))}
-            </div>
-          </div>
+                  {!open && (
+                    <>
+                      <div className="absolute inset-0 translate-y-3 scale-[0.96] bg-card border rounded-2xl opacity-40" />
+                      <div className="absolute inset-0 translate-y-1.5 scale-[0.98] bg-card border rounded-2xl opacity-70" />
+                    </>
+                  )}
 
-          {/* NAME */}
-          <div className="mt-5">
-            <h3 className="text-lg font-semibold text-foreground">
-              Joseph Alexander
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Full-stack Designer
-            </p>
-          </div>
+                  <motion.div
+                    layout
+                    className="
+                      relative rounded-2xl border border-border bg-card
+                      px-6 py-5
+                      shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+                    "
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-[16px] font-semibold">
+                          {history[0].company}
+                        </p>
+                        <p className="text-[14px] text-muted-foreground mt-1">
+                          {history[0].role}
+                        </p>
+                      </div>
 
-          {/* WORK HISTORY */}
-          <div className="mt-12">
-            <p className="text-sm text-foreground mb-4">
-              My work history
-            </p>
+                      <span className="text-[14px] text-muted-foreground">
+                        {history[0].year}
+                      </span>
+                    </div>
+                  </motion.div>
+                </motion.div>
 
-            <div className="rounded-xl border border-border bg-card px-5 py-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-medium">KYMA</p>
-                  <p className="text-sm text-muted-foreground">
-                    Full-Stack Designer
-                  </p>
-                </div>
-                <span className="text-sm text-muted-foreground">
-                  2012–2024
-                </span>
+                {/* EXPANDED */}
+                <AnimatePresence>
+                  {open && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.25 }}
+                      className="mt-3 flex flex-col gap-3"
+                    >
+                      {history.slice(1).map((item, i) => (
+                        <motion.div
+                          key={item.company}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            delay: i * 0.05,
+                            type: "spring",
+                            stiffness: 120,
+                            damping: 16,
+                          }}
+                          className="
+                            rounded-2xl border border-border bg-card
+                            px-6 py-5
+                            shadow-[0_6px_20px_rgba(0,0,0,0.06)]
+                          "
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <p className="text-[15px] font-medium">
+                                {item.company}
+                              </p>
+                              <p className="text-[13px] text-muted-foreground mt-1">
+                                {item.role}
+                              </p>
+                            </div>
+
+                            <span className="text-[13px] text-muted-foreground">
+                              {item.year}
+                            </span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* BUTTON */}
+                <motion.button
+                  onClick={() => setOpen((prev) => !prev)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="
+                    mt-6 mx-auto block
+                    px-5 py-2.5 rounded-full
+                    border border-border
+                    text-[13px] font-medium
+                    bg-background
+                    shadow-sm
+                  "
+                >
+                  {open ? "Hide" : "Show all"} ⌄
+                </motion.button>
               </div>
             </div>
-
-            <button className="mt-4 text-sm text-muted-foreground hover:text-foreground transition">
-              Show all →
-            </button>
           </div>
-        </motion.div>
 
-        {/* RIGHT (BIO) */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="space-y-8 max-w-xl"
-        >
-          <p className="text-base leading-relaxed">
-            <span className="font-semibold text-foreground">
-              I love turning ideas into something real through design.
-            </span>{" "}
-            <span className="text-muted-foreground">
-              What started as a hobby turned into a career when I discovered how design can make things both look great and work better.
-            </span>
-          </p>
+          {/* ================= RIGHT ================= */}
+          <div className="space-y-8 max-w-[660px]">
 
-          <p className="text-base leading-relaxed">
-            <span className="font-semibold text-foreground">
-              I focus on creating user interfaces that serve a real purpose
-            </span>{" "}
-            <span className="text-muted-foreground">
-              – making sure they're not just pretty, but actually solve problems. Whether I'm working on a mobile app or a website, my goal is to make something that feels natural and easy to use.
-            </span>
-          </p>
+            {paragraphs.map((p, i) => (
+              <p key={i} className="text-xl leading-[1.65]">
+                <span className="font-medium">{p.bold}</span>{" "}
+                <br />
+                <span className="text-muted-foreground">{p.text}</span>
+              </p>
+            ))}
 
-          <p className="text-base leading-relaxed">
-            <span className="font-semibold text-foreground">
-              I'm a bit of a perfectionist when it comes to the small stuff,
-            </span>{" "}
-            <span className="text-muted-foreground">
-              but I think that's what makes good design great. This attention to detail helps me build strong relationships with clients.
-            </span>
-          </p>
-
-          {/* SIGNATURE */}
-          <div className="pt-6 text-2xl font-signature text-foreground">
-            Joseph Alexander
+            {/* SIGNATURE */}
+            <div className="pt-6">
+              <img
+                src="/signature.svg"
+                alt="signature"
+                className="h-14 opacity-90"
+                loading="lazy"
+              />
+            </div>
           </div>
-        </motion.div>
-
+        </div>
       </div>
     </section>
   );

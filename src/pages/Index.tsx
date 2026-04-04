@@ -1,44 +1,59 @@
-import Navbar from "@/components/Navbar";
-import HeroSection from "@/components/HeroSection";
-import ClientLogos from "@/components/ClientLogos";
-import ProjectsSection from "@/components/ProjectsSection";
-import TestimonialBanner from "@/components/TestimonialBanner";
-import ServicesSection from "@/components/ServicesSection";
-import AboutSection from "@/components/AboutSection";
-import PricingSection from "@/components/PricingSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import FAQSection from "@/components/FAQSection";
-import BlogSection from "@/components/BlogSection";
-import CTAFooter from "@/components/CTAFooter";
+import { lazy, Suspense } from "react";
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
-import SectionDivider from "@/components/SectionDivider";
 
+/* 🔥 Lazy imports */
+const HeroSection = lazy(() => import("@/components/HeroSection"));
+const ClientLogos = lazy(() => import("@/components/ClientLogos"));
+const ProjectsSection = lazy(() => import("@/components/ProjectsSection"));
+const TestimonialBanner = lazy(() => import("@/components/TestimonialBanner"));
+const ServicesSection = lazy(() => import("@/components/ServicesSection"));
+const AboutSection = lazy(() => import("@/components/AboutSection"));
+const PricingSection = lazy(() => import("@/components/PricingSection"));
+const TestimonialsSection = lazy(
+  () => import("@/components/TestimonialsSection"),
+);
+const FAQSection = lazy(() => import("@/components/FAQSection"));
+const BlogSection = lazy(() => import("@/components/BlogSection"));
+const CTAFooter = lazy(() => import("@/components/CTAFooter"));
+const SectionDivider = lazy(() => import("@/components/SectionDivider"));
+const TechStack = lazy(() => import("@/components/TechStack"));
+
+const SectionLoader = () => (
+  <div className="py-20 text-center text-sm text-muted-foreground">
+    Loading section...
+  </div>
+);
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background ">
+    <div className="min-h-screen bg-background">
       <CustomCursor />
-      <ColumnGuides />
-      <Navbar />
-      <HeroSection />
-      <ClientLogos />
-      <ProjectsSection />
-      <SectionDivider />
-      <TestimonialBanner />
-      <SectionDivider />
-      <ServicesSection />
-      <SectionDivider />
-      <AboutSection />
-      <SectionDivider />
-      <PricingSection />
-      <SectionDivider />
-      <TestimonialsSection />
-      <SectionDivider />
-      <FAQSection />
-      <SectionDivider />
-      <BlogSection />
-      <CTAFooter />
+
+      <div className="relative overflow-hidden">
+        <ColumnGuides />
+
+        <Suspense fallback={<SectionLoader />}>
+          <HeroSection />
+          <ClientLogos />
+          <ProjectsSection />
+          <TestimonialBanner />
+          <TechStack />
+          <SectionDivider />
+          <ServicesSection />
+          <AboutSection />
+          <SectionDivider />
+          <PricingSection />
+          <SectionDivider />
+          <TestimonialsSection />
+          <FAQSection />
+          <BlogSection />
+        </Suspense>
+      </div>
+
+      <Suspense fallback={<SectionLoader />}>
+        <CTAFooter />
+      </Suspense>
     </div>
   );
 };
