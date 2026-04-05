@@ -14,7 +14,7 @@ const TestimonialsSection = lazy(
   () => import("@/components/TestimonialsSection"),
 );
 const FAQSection = lazy(() => import("@/components/FAQSection"));
-const BlogSection = lazy(() => import("@/components/BlogSection"));
+// const BlogSection = lazy(() => import("@/components/BlogSection"));
 const CTAFooter = lazy(() => import("@/components/CTAFooter"));
 const SectionDivider = lazy(() => import("@/components/SectionDivider"));
 const TechStack = lazy(() => import("@/components/TechStack"));
@@ -32,7 +32,6 @@ const Index = () => {
 
       <div className="relative overflow-hidden">
         <ColumnGuides />
-
         <Suspense fallback={<SectionLoader />}>
           <HeroSection />
           <ClientLogos />
@@ -47,7 +46,7 @@ const Index = () => {
           <SectionDivider />
           <TestimonialsSection />
           <FAQSection />
-          <BlogSection />
+          {/* <BlogSection /> */}
         </Suspense>
       </div>
 

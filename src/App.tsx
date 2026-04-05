@@ -12,6 +12,7 @@ import Lenis from "@studio-freight/lenis";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="*" element={<NotFound />} />
+              <Route path="/project/:slug"     element={<ProjectPage />} />
             </Routes>
           </Suspense>
 

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 // import avatarImg from "@/assets/avatar.jpg";
 const avatarImg = "https://oskiqdthpejzihtjybwc.supabase.co/storage/v1/object/public/kola-website%20images/logo-2.png" ;
-
+const logo = "https://kolacommunications.com/favicon.png" ;
 const navLinks = [
   { label: "Work", to: "/#work" },
   { label: "Services", to: "/#services" },
@@ -57,10 +57,8 @@ const Navbar = () => {
 
         {/* ================= LOGO (FIXED) ================= */}
         <Link to="/" className="flex items-center gap-2.5 text-sm font-medium">
+          <img src={logo} className="w-8 h-8 rounded-full" />
           <img src={avatarImg} className="w-16 h-8 rounded-full" />
-          <span className="text-black font-semibold whitespace-nowrap">
-            Kola Communications
-          </span>
         </Link>
 
         {/* ================= DESKTOP LINKS ================= */}
@@ -177,10 +175,8 @@ const Navbar = () => {
               {/* HEADER */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-black/6">
                 <div className="flex items-center gap-3">
+                  <img src={logo} className="w-9 h-9 rounded-full" />
                   <img src={avatarImg} className="w-9 h-9 rounded-full" />
-                  <span className="text-sm font-semibold text-black">
-                    Kola Communications
-                  </span>
                 </div>
                 <button onClick={() => setMobileOpen(false)}>
                   <X size={18} />

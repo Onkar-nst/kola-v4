@@ -1,73 +1,148 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Calendar } from "lucide-react";
 import avatarJoseph from "@/assets/avatar.jpg";
 import AnimatedHeading from "@/components/AnimatedHeading";
 
+/* ─── Data ─── */
+
 const faqs = [
   {
-    q: "How long does a typical project take to complete?",
-    a: "Project timelines vary based on complexity. A simple project might take 2–3 weeks, while more comprehensive designs can take 1–2 months. I will provide a specific estimate after our initial consultation.",
+    q: "What services does Kola Communications offer?",
+    a: "We offer a full suite of digital marketing services including website development, SEO & AEO, lead generation, performance marketing, social media marketing, content creation, brand identity design, and AI-powered tools and applications.",
   },
   {
-    q: "Can you work with my existing brand and designs?",
-    a: "Absolutely! I can work within your existing brand guidelines while enhancing and improving the overall design.",
+    q: "Do you work with businesses outside of India?",
+    a: "Yes, we work with clients globally across the US, Europe, and the Middle East.",
   },
   {
-    q: "What makes your design process unique?",
-    a: "I combine strategic thinking with creative execution. Every design decision is backed by research.",
+    q: "How long does it take to see results?",
+    a: "Website projects take 3–6 weeks. SEO takes 60–90 days. Ads can be faster depending on budget.",
   },
   {
-    q: "Do you offer ongoing support after the project is completed?",
-    a: "Yes, I offer post-launch support packages including bug fixes and updates.",
+    q: "Do you offer one-time projects or retainers?",
+    a: "We offer both one-time projects and monthly retainers based on your needs.",
   },
   {
-    q: "How do you handle confidentiality and intellectual property rights?",
-    a: "All work is handled with strict confidentiality and proper agreements.",
+    q: "How do I get started?",
+    a: "Book a discovery call and we'll guide you with a tailored strategy.",
+  },
+  {
+    q: "Will I have a dedicated contact?",
+    a: "Yes, every client gets a dedicated account manager.",
+  },
+  {
+    q: "How do you measure results?",
+    a: "We track traffic, leads, conversions, and campaign performance.",
+  },
+  {
+    q: "Do you sign NDAs?",
+    a: "Yes, we respect confidentiality and sign NDAs when needed.",
   },
 ];
+
+const NAV_H = 80;
+
+/* ─── Component ─── */
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(0);
 
+  const sectionRef  = useRef<HTMLElement>(null);
+  const ctaWrapRef  = useRef<HTMLDivElement>(null);
+
+  /*
+    Strategy: keep CTA always `position: absolute` inside the section.
+    Never switch to `fixed` — that causes the jump.
+    Instead, update `top` every scroll frame so it tracks the viewport
+    as if it were fixed, but stays in the section's coordinate space.
+    When it would go below the last FAQ, clamp it.
+  */
+  const [ctaTop, setCtaTop] = useState(NAV_H);
+
+  useEffect(() => {
+    const update = () => {
+      const section = sectionRef.current;
+      const cta     = ctaWrapRef.current;
+      if (!section || !cta) return;
+
+      const sr   = section.getBoundingClientRect();
+      const ctaH = cta.offsetHeight;
+
+      /*
+        Desired viewport position for the CTA top = NAV_H (below navbar).
+        In section coords: desired_top = NAV_H - sr.top
+        (because section.getBoundingClientRect().top is how far the section
+        top is from the viewport top — if section is scrolled up, sr.top is negative)
+      */
+      const desiredTop = NAV_H - sr.top;
+
+      // Clamp: don't go above section padding top
+      const minTop = 96; // py-24 = 96px
+
+      // Clamp: don't go below (section height - cta height - bottom padding)
+      const maxTop = sr.height - ctaH - 96;
+
+      const clampedTop = Math.min(Math.max(desiredTop, minTop), maxTop);
+
+      setCtaTop(clampedTop);
+    };
+
+    // Use requestAnimationFrame for smooth, jank-free tracking
+    let rafId: number;
+    const onScroll = () => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(update);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(rafId);
+    };
+  }, []);
+
   return (
-    <section className="py-24 border-t border-b border-border section-container">
-      <div className="max-w-[1100px] p-4 md:p-10">
-        <div className="grid lg:grid-cols-2 gap-14">
-          {/* ================= LEFT ================= */}
-          <div>
+    <section
+      ref={sectionRef}
+      className="py-24 border-t border-b border-border section-container relative"
+    >
+      <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+        <div className="flex flex-col lg:flex-row gap-14">
+
+          {/* ═══ LEFT — FAQ list ═══ */}
+          <div className="flex-1 min-w-0">
             <AnimatedHeading
               lines={["Your questions", "answered."]}
               className="
-    text-[clamp(2.4rem,5vw,3.5rem)]
-    leading-[1.1]
-    tracking-[-0.02em]
-    font-semibold
-    mb-12
-  "
+                text-[clamp(2.4rem,5vw,3.5rem)]
+                leading-[1.1]
+                tracking-[-0.02em]
+                font-semibold
+                mb-12
+              "
               highlightClassName="text-[#9b9b9b]"
             />
 
             <div className="space-y-3">
               {faqs.map((faq, index) => {
                 const isOpen = openIndex === index;
-
                 return (
                   <motion.div
                     key={index}
                     layout
                     className={`
-                      rounded-[18px]
-                      border
-                      transition
-                      ${
-                        isOpen
-                          ? "border-gray-300 bg-[#f8f8f8]"
-                          : "border-gray-300 bg-[#fafafa] hover:bg-[#f5f5f5]"
+                      rounded-[18px] border transition
+                      ${isOpen
+                        ? "border-gray-300 bg-[#f8f8f8]"
+                        : "border-gray-300 bg-[#fafafa] hover:bg-[#f5f5f5]"
                       }
                     `}
                   >
-                    {/* HEADER */}
                     <button
                       onClick={() => setOpenIndex(isOpen ? -1 : index)}
                       className="w-full flex items-center justify-between px-5 py-4"
@@ -82,7 +157,6 @@ const FAQSection = () => {
                           {faq.q}
                         </span>
                       </div>
-
                       <motion.div
                         animate={{ rotate: isOpen ? 180 : 0 }}
                         transition={{ duration: 0.2 }}
@@ -91,17 +165,13 @@ const FAQSection = () => {
                       </motion.div>
                     </button>
 
-                    {/* CONTENT */}
                     <AnimatePresence initial={false}>
                       {isOpen && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{
-                            duration: 0.25,
-                            ease: [0.25, 1, 0.5, 1],
-                          }}
+                          transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
                           className="overflow-hidden"
                         >
                           <p className="px-5 pb-5 text-[14px] text-[#666] leading-relaxed">
@@ -116,55 +186,74 @@ const FAQSection = () => {
             </div>
           </div>
 
-          {/* ================= RIGHT CTA ================= */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: false }}
-            transition={{ duration: 0.6 }}
-            className="
-              rounded-[22px]
-              border border-gray-300
-              bg-[#fafafa]
-              p-8
-              shadow-[0_1px_1px_rgba(0,0,0,0.04),
-                      0_12px_30px_rgba(0,0,0,0.06)]
-              h-fit
-              lg:sticky lg:top-28
-            "
-          >
-            <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" />
+          {/* Spacer to reserve right column width */}
+          <div className="hidden lg:block flex-shrink-0 w-[360px]" aria-hidden />
 
-            <p className="text-[#8a8a8a] text-lg">Still not sure?</p>
+        </div>
+      </div>
 
-            <h3 className="text-[28px] font-semibold leading-tight mt-1">
-              Book a free discovery call.
-            </h3>
+      {/* ═══ CTA — always absolute, top updated via JS ═══ */}
+      <div
+        ref={ctaWrapRef}
+        className="hidden lg:block"
+        style={{
+          position: "absolute",
+          top: ctaTop,
+          right: 40,
+          width: 360,
+          zIndex: 10,
+          /* Use will-change so browser composites this on GPU */
+          willChange: "top",
+        }}
+      >
+        <div
+          className="
+            rounded-[22px]
+            border border-gray-300
+            bg-[#fafafa]
+            p-8
+          "
+        >
+          <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" />
+          <p className="text-[#8a8a8a] text-lg">Still not sure?</p>
+          <h3 className="text-[28px] font-semibold leading-tight mt-1">
+            Book a free discovery call.
+          </h3>
+          <p className="text-sm text-[#666] mt-4 leading-relaxed">
+            Learn more about how we work and how we can help your business grow.
+          </p>
+          <div className="flex items-center gap-4 mt-6">
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.03 }}
+              className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-full text-sm font-medium"
+            >
+              <Calendar size={16} />
+              Schedule Now
+            </motion.button>
+            <span className="text-sm text-[#999]">Cal.com</span>
+          </div>
+        </div>
+      </div>
 
-            <p className="text-sm text-[#666] mt-4 leading-relaxed">
-              Learn more about how I work and how I can help you take the next
-              step.
-            </p>
-
-            <div className="flex items-center gap-4 mt-6">
-              <motion.button
-                whileTap={{ scale: 0.96 }}
-                className="
-                  flex items-center gap-2
-                  bg-black text-white
-                  px-5 py-3
-                  rounded-full
-                  text-sm font-medium
-                  shadow-lg
-                "
-              >
-                <Calendar size={16} />
-                Schedule Now
-              </motion.button>
-
-              <span className="text-sm text-[#999]">Cal.com</span>
-            </div>
-          </motion.div>
+      {/* ─── Mobile ─── */}
+      <div className="lg:hidden max-w-[1100px] mx-auto px-4 md:px-10 mt-10">
+        <div className="rounded-[22px] border border-gray-300 bg-[#fafafa] p-8">
+          <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" />
+          <p className="text-[#8a8a8a] text-lg">Still not sure?</p>
+          <h3 className="text-[28px] font-semibold leading-tight mt-1">
+            Book a free discovery call.
+          </h3>
+          <p className="text-sm text-[#666] mt-4 leading-relaxed">
+            Learn more about how we work and how we can help your business grow.
+          </p>
+          <div className="flex items-center gap-4 mt-6">
+            <button className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-full text-sm font-medium">
+              <Calendar size={16} />
+              Schedule Now
+            </button>
+            <span className="text-sm text-[#999]">Cal.com</span>
+          </div>
         </div>
       </div>
     </section>

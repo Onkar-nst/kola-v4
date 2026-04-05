@@ -5,39 +5,21 @@ import avatarImg from "@/assets/avatar.jpg";
 const testimonials = [
   {
     quote:
-      "The new UI design cut our customer support tickets in half. It's been a game-changer for us.",
-    name: "Martina Martinez",
-    title: "Customer Manager at SupportEase",
+      "Kola Communications completely transformed our online presence. From building our e-commerce platform to running our SEO campaigns, every step was handled with professionalism and precision. Within three months of launch, our organic traffic doubled and conversions followed.",
+    name: "Vinit Jain",
+    title: "Founder, Tazaari Shop",
   },
   {
     quote:
-      "Working with Joseph felt like having a seasoned design partner who truly understood our vision for Zazzle and brought it to life in ways we hadn't even imagined.",
-    name: "Thomas Weber",
-    title: "Co-founder of KYMA",
+      "We approached Kola Communications for our website and ended up getting so much more. We got a full digital strategy that actually works. The team understood our audience, our brand, and our goals from day one. Our lead generation has improved significantly and the quality of enquiries we receive now is on a completely different level.",
+    name: "Dhaval Sanghavi",
+    title: "Director, Veena Developers",
   },
   {
     quote:
-      "Our website conversion rate improved significantly thanks to Joseph's expertise.",
-    name: "Ben Harper",
-    title: "CTO of Nexus",
-  },
-  {
-    quote:
-      "Joseph's design approach brought clarity to our complex data visualizations. Our users are thrilled!",
-    name: "Michael Wong",
-    title: "Data Scientist at DataSphere",
-  },
-  {
-    quote:
-      "The rebranding exceeded our expectations. It's given us a competitive edge in our industry.",
-    name: "Natalie Rivera",
-    title: "Brand Manager at UnityBrands",
-  },
-  {
-    quote:
-      "The redesign transformed our brand image. We've seen a 30% increase in engagement since launch.",
-    name: "Emma Kraft",
-    title: "CMO of TechVista",
+      "Working with an agency halfway across the world felt like a risk, but Kola Communications made it seamless. Their communication was excellent, deadlines were always met, and the results spoke for themselves. Our Google rankings improved within weeks and the leads started coming in consistently. Highly recommend them to any business serious about growing online.",
+    name: "James Whitfield",
+    title: "CEO, BrightPath (UK)",
   },
 ];
 
