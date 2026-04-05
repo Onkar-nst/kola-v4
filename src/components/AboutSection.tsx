@@ -1,30 +1,49 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import avatarJoseph from "@/assets/avatar.jpg";
-import { Twitter, Instagram, Dribbble, Linkedin } from "lucide-react";
+import {
+  Twitter,
+  Instagram,
+  Dribbble,
+  Linkedin,
+  ChevronDown,
+} from "lucide-react";
 import AnimatedHeading from "@/components/AnimatedHeading";
 
 /* ---------------- DATA ---------------- */
 
 const paragraphs = [
   {
-    bold: "I love turning ideas into something real through design.",
-    text: "What started as a hobby turned into a career when I discovered how design can make things both look great and work better.",
+    bold: "Kola Communications was born from a simple belief that every business,",
+    text: "regardless of size, deserves a powerful digital presence. What started as a passion for creative problem-solving has grown into a full-service digital marketing agency trusted by brands across India, Australia, US, Europe, and Middle East.",
   },
   {
-    bold: "I focus on creating user interfaces that serve a real purpose",
-    text: "making sure they're not just pretty, but actually solve problems. Whether I'm working on a mobile app or a website, my goal is to make something that feels natural and easy to use.",
+    bold: "We go beyond aesthetics.",
+    text: "From building high-performance websites to running targeted SEO campaigns and lead generation strategies, everything we do is designed to deliver measurable impact. Our team brings together creativity, data, and strategy to craft digital experiences that don't just look great they work hard for your business",
   },
   {
-    bold: "I'm a bit of a perfectionist when it comes to the small stuff,",
-    text: "but I think that's what makes good design great. This attention to detail helps me build strong relationships with clients.",
+    bold: "We're detail-obsessed, and we think that's exactly what sets us apart.",
+    text: "It's what keeps our clients coming back and what drives us to treat every project with the same dedication and care we'd want for our own brand.",
   },
 ];
 
 const history = [
-  { company: "KYMA", role: "Full-Stack Designer", year: "2012–2024" },
-  { company: "Mugen", role: "Staff Product Designer", year: "2020–2022" },
-  { company: "Axiom", role: "Designer", year: "2016–2020" },
+  {
+    company: "Results-Driven",
+    role: "We focus on delivering measurable outcomes that directly impact your business growth and success.",
+  },
+  {
+    company: "Innovation First",
+    role: "We stay ahead of digital trends and leverage cutting-edge technologies to give you a competitive edge.",
+  },
+  {
+    company: "Client-Centric",
+    role: "Your success is our priority. We build lasting partnerships through transparent communication and dedicated support.",
+  },
+  {
+    company: "Quality Excellence",
+    role: "We maintain the highest standards in every project, ensuring exceptional quality and attention to detail.",
+  },
 ];
 
 /* ---------------- COMPONENT ---------------- */
@@ -35,13 +54,9 @@ const AboutSection = () => {
   return (
     <section className="py-24 md:py-32 border-t border-border section-container p-10">
       <div className="mx-auto max-w-[1080px]">
-
         {/* ===== HEADING ===== */}
         <AnimatedHeading
-          lines={[
-            "Designing experiences",
-            "that solve real problems.",
-          ]}
+          lines={["Helping brands grow in a", "digital-first world."]}
           className="
           hidden md:block
             text-[clamp(2.6rem,5vw,4rem)]
@@ -52,14 +67,9 @@ const AboutSection = () => {
           "
         />
         <AnimatedHeading
-          lines={[
-            "Designing",
-            "experiences",
-            "that solve",
-            "real problems.",
-          ]}
+          lines={["Helping brands", "grow in a","digital-first world"]}
           className="
-          md:hidden 
+           md:hidden
             text-[clamp(2.6rem,5vw,4rem)]
             leading-[1.05]
             tracking-[-0.025em]
@@ -69,13 +79,11 @@ const AboutSection = () => {
         />
 
         {/* ===== GRID ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-16 lg:gap-24">
-
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-16 ">
           {/* ================= LEFT ================= */}
           <div>
-
             {/* IMAGE */}
-            <div className="relative w-full max-w-[320px] aspect-[4/5] rounded-2xl overflow-hidden">
+            <div className="relative w-full max-w-[420px] aspect-[4/5] rounded-2xl overflow-hidden">
               <img
                 src={avatarJoseph}
                 alt="Joseph Alexander"
@@ -102,9 +110,7 @@ const AboutSection = () => {
 
             {/* NAME */}
             <div className="mt-6">
-              <h3 className="text-[17px] font-semibold">
-                Joseph Alexander
-              </h3>
+              <h3 className="text-[17px] font-semibold">Joseph Alexander</h3>
               <p className="text-[13px] text-muted-foreground">
                 Full-stack Designer
               </p>
@@ -113,11 +119,10 @@ const AboutSection = () => {
             {/* ===== WORK HISTORY ===== */}
             <div className="mt-14">
               <p className="text-[15px] font-medium mb-6">
-                My work history
+                Built on Unshakeable Values
               </p>
 
               <div className="max-w-[420px]">
-
                 {/* STACK CARD */}
                 <motion.div
                   layout
@@ -144,14 +149,11 @@ const AboutSection = () => {
                         <p className="text-[16px] font-semibold">
                           {history[0].company}
                         </p>
-                        <p className="text-[14px] text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {history[0].role}
                         </p>
                       </div>
 
-                      <span className="text-[14px] text-muted-foreground">
-                        {history[0].year}
-                      </span>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -193,9 +195,9 @@ const AboutSection = () => {
                               </p>
                             </div>
 
-                            <span className="text-[13px] text-muted-foreground">
+                            {/* <span className="text-[13px] text-muted-foreground">
                               {item.year}
-                            </span>
+                            </span> */}
                           </div>
                         </motion.div>
                       ))}
@@ -206,18 +208,48 @@ const AboutSection = () => {
                 {/* BUTTON */}
                 <motion.button
                   onClick={() => setOpen((prev) => !prev)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
+                  initial="rest"
+                  animate="rest"
+                  whileHover="hover"
+                  whileTap="tap"
                   className="
-                    mt-6 mx-auto block
-                    px-5 py-2.5 rounded-full
-                    border border-border
-                    text-[13px] font-medium
-                    bg-background
-                    shadow-sm
-                  "
+    mt-6 mx-auto flex items-center gap-2
+    px-5 py-2.5 rounded-full
+    text-[13px] font-medium
+
+    border border-white/20
+    bg-white/10
+    backdrop-blur-xl
+
+    shadow-[0_6px_30px_rgba(0,0,0,0.12)]
+
+    transition
+  "
                 >
-                  {open ? "Hide" : "Show all"} ⌄
+                  {/* TEXT */}
+                  <motion.span
+                    key={open ? "hide" : "show"}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-black"
+                  >
+                    {open ? "Hide" : "Show all"}
+                  </motion.span>
+
+                  {/* ICON */}
+                  <motion.span
+                    variants={{
+                      rest: { rotate: 0 },
+                      hover: { rotate: 180 },
+                      tap: { scale: 0.9 },
+                    }}
+                    animate={{ rotate: open ? 180 : 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="flex items-center justify-center text-black/70"
+                  >
+                    <ChevronDown size={16} />
+                  </motion.span>
                 </motion.button>
               </div>
             </div>
@@ -225,11 +257,9 @@ const AboutSection = () => {
 
           {/* ================= RIGHT ================= */}
           <div className="space-y-8 max-w-[660px]">
-
             {paragraphs.map((p, i) => (
               <p key={i} className="text-xl leading-[1.65]">
                 <span className="font-medium">{p.bold}</span>{" "}
-                <br />
                 <span className="text-muted-foreground">{p.text}</span>
               </p>
             ))}
@@ -237,7 +267,7 @@ const AboutSection = () => {
             {/* SIGNATURE */}
             <div className="pt-6">
               <img
-                src="/signature.svg"
+                src="https://oskiqdthpejzihtjybwc.supabase.co/storage/v1/object/public/kola-website%20images/logo-2.png"
                 alt="signature"
                 className="h-14 opacity-90"
                 loading="lazy"

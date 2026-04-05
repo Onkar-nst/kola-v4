@@ -1,164 +1,195 @@
-import {
-  Rocket,
-  Diamond,
-  Monitor,
-  Layout,
-  Wand2,
-  Box,
-  MessageSquare,
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
 import AnimatedHeading from "@/components/AnimatedHeading";
-
-/* 🔥 Tech icons */
-import {
-  SiFigma,
-  SiFramer,
-  SiWebflow,
-  SiBlender,
-  SiTrello,
-} from "react-icons/si";
-import { RiChatAiLine } from "react-icons/ri";
-import { BsStars } from "react-icons/bs"; 
-import { TbBrandVue } from "react-icons/tb";
+import { Plus } from "lucide-react";
 
 /* ---------------- DATA ---------------- */
 
-const services = [
-  { icon: Rocket, label: "Framer Development" },
-  { icon: Diamond, label: "Brand Design" },
-  { icon: Monitor, label: "Web Apps" },
-  { icon: Layout, label: "Landing Pages" },
-  { icon: Wand2, label: "Motion Graphics" },
-  { icon: Box, label: "3D Design" },
-  { icon: MessageSquare, label: "UX / UI Consultation" },
-];
+import {
+  SiWordpress,
+  SiShopify,
+  SiReact,
+  SiTailwindcss,
+  SiGithub,
+  SiGoogleanalytics,
+  SiMeta,
+  SiOpenai,
+  SiPython,
+} from "react-icons/si";
+import { BsStars } from "react-icons/bs";
 
 const techStack = [
-  { icon: SiFigma, name: "Figma" },
-  { icon: SiFramer, name: "Framer" },
-  { icon: SiWebflow, name: "Webflow" },
-  { icon: TbBrandVue, name: "Rive" },
-  { icon: SiBlender, name: "Blender" },
-  { icon: SiTrello, name: "Trello" },
-  { icon: RiChatAiLine, name: "ChatGPT" },
+  { icon: SiWordpress, name: "WordPress" },
+  { icon: SiShopify, name: "Shopify" },
+  { icon: SiReact, name: "React" },
+  { icon: SiTailwindcss, name: "Tailwind" },
+  { icon: SiGithub, name: "GitHub" },
+  { icon: SiGithub, name: "Photoshop" },
+  { icon: SiGoogleanalytics, name: "Analytics" },
+  { icon: SiMeta, name: "Meta Ads" },
+  { icon: SiOpenai, name: "ChatGPT" },
   { icon: BsStars, name: "Claude" },
+  { icon: SiPython, name: "Python" },
 ];
-
-/* ---------------- ANIMATION ---------------- */
-
-const container = {
-  hidden: {},
-  show: {
-    transition: { staggerChildren: 0.08 },
+const services = [
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/1006/1006771.png",
+    title: "Website Development",
+    desc: "Custom websites built for speed, SEO and scalability.",
   },
-};
-
-const item = {
-  hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
-  show: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.5, ease: "easeOut" },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/2956/2956744.png",
+    title: "SEO & AEO",
+    desc: "Rank higher on Google and AI search results.",
   },
-};
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
+    title: "Lead Generation & Conversion",
+    desc: "Optimized funnels that convert visitors into customers.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/3281/3281289.png",
+    title: "Brand Identity & Design",
+    desc: "Build a strong and memorable brand presence.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
+    title: "Performance Marketing",
+    desc: "ROI-focused campaigns across ads platforms.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
+    title: "Social Media Marketing",
+    desc: "Grow your audience and engagement organically.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/4697/4697143.png",
+    title: "Content Creation & Strategy",
+    desc: "Content that builds trust and drives conversions.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/8637/8637099.png",
+    title: "AI-Powered Tools & Applications",
+    desc: "Automation, chatbots, and AI workflows.",
+  },
+];
 
 /* ---------------- COMPONENT ---------------- */
 
 const ServicesSection = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggle = (i: number) => {
+    setOpenIndex(openIndex === i ? null : i);
+  };
+
   return (
-    <section id="services" className="py-24 md:py-32 section-container p-10">
-      <div className="mx-auto max-w-[1080px] ">
-
-        {/* GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 lg:gap-24 items-center">
-
+    <section id="services" className="min-h-[90vh] flex items-center py-20">
+      <div className="section-container w-full p-4 md:p-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
           {/* ================= LEFT ================= */}
-          <div className="flex flex-col justify-center h-full">
-
-            {/* ✅ Animated Heading */}
+          <div>
             <AnimatedHeading
               lines={["Services that", "supercharge your", "business."]}
-              className="
-                text-[clamp(2.2rem,5vw,4rem)]
-                leading-[1.05]
-                tracking-[-0.02em]
-                max-w-[640px]
-              "
+              className="text-[clamp(2.5rem,6vw,4rem)] leading-[1.05] tracking-[-0.02em]"
             />
 
-            {/* TECH STACK ICONS */}
-            <div className="mt-12 sm:mt-14">
-              <p className="text-sm text-muted-foreground mb-5">
-                My tech stack
-              </p>
-
-              <motion.div
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="flex flex-wrap gap-3"
-              >
-                {techStack.map(({ icon: Icon, name }) => (
-                  <motion.div
-                    key={name}
-                    className="
-                      w-11 h-11
-                      rounded-xl
-                      border border-border
-                      bg-background
-                      flex items-center justify-center
-                      shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)]
-                      hover:scale-105 transition
-                    "
-                    title={name}
-                  >
-                    <Icon size={18} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
+            {/* TECH STACK */}
+            <motion.div
+              className="flex flex-wrap gap-3 mt-10"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ staggerChildren: 0.05 }}
+            >
+              {techStack.map(({ icon: Icon, name }) => (
+                <motion.div
+                  key={name}
+                  whileHover={{ scale: 1.08, y: -2 }}
+                  className="
+        w-11 h-11
+        rounded-xl
+        border border-border
+        bg-background/60 backdrop-blur-md
+        flex items-center justify-center
+        shadow-[0_2px_10px_rgba(0,0,0,0.08)]
+        transition
+      "
+                  title={name}
+                >
+                  <Icon size={18} />
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
 
           {/* ================= RIGHT ================= */}
-          <motion.div
-            variants={container}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            className="flex flex-col gap-6 sm:gap-7 lg:pl-6"
-          >
-            {services.map(({ icon: Icon, label }) => (
-              <motion.div
-                key={label}
-                className="flex items-center gap-4 sm:gap-5 group cursor-pointer"
-              >
-                {/* ICON */}
-                <div
-                  className="
-                    w-11 h-11 sm:w-12 sm:h-12
-                    rounded-full
-                    flex items-center justify-center
-                    text-white bg-black
-                    border border-neutral-700
-                    shadow-[inset_0_2px_4px_rgba(255,255,255,0.25),
-                             0_2px_6px_rgba(0,0,0,0.25),
-                             0_10px_25px_rgba(0,0,0,0.15)]
-                  "
-                >
-                  <Icon size={18} strokeWidth={2} />
+          <div className="flex flex-col gap-6">
+            {services.map((service, i) => {
+              const isOpen = openIndex === i;
+
+              return (
+                <div key={i}>
+                  {/* ROW */}
+                  <div className="flex items-center justify-between group">
+                    {/* LEFT CONTENT */}
+                    <div className="flex items-center gap-4">
+                      {/* ICON */}
+                      <div
+                        className="
+                          w-11 h-11 rounded-full
+                          flex items-center justify-center
+                          bg-black
+                          border border-neutral-700
+                          shadow-lg
+                        "
+                      >
+                        <img src={service.icon} className="w-5 h-5 invert" />
+                      </div>
+
+                      {/* TEXT */}
+                      <span className="text-lg font-medium">
+                        {service.title}
+                      </span>
+                    </div>
+
+                    {/* PLUS BUTTON */}
+                    <motion.button
+                      onClick={() => toggle(i)}
+                      whileTap={{ scale: 0.9 }}
+                      className="
+                        w-8 h-8 rounded-full
+                        border border-border
+                        flex items-center justify-center
+                        hover:bg-muted transition
+                      "
+                    >
+                      <motion.div
+                        animate={{ rotate: isOpen ? 45 : 0 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        <Plus size={16} />
+                      </motion.div>
+                    </motion.button>
+                  </div>
+
+                  {/* EXPAND TEXT */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="pl-[60px] pr-4 text-sm text-muted-foreground mt-3"
+                      >
+                        {service.desc}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-
-                {/* TEXT */}
-                <span className="text-base sm:text-lg md:text-xl font-medium tracking-tight">
-                  {label}
-                </span>
-              </motion.div>
-            ))}
-          </motion.div>
-
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

@@ -11,19 +11,19 @@ import AnimatedHeading from "@/components/AnimatedHeading";
 
 /* ---------------- DATA ---------------- */
 const features = [
-  "No contracts or commitments",
-  "Pause or cancel anytime",
-  "Multiple Brands",
-  "Unlimited requests",
-  "Avg 48 hour turnaround",
-  "Framer development",
+  "Flexible engagement terms",
+  "Dedicated account manager",
+  "Monthly performance reports",
+  "Monthly performance reports",
+  "Unlimited strategy requests",
+  "Priority support",
 ];
 
 const singleFeatures = [
-  "Clearly defined scope",
+  "Clearly defined Scope",
   "Fixed timeline",
-  "3 revision rounds",
-  "Milestone updates",
+  "Dedicated project manager",
+  "Regular milestone updates ",
 ];
 
 /* ---------------- FLOATING CARD ---------------- */
@@ -35,10 +35,10 @@ const FloatingCard = () => {
       transition={{
         duration: 8,
         repeat: Infinity,
-        ease: [0.45, 0, 0.55, 1], // 👈 smoother than default
+        ease: [0.45, 0, 0.55, 1], // smoother than default
       }}
       style={{
-        transformOrigin: "top center", // 👈 CRITICAL (pendulum pivot)
+        transformOrigin: "top center", //  CRITICAL (pendulum pivot)
         willChange: "transform",
       }}
       className="
@@ -65,12 +65,10 @@ const FloatingCard = () => {
             Pause or cancel anytime
           </div>
 
-          <p className="text-[17px] font-medium">
-            Subscription design services
-          </p>
+          <p className="text-[17px] font-medium">Digital marketing services</p>
 
           <p className="text-[14px] text-white/75">
-            for brands who move fast.
+            for brands ready to scale.
           </p>
         </div>
       </div>
@@ -83,15 +81,16 @@ const PricingSection = () => {
   return (
     <section className="py-24 md:py-32 section-container">
       <div className="mx-auto max-w-[1100px] p-2 md:p-10">
-
         {/* ================= HEADER ================= */}
         <div className="grid lg:grid-cols-2 gap-12 mb-20 items-center">
           <AnimatedHeading
-            lines={["Simple pricing.", "Standout designs."]}
-            className="text-[clamp(2.6rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]"
+            lines={["Transparent pricing.", "Real results, no surprises."]}
+            className="hidden md:block text-[clamp(2.6rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]"
           />
-
-
+          <AnimatedHeading
+            lines={["Transparent", "pricing.", "Real results", "no surprises."]}
+            className="md:hidden text-[clamp(2.6rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]"
+          />
         </div>
 
         {/* ================= STEPS ================= */}
@@ -99,18 +98,18 @@ const PricingSection = () => {
           {[
             {
               icon: RefreshCw,
-              title: "Subscribe",
-              desc: "Subscribe via stripe & start requesting.",
+              title: "Consult",
+              desc: "Book a free discovery call and share your business goals with our team",
             },
             {
               icon: MessageSquare,
-              title: "Request",
-              desc: "Request anything from branding to web.",
+              title: "Strategise",
+              desc: "We build a tailored digital marketing plan designed around your objectives.",
             },
             {
               icon: Send,
-              title: "Receive",
-              desc: "Receive designs within 48 hours.",
+              title: "Grow",
+              desc: "Watch your brand gain visibility, leads, and revenue — results you can measure.",
             },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title}>
@@ -125,64 +124,59 @@ const PricingSection = () => {
 
         {/* ================= BACKGROUND CONTAINER (IMPORTANT) ================= */}
         <div className="rounded-xl border border-[#e8e8e8] bg-[#f7f7f7] p-2 md:p-4 ">
-
           {/* ================= MAIN ================= */}
           <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-6 mb-6">
-
             {/* LEFT */}
             <div className="space-y-3">
               <FloatingCard />
 
-              <div className="
+              <div
+                className="
                 rounded-xl
                 border border-border
                 bg-white
                 p-6
                 shadow-[0_1px_2px_rgba(0,0,0,0.04),
                         0_6px_20px_rgba(0,0,0,0.06)]
-              ">
+              "
+              >
                 <div className="flex items-center gap-2 text-xs mb-4">
                   <span className="w-2 h-2 bg-green-500 rounded-full" />
-                  Slots available
+                  Limited slots available
                 </div>
 
                 <h3 className="text-2xl font-semibold mb-2">
-                  Hire me today
+                  Partner with us today
                 </h3>
 
                 <p className="text-sm text-muted-foreground">
-                  Skip the agency markup and work directly with an experienced designer.
+                  Work directly with a dedicated team that treats your growth as
+                  their own.
                 </p>
               </div>
             </div>
 
             {/* RIGHT */}
-            <div className="
+            <div
+              className="
               rounded-xl
               border border-border
               bg-white
               p-6 md:p-8
               shadow-[0_1px_2px_rgba(0,0,0,0.04),
                       0_10px_30px_rgba(0,0,0,0.08)]
-            ">
-              <h3 className="text-2xl font-semibold mb-3">
-                Unlimited Design
-              </h3>
+            "
+            >
+              <h3 className="text-2xl font-semibold mb-3">Monthly Retainer</h3>
 
               <p className="text-sm text-muted-foreground mb-6">
                 <span className="font-semibold text-foreground">
-                  One flat monthly rate for unlimited design requests.
+                  A fully managed monthly engagement covering strategy, execution, and reporting —
                 </span>{" "}
-                Ideal for ongoing design requirements.
+                so you can focus on running your business. 
               </p>
 
               <div className="border-t border-border pt-6">
-                <div className="flex items-end gap-2 mb-6">
-                  <span className="text-5xl font-semibold">$8,000</span>
-                  <span className="text-sm text-muted-foreground mb-1">
-                    / month
-                  </span>
-                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-8">
                   {features.map((f) => (
@@ -201,7 +195,7 @@ const PricingSection = () => {
                     shadow-lg hover:opacity-90 transition
                   "
                 >
-                  Get Started
+                Book a Free Call
                 </motion.button>
               </div>
             </div>
@@ -210,13 +204,10 @@ const PricingSection = () => {
           {/* ================= BOTTOM ================= */}
           <div className="rounded-[22px] bg-black text-white p-6 md:p-8">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
-
               <div>
-                <h3 className="text-2xl font-semibold mb-3">
-                  Single Project
-                </h3>
+                <h3 className="text-2xl font-semibold mb-3">One-Time Project</h3>
                 <p className="text-sm text-white/70">
-                  Comprehensive design services for any project scope.
+                  End-to-end digital marketing execution for a specific campaign or launch. Perfect for businesses with a defined goal and timeline. 
                 </p>
               </div>
 
@@ -239,13 +230,11 @@ const PricingSection = () => {
                     font-medium
                   "
                 >
-                  Get quote <ArrowRight size={16} />
+                  Request a Proposal <ArrowRight size={16} />
                 </motion.button>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </section>

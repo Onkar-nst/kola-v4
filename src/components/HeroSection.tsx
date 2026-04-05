@@ -1,9 +1,10 @@
 import avatarImg from "@/assets/avatar.jpg";
 import heroMockups from "@/assets/hero-mockups.jpg";
+import AnimatedHeading from "@/components/AnimatedHeading";
 
 const HeroSection = () => {
   return (
-    <section className="pt-32 pb-12 md:pb-20 section-container p-4">
+    <section className="pt-32 pb-12 md:mt-40 md:pb-20 section-container p-4 md:p-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
         <div className="flex flex-col gap-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 w-fit text-sm">
@@ -11,15 +12,25 @@ const HeroSection = () => {
             Available for August'25
           </div>
 
-          <h1 className="heading-xl">
-            <span className="text-text-tertiary">Design that</span>
+          {/* <h1 className="heading-lg">
+            <span className="text-text-tertiary"></span>
             <br />
-            delivers results.
-          </h1>
+            real results.
+          </h1> */}
 
+          <AnimatedHeading
+                    lines={["Digital experiences","that drive" ,"real results."]}
+                    className="
+                      text-[clamp(2.5rem,4vw,3.5rem)]
+                      leading-[1.05]
+                      tracking-[-0.025em]
+                      
+                      max-w-[760px]
+                    "
+                  />
           <p className="body-lg max-w-md">
-            <span className="font-semibold">Strategic design that drives growth, not just looks good.</span>{" "}
-            <span className="text-muted-foreground">I create everything your brand needs to attract customers and turn them into sales.</span>
+            <span className="font-semibold">From website development to SEO, lead generation and beyond - we craft data-driven digital marketing strategies that grow your brand, </span>{" "}
+            <span className="text-muted-foreground">reach the right audience, and turn clicks into customers.</span>
           </p>
 
           <a href="#contact" className="inline-flex items-center gap-3 rounded-full bg-primary text-primary-foreground pl-2 pr-6 py-2 w-fit text-sm font-medium hover:opacity-90 transition-opacity group">
