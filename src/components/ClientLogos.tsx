@@ -1,4 +1,4 @@
-import { motion, useAnimationFrame } from "framer-motion";
+import { useAnimationFrame } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import avatarImg from "@/assets/avatar.jpg";
 import { supabase } from "@/lib/supabase";
@@ -8,10 +8,10 @@ const SPEED = 100;
 const ClientLogos = () => {
   const x = useRef(0);
   const containerRef = useRef(null);
-  const [width, setWidth] = useState(0);
+  const halfWidthRef = useRef(0);
   const [logos, setLogos] = useState([]);
 
-  // 🔥 FETCH FROM SUPABASE
+  // FETCH FROM SUPABASE
   useEffect(() => {
     const fetchLogos = async () => {
       const { data, error } = await supabase
@@ -19,26 +19,40 @@ const ClientLogos = () => {
         .select("*")
         .order("created_at", { ascending: true });
 
-      if (error) console.error(error);
-      else setLogos(data);
+      if (error) {
+        console.error("ClientLogos fetch error:", error.message, error);
+      } else {
+        console.log("ClientLogos fetched:", data);
+        setLogos(data ?? []);
+      }
     };
-
     fetchLogos();
   }, []);
 
-  // measure width
+  // Measure the width of ONE set (half the total, since we duplicate)
   useEffect(() => {
-    if (containerRef.current) {
-      setWidth(containerRef.current.scrollWidth / 2);
-    }
-  }, [logos]); // 👈 important (after data loads)
+    if (!containerRef.current || logos.length === 0) return;
 
-  // animation
-  useAnimationFrame((t, delta) => {
+    // Wait a tick for the DOM to paint
+    const raf = requestAnimationFrame(() => {
+      if (containerRef.current) {
+        halfWidthRef.current = containerRef.current.scrollWidth / 2;
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [logos]);
+
+  // Seamless infinite scroll:
+  // We translate from 0 → -halfWidth, then snap back to 0 (invisible because
+  // the second copy is identical, so it looks continuous)
+  useAnimationFrame((_, delta) => {
+    if (halfWidthRef.current === 0) return;
+
     x.current -= (SPEED * delta) / 1000;
 
-    if (Math.abs(x.current) >= width) {
-      x.current = 0;
+    // Once we've scrolled exactly one full set, reset silently
+    if (x.current <= -halfWidthRef.current) {
+      x.current += halfWidthRef.current;
     }
 
     if (containerRef.current) {
@@ -79,16 +93,18 @@ const ClientLogos = () => {
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT — marquee */}
           <div className="relative flex-1 overflow-hidden w-full">
-
             <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
 
-            <motion.div
+            {/* will-change: transform keeps it GPU-composited */}
+            <div
               ref={containerRef}
               className="flex items-center gap-12 whitespace-nowrap"
+              style={{ willChange: "transform" }}
             >
+              {/* Render TWO identical copies so the loop is seamless */}
               {[...logos, ...logos].map((logo, i) => (
                 <div key={i} className="shrink-0 flex items-center">
                   {logo.type === "text" ? (
@@ -100,13 +116,17 @@ const ClientLogos = () => {
                       src={logo.image_url}
                       alt={logo.alt}
                       className="h-32 md:h-28 w-auto object-contain opacity-70"
+                      onError={(e) => {
+                        console.warn("Logo failed to load:", logo.image_url);
+                        e.currentTarget.style.display = "none";
+                      }}
                     />
                   )}
                 </div>
               ))}
-            </motion.div>
-
+            </div>
           </div>
+
         </div>
       </div>
     </section>
