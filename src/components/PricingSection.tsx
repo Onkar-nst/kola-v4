@@ -211,7 +211,7 @@ const PricingSection = () => {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="flex flex-row sm:flex-row items-start sm:items-center justify-between gap-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {singleFeatures.map((f) => (
                     <div key={f} className="flex items-center gap-2">

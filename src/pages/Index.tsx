@@ -35,12 +35,13 @@ const Index = () => {
         <Suspense fallback={<SectionLoader />}>
           <HeroSection />
           <ClientLogos />
-          <ProjectsSection />
-          <TestimonialBanner />
-          {/* <TechStack /> */}
+          <AboutSection />
           <SectionDivider />
           <ServicesSection />
-          <AboutSection />
+          <SectionDivider />
+          <TestimonialBanner />
+          <ProjectsSection />
+          {/* <TechStack /> */}
           <SectionDivider />
           <PricingSection />
           <SectionDivider />

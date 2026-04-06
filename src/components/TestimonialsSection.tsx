@@ -78,11 +78,11 @@ const Card = ({ t, i }) => {
 
       {/* user */}
       <div className="flex items-center gap-3">
-        <img
+        {/* <img
           src={avatarImg}
           className="w-9 h-9 rounded-full object-cover"
           style={{ filter: `hue-rotate(${i * 50}deg) saturate(0.7)` }}
-        />
+        /> */}
         <div>
           <p className="text-[14px] font-semibold">{t.name}</p>
           <p className="text-[12px] text-[#777]">{t.title}</p>
@@ -108,10 +108,10 @@ const TestimonialsSection = () => {
           "
           >
             <span className="text-[#9b9b9b] font-medium">
-              Hear from what my
+              Feedback that 
             </span>
             <br />
-            clients have to say.
+            fuels us
           </h2>
 
           <div className="flex items-center gap-3">

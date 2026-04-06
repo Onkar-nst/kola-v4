@@ -93,11 +93,7 @@ const AboutSection = () => {
 
               {/* SOCIAL BAR */}
               <div className="absolute bottom-4 left-4 flex gap-2">
-                <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-full">
-                  <Twitter size={14} /> 1,214
-                </div>
-
-                {[Instagram, Dribbble, Linkedin].map((Icon, i) => (
+                {[Instagram, Linkedin].map((Icon, i) => (
                   <div
                     key={i}
                     className="w-8 h-8 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center text-white"
@@ -110,9 +106,9 @@ const AboutSection = () => {
 
             {/* NAME */}
             <div className="mt-6">
-              <h3 className="text-[17px] font-semibold">Joseph Alexander</h3>
+              <h3 className="text-[17px] font-semibold">Kola Communications</h3>
               <p className="text-[13px] text-muted-foreground">
-                Full-stack Designer
+                Digital Marketing Agency
               </p>
             </div>
 

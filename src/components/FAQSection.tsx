@@ -77,10 +77,7 @@ const FAQSection = () => {
       */
       const desiredTop = NAV_H - sr.top;
 
-      // Clamp: don't go above section padding top
-      const minTop = 96; // py-24 = 96px
-
-      // Clamp: don't go below (section height - cta height - bottom padding)
+      const minTop = 96; 
       const maxTop = sr.height - ctaH - 96;
 
       const clampedTop = Math.min(Math.max(desiredTop, minTop), maxTop);
@@ -88,7 +85,6 @@ const FAQSection = () => {
       setCtaTop(clampedTop);
     };
 
-    // Use requestAnimationFrame for smooth, jank-free tracking
     let rafId: number;
     const onScroll = () => {
       cancelAnimationFrame(rafId);
@@ -214,7 +210,7 @@ const FAQSection = () => {
             p-8
           "
         >
-          <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" />
+          {/* <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" /> */}
           <p className="text-[#8a8a8a] text-lg">Still not sure?</p>
           <h3 className="text-[28px] font-semibold leading-tight mt-1">
             Book a free discovery call.
@@ -239,7 +235,7 @@ const FAQSection = () => {
       {/* ─── Mobile ─── */}
       <div className="lg:hidden max-w-[1100px] mx-auto px-4 md:px-10 mt-10">
         <div className="rounded-[22px] border border-gray-300 bg-[#fafafa] p-8">
-          <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" />
+          {/* <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" /> */}
           <p className="text-[#8a8a8a] text-lg">Still not sure?</p>
           <h3 className="text-[28px] font-semibold leading-tight mt-1">
             Book a free discovery call.

@@ -5,7 +5,6 @@ import { Plus } from "lucide-react";
 
 /* ---------------- DATA ---------------- */
 
-
 import { BsStars } from "react-icons/bs";
 import {
   SiWordpress,
@@ -31,7 +30,6 @@ import {
   SiFigma,
   SiCanva,
 } from "react-icons/si";
-
 
 const techStack = [
   { icon: SiWordpress, name: "WordPress" },
@@ -67,7 +65,6 @@ const techStack = [
 
   { icon: SiPython, name: "Python" },
 ];
-
 
 const services = [
   {
@@ -144,14 +141,14 @@ const ServicesSection = () => {
                   key={name}
                   whileHover={{ scale: 1.08, y: -2 }}
                   className="
-        w-11 h-11
-        rounded-xl
-        border border-border
-        bg-background/60 backdrop-blur-md
-        flex items-center justify-center
-        shadow-[0_2px_10px_rgba(0,0,0,0.08)]
-        transition
-      "
+                    w-11 h-11
+                    rounded-xl
+                    border border-border
+                    bg-background/60 backdrop-blur-md
+                    flex items-center justify-center
+                    shadow-[0_2px_10px_rgba(0,0,0,0.08)]
+                    transition
+                  "
                   title={name}
                 >
                   <Icon size={18} />
@@ -217,7 +214,7 @@ const ServicesSection = () => {
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="pl-[60px] pr-4 text-sm text-muted-foreground mt-3"
+                        className="pl-[60px] pr-4 text-md text-muted-foreground mt-3"
                       >
                         {service.desc}
                       </motion.div>
