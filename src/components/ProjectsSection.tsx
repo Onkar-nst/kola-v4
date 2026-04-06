@@ -161,7 +161,7 @@ const ProjectsSection = () => {
   }, []);
 
   return (
-    <section className="py-24 section-container p-4 md:p-10">
+    <section className="py-24 md:mb-10 section-container p-4 md:p-10">
       <AnimatedHeading
         lines={["Projects", "we're proud of."]}
         className="
@@ -170,6 +170,7 @@ const ProjectsSection = () => {
           tracking-[-0.02em]
           max-w-[640px]
           mb-16 md:mb-20
+          md:mt-10
         "
         stagger={0.07}
         duration={0.7}

@@ -79,7 +79,7 @@ const FloatingCard = () => {
 /* ---------------- COMPONENT ---------------- */
 const PricingSection = () => {
   return (
-    <section className="py-24 md:py-32 section-container">
+    <section className="py-24  section-container">
       <div className="mx-auto max-w-[1100px] p-2 md:p-10">
         {/* ================= HEADER ================= */}
         <div className="grid lg:grid-cols-2 gap-12 mb-20 items-center">

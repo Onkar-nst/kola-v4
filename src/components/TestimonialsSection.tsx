@@ -45,7 +45,7 @@ const cardVariants = {
 };
 
 /* ---------------- CARD ---------------- */
-const Card = ({ t, i }: any) => {
+const Card = ({ t, i }) => {
   return (
     <motion.div
       custom={i}
@@ -95,7 +95,7 @@ const Card = ({ t, i }: any) => {
 /* ---------------- COMPONENT ---------------- */
 const TestimonialsSection = () => {
   return (
-    <section className="py-24  section-container">
+    <section className="py-24 md:-my-10  section-container">
       <div className="max-w-[1100px] p-2 md:p-10 ">
         {/* ================= HEADER ================= */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">

@@ -52,7 +52,7 @@ const AboutSection = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="py-24 md:py-32 border-t border-border section-container p-10">
+    <section className="py-24 md:py-24 border-t border-border section-container p-10">
       <div className="mx-auto max-w-[1080px]">
         {/* ===== HEADING ===== */}
         <AnimatedHeading
