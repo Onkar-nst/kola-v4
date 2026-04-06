@@ -22,18 +22,17 @@ const ClientLogos = () => {
       if (error) {
         console.error("ClientLogos fetch error:", error.message, error);
       } else {
-        console.log("ClientLogos fetched:", data);
+        // console.log("ClientLogos fetched:", data);
         setLogos(data ?? []);
       }
     };
     fetchLogos();
   }, []);
 
-  // Measure the width of ONE set (half the total, since we duplicate)
+
   useEffect(() => {
     if (!containerRef.current || logos.length === 0) return;
 
-    // Wait a tick for the DOM to paint
     const raf = requestAnimationFrame(() => {
       if (containerRef.current) {
         halfWidthRef.current = containerRef.current.scrollWidth / 2;
@@ -42,15 +41,12 @@ const ClientLogos = () => {
     return () => cancelAnimationFrame(raf);
   }, [logos]);
 
-  // Seamless infinite scroll:
-  // We translate from 0 → -halfWidth, then snap back to 0 (invisible because
-  // the second copy is identical, so it looks continuous)
+
   useAnimationFrame((_, delta) => {
     if (halfWidthRef.current === 0) return;
 
     x.current -= (SPEED * delta) / 1000;
 
-    // Once we've scrolled exactly one full set, reset silently
     if (x.current <= -halfWidthRef.current) {
       x.current += halfWidthRef.current;
     }
@@ -98,13 +94,11 @@ const ClientLogos = () => {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
 
-            {/* will-change: transform keeps it GPU-composited */}
             <div
               ref={containerRef}
               className="flex items-center gap-12 whitespace-nowrap"
               style={{ willChange: "transform" }}
             >
-              {/* Render TWO identical copies so the loop is seamless */}
               {[...logos, ...logos].map((logo, i) => (
                 <div key={i} className="shrink-0 flex items-center">
                   {logo.type === "text" ? (
