@@ -116,6 +116,16 @@ const AboutSection = () => {
               </p>
             </div>
 
+            {/* ===== PARAGRAPHS — mobile only, shown between image and values ===== */}
+            <div className="lg:hidden mt-10 space-y-8">
+              {paragraphs.map((p, i) => (
+                <p key={i} className="text-xl leading-[1.65]">
+                  <span className="font-medium">{p.bold}</span>{" "}
+                  <span className="text-muted-foreground">{p.text}</span>
+                </p>
+              ))}
+            </div>
+
             {/* ===== WORK HISTORY ===== */}
             <div className="mt-14">
               <p className="text-[15px] font-medium mb-6">
@@ -194,10 +204,6 @@ const AboutSection = () => {
                                 {item.role}
                               </p>
                             </div>
-
-                            {/* <span className="text-[13px] text-muted-foreground">
-                              {item.year}
-                            </span> */}
                           </div>
                         </motion.div>
                       ))}
@@ -256,14 +262,14 @@ const AboutSection = () => {
           </div>
 
           {/* ================= RIGHT ================= */}
-          <div className="space-y-8 max-w-[660px]">
+          {/* hidden on mobile since paragraphs are rendered above in the left col */}
+          <div className="hidden lg:block space-y-8 max-w-[660px]">
             {paragraphs.map((p, i) => (
               <p key={i} className="text-xl leading-[1.65]">
                 <span className="font-medium">{p.bold}</span>{" "}
                 <span className="text-muted-foreground">{p.text}</span>
               </p>
             ))}
-
           </div>
         </div>
       </div>
