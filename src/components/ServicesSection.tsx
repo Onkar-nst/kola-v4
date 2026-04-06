@@ -5,6 +5,8 @@ import { Plus } from "lucide-react";
 
 /* ---------------- DATA ---------------- */
 
+
+import { BsStars } from "react-icons/bs";
 import {
   SiWordpress,
   SiShopify,
@@ -15,22 +17,58 @@ import {
   SiMeta,
   SiOpenai,
   SiPython,
+  SiJavascript,
+  SiTypescript,
+  SiNextdotjs,
+  SiNodedotjs,
+  SiExpress,
+  SiMongodb,
+  SiPostgresql,
+  SiSupabase,
+  SiFirebase,
+  SiVercel,
+  SiNetlify,
+  SiFigma,
+  SiCanva,
 } from "react-icons/si";
-import { BsStars } from "react-icons/bs";
+
 
 const techStack = [
   { icon: SiWordpress, name: "WordPress" },
   { icon: SiShopify, name: "Shopify" },
   { icon: SiReact, name: "React" },
+  { icon: SiNextdotjs, name: "Next.js" },
   { icon: SiTailwindcss, name: "Tailwind" },
+
+  { icon: SiJavascript, name: "JavaScript" },
+  { icon: SiTypescript, name: "TypeScript" },
+
+  { icon: SiNodedotjs, name: "Node.js" },
+  { icon: SiExpress, name: "Express" },
+
+  { icon: SiMongodb, name: "MongoDB" },
+  { icon: SiPostgresql, name: "PostgreSQL" },
+  { icon: SiSupabase, name: "Supabase" },
+  { icon: SiFirebase, name: "Firebase" },
+
   { icon: SiGithub, name: "GitHub" },
-  { icon: SiGithub, name: "Photoshop" },
+
+  { icon: SiVercel, name: "Vercel" },
+  { icon: SiNetlify, name: "Netlify" },
+
+  { icon: SiFigma, name: "Figma" },
+  { icon: SiCanva, name: "Canva" },
+
   { icon: SiGoogleanalytics, name: "Analytics" },
   { icon: SiMeta, name: "Meta Ads" },
+
   { icon: SiOpenai, name: "ChatGPT" },
   { icon: BsStars, name: "Claude" },
+
   { icon: SiPython, name: "Python" },
 ];
+
+
 const services = [
   {
     icon: "https://cdn-icons-png.flaticon.com/512/1006/1006771.png",
@@ -138,8 +176,7 @@ const ServicesSection = () => {
                         className="
                           w-11 h-11 rounded-full
                           flex items-center justify-center
-                          bg-black
-                          border border-neutral-700
+                          bg-black text-white grayscale
                           shadow-lg
                         "
                       >
