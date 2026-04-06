@@ -17,7 +17,7 @@ const FAQSection = lazy(() => import("@/components/FAQSection"));
 // const BlogSection = lazy(() => import("@/components/BlogSection"));
 const CTAFooter = lazy(() => import("@/components/CTAFooter"));
 const SectionDivider = lazy(() => import("@/components/SectionDivider"));
-const TechStack = lazy(() => import("@/components/TechStack"));
+// const TechStack = lazy(() => import("@/components/TechStack"));
 
 const SectionLoader = () => (
   <div className="py-20 text-center text-sm text-muted-foreground">
@@ -37,7 +37,7 @@ const Index = () => {
           <ClientLogos />
           <ProjectsSection />
           <TestimonialBanner />
-          <TechStack />
+          {/* <TechStack /> */}
           <SectionDivider />
           <ServicesSection />
           <AboutSection />

@@ -1,44 +1,44 @@
 import { motion, useAnimationFrame } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import avatarImg from "@/assets/avatar.jpg";
+import { supabase } from "@/lib/supabase";
 
-const SPEED = 100; 
-
-const logos = [
-  { type: "text", label: "45 Degrees°" },
-  { type: "text", label: "Codecraft_" },
-  { type: "text", label: "Frequencii" },
-  {
-    type: "image",
-    src: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg",
-    alt: "Client team"
-  },
-  { type: "text", label: "Kinsta" },
-  {
-    type: "image",
-    src: "https://images.pexels.com/photos/3182763/pexels-photo-3182763.jpeg",
-    alt: "Startup workspace"
-  },
-];
+const SPEED = 100;
 
 const ClientLogos = () => {
   const x = useRef(0);
   const containerRef = useRef(null);
   const [width, setWidth] = useState(0);
+  const [logos, setLogos] = useState([]);
 
-  // measure width of one loop
+  // 🔥 FETCH FROM SUPABASE
+  useEffect(() => {
+    const fetchLogos = async () => {
+      const { data, error } = await supabase
+        .from("client_logos")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (error) console.error(error);
+      else setLogos(data);
+    };
+
+    fetchLogos();
+  }, []);
+
+  // measure width
   useEffect(() => {
     if (containerRef.current) {
       setWidth(containerRef.current.scrollWidth / 2);
     }
-  }, []);
+  }, [logos]); // 👈 important (after data loads)
 
-  // smooth continuous animation
+  // animation
   useAnimationFrame((t, delta) => {
     x.current -= (SPEED * delta) / 1000;
 
     if (Math.abs(x.current) >= width) {
-      x.current = 0; // reset seamlessly
+      x.current = 0;
     }
 
     if (containerRef.current) {
@@ -60,10 +60,6 @@ const ClientLogos = () => {
                   src={avatarImg}
                   alt="Happy client"
                   className="w-8 h-8 rounded-full border-2 border-background object-cover"
-                  width={32}
-                  height={32}
-                  loading="lazy"
-                  decoding="async"
                   style={{ filter: `hue-rotate(${i * 60}deg)` }}
                 />
               ))}
@@ -83,10 +79,9 @@ const ClientLogos = () => {
             </div>
           </div>
 
-          {/* RIGHT: MARQUEE */}
+          {/* RIGHT */}
           <div className="relative flex-1 overflow-hidden w-full">
 
-            {/* fade edges */}
             <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent z-10" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent z-10" />
 
@@ -102,11 +97,9 @@ const ClientLogos = () => {
                     </span>
                   ) : (
                     <img
-                      src={logo.src}
+                      src={logo.image_url}
                       alt={logo.alt}
                       className="h-8 w-auto object-contain opacity-70"
-                      loading="lazy"
-                      decoding="async"
                     />
                   )}
                 </div>

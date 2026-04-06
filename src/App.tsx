@@ -6,24 +6,25 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { lazy, Suspense, useEffect } from "react";
 
 import Navbar from "@/components/Navbar";
-
-/* 🔥 LENIS */
 import Lenis from "@studio-freight/lenis";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
+import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
 
 const queryClient = new QueryClient();
 
-/* 🔥 LENIS WRAPPER COMPONENT */
+export let lenisInstance = null; 
+
 const SmoothScroll = ({ children }) => {
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
       smoothWheel: true,
-      smoothTouch: false,
     });
+
+    lenisInstance = lenis; 
 
     function raf(time: number) {
       lenis.raf(time);
@@ -34,46 +35,48 @@ const SmoothScroll = ({ children }) => {
 
     return () => {
       lenis.destroy();
+      lenisInstance = null;
     };
   }, []);
 
   return children;
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
 
-      <BrowserRouter>
+const App = () => {
 
-        {/* ✅ SMOOTH SCROLL WRAP */}
-        <SmoothScroll>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
 
-          {/* NAVBAR */}
-          <Navbar />
+        <BrowserRouter>
+        <ScrollToTopWrapper>
 
-          {/* ROUTES */}
-          <Suspense
-            fallback={
-              <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
-                Loading...
-              </div>
-            }
-          >
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="*" element={<NotFound />} />
-              <Route path="/project/:slug"     element={<ProjectPage />} />
-            </Routes>
-          </Suspense>
+          <SmoothScroll>
+            <Navbar />
 
-        </SmoothScroll>
+            <Suspense
+              fallback={
+                <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="*" element={<NotFound />} />
+                <Route path="/project/:slug" element={<ProjectPage />} />
+              </Routes>
+            </Suspense>
+          </SmoothScroll>
+          </ScrollToTopWrapper>
 
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

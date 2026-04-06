@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import { ArrowUpRight } from "lucide-react";
-import { projects } from "@/data/projects";
+import { supabase } from "@/lib/supabase";
 
 /* ─── Glitch hook ─── */
 
@@ -32,30 +32,13 @@ const GlitchOverlay = () => (
         transition={{ duration: 0.3, delay: i * 0.05 }}
         className="absolute inset-0"
         style={{
-          background: i === 0 ? "rgba(255,0,0,0.2)" : i === 1 ? "rgba(0,255,0,0.15)" : "rgba(0,150,255,0.2)",
+          background:
+            i === 0
+              ? "rgba(255,0,0,0.2)"
+              : i === 1
+              ? "rgba(0,255,0,0.15)"
+              : "rgba(0,150,255,0.2)",
           mixBlendMode: "screen",
-        }}
-      />
-    ))}
-    {Array.from({ length: 14 }).map((_, i) => (
-      <motion.div
-        key={i}
-        animate={{ y: ["0%", "100%"], opacity: [0.8, 0] }}
-        transition={{ duration: 0.1, delay: i * 0.02 }}
-        className="absolute w-full h-[5%] bg-black/70"
-        style={{ top: `${i * 7}%` }}
-      />
-    ))}
-    {Array.from({ length: 60 }).map((_, i) => (
-      <motion.div
-        key={i}
-        animate={{ opacity: [0, 1, 0], scale: [0.4, 1.6, 0.4] }}
-        transition={{ duration: 0.4, delay: Math.random() * 0.3 }}
-        style={{
-          position: "absolute", width: 3, height: 3,
-          background: "white",
-          top: `${Math.random() * 100}%`,
-          left: `${Math.random() * 100}%`,
         }}
       />
     ))}
@@ -66,7 +49,7 @@ const GlitchOverlay = () => (
 
 const ProjectCard = ({ project, index }) => {
   const { glitching, trigger } = useGlitch();
-  const [hovered, setHovered]   = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   return (
     <Link to={`/project/${project.slug}`} style={{ textDecoration: "none" }}>
@@ -75,17 +58,26 @@ const ProjectCard = ({ project, index }) => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.1 }}
-        onMouseEnter={() => { setHovered(true); trigger(); }}
+        onMouseEnter={() => {
+          setHovered(true);
+          trigger();
+        }}
         onMouseLeave={() => setHovered(false)}
         className="group overflow-hidden border border-black/10 bg-white/5 backdrop-blur-xl relative cursor-pointer"
       >
         {/* Header */}
         <div className="flex justify-between items-center px-5 py-4 border-b border-black/10">
           <div className="flex gap-3 items-center">
-            <span className="text-sm text-black font-medium">{project.title}</span>
+            <span className="text-sm text-black font-medium">
+              {project.title}
+            </span>
+
             <div className="flex gap-2">
-              {project.tags.map((tag) => (
-                <span key={tag} className="text-[10px] px-2 py-0.5 text-black/40 border border-black/10">
+              {project.tags?.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] px-2 py-0.5 text-black/40 border border-black/10"
+                >
                   {tag}
                 </span>
               ))}
@@ -95,13 +87,22 @@ const ProjectCard = ({ project, index }) => {
           {/* Arrow */}
           <div className="relative w-4 h-4 overflow-hidden">
             <motion.span
-              animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
+              animate={
+                hovered
+                  ? { x: 16, y: -16, opacity: 0 }
+                  : { x: 0, y: 0, opacity: 1 }
+              }
               className="absolute"
             >
               <ArrowUpRight size={16} className="text-black/50" />
             </motion.span>
+
             <motion.span
-              animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }}
+              animate={
+                hovered
+                  ? { x: 0, y: 0, opacity: 1 }
+                  : { x: -16, y: 16, opacity: 0 }
+              }
               className="absolute"
             >
               <ArrowUpRight size={16} className="text-black" />
@@ -117,14 +118,19 @@ const ProjectCard = ({ project, index }) => {
             className="absolute inset-0 w-full h-full object-cover"
             animate={{ opacity: hovered && glitching ? 0 : 1 }}
           />
+
           <motion.img
-            src={project.hoverImg}
+            src={project.hoverImg || project.hover_img}
             alt={project.title}
             className="absolute inset-0 w-full h-full object-cover"
             initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: hovered && !glitching ? 1 : 0, scale: hovered ? 1 : 1.1 }}
+            animate={{
+              opacity: hovered && !glitching ? 1 : 0,
+              scale: hovered ? 1 : 1.1,
+            }}
             transition={{ duration: 0.5 }}
           />
+
           <AnimatePresence>{glitching && <GlitchOverlay />}</AnimatePresence>
         </div>
       </motion.div>
@@ -132,9 +138,28 @@ const ProjectCard = ({ project, index }) => {
   );
 };
 
-/* ─── Component ─── */
+/* ─── Main Component ─── */
 
 const ProjectsSection = () => {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching projects:", error);
+      } else {
+        setProjects(data);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   return (
     <section className="py-24 section-container p-4 md:p-10">
       <AnimatedHeading
@@ -169,13 +194,20 @@ const ProjectsSection = () => {
             View all projects
             <span className="relative w-4 h-4 overflow-hidden">
               <motion.span
-                variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: 16, y: -16, opacity: 0 } }}
+                variants={{
+                  rest: { x: 0, y: 0, opacity: 1 },
+                  hover: { x: 16, y: -16, opacity: 0 },
+                }}
                 className="absolute"
               >
                 <ArrowUpRight size={14} />
               </motion.span>
+
               <motion.span
-                variants={{ rest: { x: -16, y: 16, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }}
+                variants={{
+                  rest: { x: -16, y: 16, opacity: 0 },
+                  hover: { x: 0, y: 0, opacity: 1 },
+                }}
                 className="absolute"
               >
                 <ArrowUpRight size={14} />
