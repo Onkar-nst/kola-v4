@@ -264,15 +264,6 @@ const AboutSection = () => {
               </p>
             ))}
 
-            {/* SIGNATURE */}
-            <div className="pt-6">
-              <img
-                src="https://oskiqdthpejzihtjybwc.supabase.co/storage/v1/object/public/kola-website%20images/logo-2.png"
-                alt="signature"
-                className="h-14 opacity-90"
-                loading="lazy"
-              />
-            </div>
           </div>
         </div>
       </div>

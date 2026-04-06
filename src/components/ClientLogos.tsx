@@ -99,7 +99,7 @@ const ClientLogos = () => {
                     <img
                       src={logo.image_url}
                       alt={logo.alt}
-                      className="h-8 w-auto object-contain opacity-70"
+                      className="h-32 md:h-28 w-auto object-contain opacity-70"
                     />
                   )}
                 </div>
