@@ -5,7 +5,6 @@ import { Plus } from "lucide-react";
 
 /* ---------------- DATA ---------------- */
 
-import { BsStars } from "react-icons/bs";
 import {
   SiWordpress,
   SiShopify,
@@ -61,7 +60,6 @@ const techStack = [
   { icon: SiMeta, name: "Meta Ads" },
 
   { icon: SiOpenai, name: "ChatGPT" },
-  { icon: BsStars, name: "Claude" },
 
   { icon: SiPython, name: "Python" },
 ];
@@ -137,22 +135,43 @@ const ServicesSection = () => {
               transition={{ staggerChildren: 0.05 }}
             >
               {techStack.map(({ icon: Icon, name }) => (
-                <motion.div
-                  key={name}
-                  whileHover={{ scale: 1.08, y: -2 }}
-                  className="
-                    w-11 h-11
-                    rounded-xl
-                    border border-border
-                    bg-background/60 backdrop-blur-md
-                    flex items-center justify-center
-                    shadow-[0_2px_10px_rgba(0,0,0,0.08)]
-                    transition
-                  "
-                  title={name}
-                >
-                  <Icon size={18} />
-                </motion.div>
+                <div key={name} className="relative group">
+                  {/* ICON */}
+                  <div
+                    className="
+        w-11 h-11
+        rounded-xl
+        border border-border
+        bg-background/60 backdrop-blur-md
+        flex items-center justify-center
+        shadow-[0_2px_10px_rgba(0,0,0,0.08)]
+        transition
+        group-hover:scale-105 group-hover:-translate-y-1
+      "
+                  >
+                    <Icon size={18} />
+                  </div>
+
+                  {/* 🔥 TOOLTIP */}
+                  <div
+                    className="
+        pointer-events-none
+        absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+        px-2.5 py-1
+        text-[11px] font-medium
+        rounded-md
+        bg-black text-white
+        whitespace-nowrap
+
+        opacity-0 scale-95
+        group-hover:opacity-100 group-hover:scale-100
+
+        transition-all duration-150 ease-out
+      "
+                  >
+                    {name}
+                  </div>
+                </div>
               ))}
             </motion.div>
           </div>

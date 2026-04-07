@@ -327,7 +327,7 @@ function GrowthPipelineVisual() {
 /* ─── Hero Section ─────────────────────────────────────────────────────── */
 const HeroSection = () => {
   return (
-    <section className="pt-32 pb-12 md:mt-40 md:pb-20 section-container p-4 md:p-10">
+    <section className="pt-32 pb-12 md:mt-32 md:pb-20 section-container p-4 md:p-10">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
 
         {/* Left: copy — unchanged from your original */}

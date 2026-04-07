@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import avatarJoseph from "@/assets/avatar.jpg";
+// import avatarJoseph from "@/assets/avatar.jpg";
+const  avatarJoseph = "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL0u810.jpg?scale-down-to=4096"
 import {
   Twitter,
   Instagram,
@@ -24,6 +25,17 @@ const paragraphs = [
   {
     bold: "We're detail-obsessed, and we think that's exactly what sets us apart.",
     text: "It's what keeps our clients coming back and what drives us to treat every project with the same dedication and care we'd want for our own brand.",
+  },
+];
+
+const socials = [
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/p/DG5c5GTPtgh/",
+  },
+  {
+    icon: Linkedin,
+    href: "https://in.linkedin.com/company/kolacommunications",
   },
 ];
 
@@ -67,7 +79,7 @@ const AboutSection = () => {
           "
         />
         <AnimatedHeading
-          lines={["Helping brands", "grow in a","digital-first world"]}
+          lines={["Helping brands", "grow in a", "digital-first world"]}
           className="
            md:hidden
             text-[clamp(2.6rem,5vw,4rem)]
@@ -93,13 +105,23 @@ const AboutSection = () => {
 
               {/* SOCIAL BAR */}
               <div className="absolute bottom-4 left-4 flex gap-2">
-                {[Instagram, Linkedin].map((Icon, i) => (
-                  <div
+                {socials.map(({ icon: Icon, href }, i) => (
+                  <a
                     key={i}
-                    className="w-8 h-8 rounded-full bg-black/70 backdrop-blur-md flex items-center justify-center text-white"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                    w-8 h-8 rounded-full
+                    bg-black/70 backdrop-blur-md
+                    flex items-center justify-center
+                    text-white
+                    transition-all duration-300
+                    hover:scale-110 hover:bg-black
+                  "
                   >
                     <Icon size={14} />
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -159,7 +181,6 @@ const AboutSection = () => {
                           {history[0].role}
                         </p>
                       </div>
-
                     </div>
                   </motion.div>
                 </motion.div>

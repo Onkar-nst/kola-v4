@@ -5,6 +5,19 @@ import {
   Linkedin,
 } from "lucide-react";
 
+/* 🔥 SOCIAL LINKS */
+const socials = [
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/p/DG5c5GTPtgh/",
+  },
+  {
+    icon: Linkedin,
+    href: "https://in.linkedin.com/company/kolacommunications",
+  },
+
+];
+
 const CTAFooter = () => {
   return (
     <footer
@@ -27,54 +40,54 @@ const CTAFooter = () => {
 
           {/* EMAIL */}
           <div>
-            <p className="text-sm text-white/40 mb-2">Email</p>
+            <p className="text-sm text-white/60 mb-2">Email</p>
             <a
-              href="mailto:hello@kolacommunications.com"
+              href="mailto:business@kolacommunications.com"
               className="text-lg font-medium hover:opacity-70 transition"
             >
-              hello@kolacommunications.com
+              business@kolacommunications.com
             </a>
           </div>
 
           {/* CALL */}
           <div>
-            <p className="text-sm text-white/40 mb-2">Call Me</p>
+            <p className="text-sm text-white/60 mb-2">Call Us</p>
             <a
-              href="#"
+              href="tel:+918108969630"
               className="text-lg font-medium hover:opacity-70 transition"
             >
-              Book Now
+              +91-8108969630
             </a>
           </div>
 
           {/* SOCIAL */}
           <div>
-            <p className="text-sm text-white/40 mb-3">Social</p>
+            <p className="text-sm text-white/60 mb-3">Social</p>
 
             <div className="flex items-center gap-2">
 
               {/* followers pill */}
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-black text-xs font-medium">
-                X <span className="opacity-70">1,214</span>
+                Kola <span className="opacity-70">Agency</span>
               </div>
 
-              {[Twitter, Instagram, Dribbble, Linkedin].map(
-                (Icon, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    className="
-                      w-9 h-9 rounded-full
-                      bg-white/10
-                      flex items-center justify-center
-                      hover:bg-white hover:text-black
-                      transition-all duration-300
-                    "
-                  >
-                    <Icon size={16} />
-                  </a>
-                )
-              )}
+              {socials.map(({ icon: Icon, href }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="
+                    w-9 h-9 rounded-full
+                    bg-white/10
+                    flex items-center justify-center
+                    hover:bg-white hover:text-black
+                    transition-all duration-300
+                  "
+                >
+                  <Icon size={16} />
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -86,7 +99,7 @@ const CTAFooter = () => {
 
             {/* MENU */}
             <div>
-              <p className="text-xs text-white/40 uppercase tracking-widest mb-4">
+              <p className="text-xs text-white/60 uppercase tracking-widest mb-4">
                 Menu
               </p>
 
@@ -113,7 +126,7 @@ const CTAFooter = () => {
 
             {/* LEGAL */}
             <div>
-              <p className="text-xs text-white/40 uppercase tracking-widest mb-4">
+              <p className="text-xs text-white/60 uppercase tracking-widest mb-4">
                 Legal
               </p>
 
@@ -127,10 +140,12 @@ const CTAFooter = () => {
               </div>
             </div>
 
-            {/* COPYRIGHT */}
-            <div className="flex items-center md:justify-end">
-              <p className="text-sm text-white/40">
-                © 2026 Kola Communications
+            {/* CONTACT + ADDRESS */}
+            <div className="flex flex-col md:items-end gap-2 text-sm text-white/80">
+              <p>© 2026 Kola Communications</p>
+              <p className="max-w-[260px] text-right">
+                C42, Modi Nagar CHS, Opposite Wanjawadi,
+                Kandivali West, Mumbai - 400067
               </p>
             </div>
           </div>

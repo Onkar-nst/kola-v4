@@ -17,7 +17,7 @@ const ClientLogos = () => {
       const { data, error } = await supabase
         .from("client_logos")
         .select("*")
-        .order("created_at", { ascending: true });
+        .order("label", { ascending: false });
 
       if (error) {
         console.error("ClientLogos fetch error:", error.message, error);
