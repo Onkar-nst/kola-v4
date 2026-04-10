@@ -23,7 +23,7 @@ const CustomCursor = () => {
     document.addEventListener("mouseenter", enter);
 
     const animate = () => {
-      const speed = 0.06; // 👈 SUPER slow & smooth
+      const speed = 0.06; 
 
       current.current.x += (mouse.current.x - current.current.x) * speed;
       current.current.y += +(mouse.current.y - current.current.y) * speed;
@@ -49,7 +49,7 @@ const CustomCursor = () => {
   return (
     <div
       ref={cursorRef}
-      className="pointer-events-none fixed top-0 left-0 z-[50]
+      className=" hidden md:block pointer-events-none fixed top-0 left-0 z-[50]
                  w-3 h-3 rounded-full
                  -translate-x-1/2 -translate-y-1/2
                  bg-black/70 backdrop-blur-[10px]"
