@@ -11,6 +11,7 @@ import Lenis from "@studio-freight/lenis";
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
+const ProjectDisplay = lazy(() => import("./pages/ProjectDisplay"));
 
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
 
@@ -69,6 +70,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="*" element={<NotFound />} />
                 <Route path="/project/:slug" element={<ProjectPage />} />
+                <Route path="/projects" element={<ProjectDisplay />} />
               </Routes>
             </Suspense>
           </SmoothScroll>
