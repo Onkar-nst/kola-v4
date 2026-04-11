@@ -13,11 +13,10 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
 
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
-import ProjectPageLoader from "./components/Projectpageloader";
 
 const queryClient = new QueryClient();
 
-export let lenisInstance = null;
+export let lenisInstance = null; 
 
 const SmoothScroll = ({ children }) => {
   useEffect(() => {
@@ -26,7 +25,7 @@ const SmoothScroll = ({ children }) => {
       smoothWheel: true,
     });
 
-    lenisInstance = lenis;
+    lenisInstance = lenis; 
 
     function raf(time: number) {
       lenis.raf(time);
@@ -44,7 +43,9 @@ const SmoothScroll = ({ children }) => {
   return children;
 };
 
+
 const App = () => {
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -52,19 +53,27 @@ const App = () => {
         <Sonner />
 
         <BrowserRouter>
-          <ScrollToTopWrapper>
-            <SmoothScroll>
-              <Navbar />
+        <ScrollToTopWrapper>
 
-              <Suspense fallback={<ProjectPageLoader />}>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/project/:slug" element={<ProjectPage />} />
-                </Routes>
-              </Suspense>
-            </SmoothScroll>
+          <SmoothScroll>
+            <Navbar />
+
+            <Suspense
+              fallback={
+                <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="*" element={<NotFound />} />
+                <Route path="/project/:slug" element={<ProjectPage />} />
+              </Routes>
+            </Suspense>
+          </SmoothScroll>
           </ScrollToTopWrapper>
+
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

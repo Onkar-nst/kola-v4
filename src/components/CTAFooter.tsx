@@ -67,8 +67,8 @@ const CTAFooter = () => {
             <div className="flex items-center gap-2">
 
               {/* followers pill */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-black text-xs font-medium">
-                Kola <span className="opacity-70">Agency</span>
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white text-black text-xs font-medium">
+                Kola <span className="opacity-70">Communications</span>
               </div>
 
               {socials.map(({ icon: Icon, href }, i) => (

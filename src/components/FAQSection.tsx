@@ -227,7 +227,6 @@ const FAQSection = () => {
               <Calendar size={16} />
               Schedule Now
             </motion.button>
-            <span className="text-sm text-[#999]">Cal.com</span>
           </div>
         </div>
       </div>

@@ -13,14 +13,13 @@ const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection"
 const FAQSection = lazy(() => import("@/components/FAQSection"));
 const CTAFooter = lazy(() => import("@/components/CTAFooter"));
 const SectionDivider = lazy(() => import("@/components/SectionDivider"));
-import ProjectPageLoader from "@/components/Projectpageloader"
 
 // const BlogSection = lazy(() => import("@/components/BlogSection"));
 // const TechStack = lazy(() => import("@/components/TechStack"));
 
 const SectionLoader = () => (
   <div className="py-20 text-center text-sm text-muted-foreground">
-    <ProjectPageLoader />
+    Loading section...
   </div>
 );
 
