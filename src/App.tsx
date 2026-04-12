@@ -12,12 +12,14 @@ const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDisplay = lazy(() => import("./pages/ProjectDisplay"));
+const BlogDisplay = lazy(() => import("./pages/BlogDisplay"));
+const BlogPage = lazy(() => import("./pages/BlogPage"));
 
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
 
 const queryClient = new QueryClient();
 
-export let lenisInstance = null; 
+export let lenisInstance = null;
 
 const SmoothScroll = ({ children }) => {
   useEffect(() => {
@@ -26,7 +28,7 @@ const SmoothScroll = ({ children }) => {
       smoothWheel: true,
     });
 
-    lenisInstance = lenis; 
+    lenisInstance = lenis;
 
     function raf(time: number) {
       lenis.raf(time);
@@ -44,9 +46,7 @@ const SmoothScroll = ({ children }) => {
   return children;
 };
 
-
 const App = () => {
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -54,28 +54,28 @@ const App = () => {
         <Sonner />
 
         <BrowserRouter>
-        <ScrollToTopWrapper>
+          <ScrollToTopWrapper>
+            <SmoothScroll>
+              <Navbar />
 
-          <SmoothScroll>
-            <Navbar />
-
-            <Suspense
-              fallback={
-                <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
-                  Loading...
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="*" element={<NotFound />} />
-                <Route path="/project/:slug" element={<ProjectPage />} />
-                <Route path="/projects" element={<ProjectDisplay />} />
-              </Routes>
-            </Suspense>
-          </SmoothScroll>
+              <Suspense
+                fallback={
+                  <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
+                    Loading...
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="*" element={<NotFound />} />
+                  <Route path="/project/:slug" element={<ProjectPage />} />
+                  <Route path="/projects" element={<ProjectDisplay />} />
+                  <Route path="/blog" element={<BlogDisplay />} />
+                  <Route path="/blog/:slug" element={<BlogPage />} />
+                </Routes>
+              </Suspense>
+            </SmoothScroll>
           </ScrollToTopWrapper>
-
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

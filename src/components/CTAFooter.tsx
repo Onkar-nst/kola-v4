@@ -142,11 +142,10 @@ const CTAFooter = () => {
 
             {/* CONTACT + ADDRESS */}
             <div className="flex flex-col md:items-end gap-2 text-sm text-white/80">
-              <p>© 2026 Kola Communications</p>
               <p className="max-w-[260px] text-right">
-                C42, Modi Nagar CHS, Opposite Wanjawadi,
-                Kandivali West, Mumbai - 400067
+                36, BK Housing Society, Shankar Lane, Kandivali West, Mumbai - 400067
               </p>
+              <p>© 2026 Kola Communications</p>
             </div>
           </div>
         </div>

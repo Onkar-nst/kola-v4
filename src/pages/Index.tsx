@@ -14,7 +14,7 @@ const FAQSection = lazy(() => import("@/components/FAQSection"));
 const CTAFooter = lazy(() => import("@/components/CTAFooter"));
 const SectionDivider = lazy(() => import("@/components/SectionDivider"));
 
-// const BlogSection = lazy(() => import("@/components/BlogSection"));
+const BlogSection = lazy(() => import("@/components/BlogSection"));
 // const TechStack = lazy(() => import("@/components/TechStack"));
 
 const SectionLoader = () => (
@@ -45,7 +45,7 @@ const Index = () => {
           <SectionDivider />
           <TestimonialsSection />
           <FAQSection />
-          {/* <BlogSection /> */}
+          <BlogSection />
         </Suspense>
       </div>
 
