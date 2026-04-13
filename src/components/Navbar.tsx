@@ -20,38 +20,15 @@ const Navbar = () => {
   const [compact, setCompact] = useState(false);
   const [lastScroll, setLastScroll] = useState(0);
 
-  // 🔥 NEW STATE
   const [forceExpand, setForceExpand] = useState(false);
 
-  // 🔥 SCROLL LOGIC (UNCHANGED BEHAVIOR)
-  useEffect(() => {
-    const handleScroll = () => {
-      const current = window.scrollY;
-
-      // scroll down → compact + reset manual expand
-      if (current > lastScroll && current > 60) {
-        setCompact(true);
-        setForceExpand(false); // 👈 important
-      } else {
-        setCompact(false);
-      }
-
-      setLastScroll(current);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScroll]);
-
-  // 🔥 FINAL STATE USED IN UI
-  const isCompact = forceExpand ? false : compact;
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[calc(100%-48px)] md:w-auto">
 
       <motion.div
         animate={{
-          padding: isCompact ? "6px 10px" : "10px 18px",
+          padding: "10px 18px",
         }}
         transition={{ type: "spring", stiffness: 200, damping: 25 }}
         className="
@@ -72,10 +49,6 @@ const Navbar = () => {
 
         {/* DESKTOP LINKS */}
         <motion.div
-          animate={{
-            opacity: isCompact ? 0 : 1,
-            width: isCompact ? 0 : "auto",
-          }}
           className="hidden md:flex items-center gap-7 overflow-hidden"
         >
           {navLinks.map((link) => (
@@ -92,8 +65,8 @@ const Navbar = () => {
         {/* CONTACT */}
         <motion.div
           animate={{
-            opacity: isCompact ? 0 : 1,
-            width: isCompact ? 0 : "auto",
+            opacity: 1,
+            width:  "auto",
           }}
           className="hidden md:inline-flex"
         >
@@ -107,9 +80,9 @@ const Navbar = () => {
 
         {/* 🔥 DESKTOP DOTS */}
         <motion.div
-          animate={{ opacity: isCompact ? 1 : 0 }}
+          animate={{ opacity:  0 }}
           onClick={(e) => {
-            e.stopPropagation(); // 👈 important
+            e.stopPropagation();
             setForceExpand((prev) => !prev);
           }}
           className="hidden md:flex items-center gap-1 cursor-pointer"
