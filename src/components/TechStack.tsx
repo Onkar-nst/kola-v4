@@ -232,7 +232,7 @@ const TechCard = memo(({ tech }: { tech: typeof TECHS[0] }) => {
 
 const TechStack = () => {
   return (
-    <section id="techstack" className="py-24 md:py-32 section-container">
+    <section id="techstack" className="py-24 section-container">
       <div className=" p-4 md:p-10 max-w-[1080px]">
 
         {/* Heading */}

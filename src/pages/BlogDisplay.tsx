@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
@@ -112,7 +113,8 @@ const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   for (const node of schema["@graph"]) {
     if (
       (node["@type"] === "NewsArticle" || node["@type"] === "Article") &&
-      node.image && typeof (node.image as { url?: string }).url === "string"
+      node.image &&
+      typeof (node.image as { url?: string }).url === "string"
     ) return (node.image as { url: string }).url;
   }
   return "";
@@ -225,15 +227,21 @@ const GlitchOverlay = memo(() => (
         transition={{ duration: 0.3, delay: i * 0.05 }}
         className="absolute inset-0"
         style={{
-          background: i === 0 ? "rgba(255,0,0,0.2)" : i === 1 ? "rgba(0,255,0,0.15)" : "rgba(0,150,255,0.2)",
+          background:
+            i === 0 ? "rgba(255,0,0,0.2)"
+            : i === 1 ? "rgba(0,255,0,0.15)"
+            : "rgba(0,150,255,0.2)",
           mixBlendMode: "screen",
-        }} />
+        }}
+      />
     ))}
   </motion.div>
 ));
 
 /* ══════════════════════════════════════════
    BLOG CARD
+   flex-col so the image section (flex-1) fills
+   whatever height the row-level grid assigns.
 ══════════════════════════════════════════ */
 
 interface BlogCardProps {
@@ -258,7 +266,7 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
       onMouseEnter={() => { setHovered(true); trigger(); }}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Header — title + categories + arrow */}
+      {/* Header */}
       <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
         <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3">
           <div className="min-w-0 flex-1">
@@ -268,11 +276,15 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
             {post.categories.length > 0 && (
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {post.categories.map((cat, i) => {
-                  const catObj = post.categoryIds[i];
+                  const catId = post.categoryIds[i];
                   return (
                     <button
                       key={cat}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (catObj) onCategoryClick(catObj, cat); }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (catId) onCategoryClick(catId, cat);
+                      }}
                       className="text-[10px] px-2 py-0.5 text-black/45 border border-black/10 whitespace-nowrap hover:border-black/30 hover:text-black transition-colors duration-150 cursor-pointer"
                     >
                       {cat}
@@ -297,9 +309,9 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
         </div>
       </Link>
 
-      {/* Image */}
-      <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1">
-        <div className="relative aspect-[16/9] overflow-hidden">
+      {/* Image + meta — flex-1 fills remaining card height */}
+      <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
+        <div className="relative aspect-[16/9] overflow-hidden flex-1">
           <motion.img
             src={post.img}
             alt={post.imgAlt}
@@ -318,7 +330,7 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
           />
           <AnimatePresence>{glitching && <GlitchOverlay />}</AnimatePresence>
         </div>
-        {/* Meta footer */}
+        {/* Meta footer — always at the bottom */}
         <div className="px-5 py-3 flex items-center gap-2 border-t border-black/[0.06]">
           <span className="text-[11px] text-black/30">{post.formattedDate}</span>
           <span className="w-0.5 h-0.5 rounded-full bg-black/20" />
@@ -330,6 +342,34 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
 });
 
 /* ══════════════════════════════════════════
+   BLOG CARD ROW
+   Same row-pair subgrid strategy as ProjectDisplay.
+   Each row is its own 2-col grid with rows [auto 1fr]:
+   - "auto" row = tallest header in the pair sets height
+   - "1fr" row = image+meta fills the rest equally
+   On mobile collapses to 1 col and stacks normally.
+══════════════════════════════════════════ */
+
+interface BlogCardRowProps {
+  pair: NormalizedPost[];
+  rowIndex: number;
+  onCategoryClick: (id: number, name: string) => void;
+}
+
+const BlogCardRow = memo(({ pair, rowIndex, onCategoryClick }: BlogCardRowProps) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {pair.map((post, i) => (
+      <BlogCard
+        key={post.slug}
+        post={post}
+        index={rowIndex * 2 + i}
+        onCategoryClick={onCategoryClick}
+      />
+    ))}
+  </div>
+));
+
+/* ══════════════════════════════════════════
    SKELETON CARD
 ══════════════════════════════════════════ */
 
@@ -337,7 +377,7 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
   <motion.div
     initial={{ opacity: 0 }} animate={{ opacity: 1 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
-    className="border border-black/10 overflow-hidden animate-pulse"
+    className="border border-black/10 overflow-hidden animate-pulse flex flex-col"
   >
     <div className="px-5 py-4 border-b border-black/10 space-y-2">
       <div className="h-4 bg-black/[0.06] rounded-sm w-3/4" />
@@ -347,8 +387,8 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
         ))}
       </div>
     </div>
-    <div className="aspect-[16/9] bg-black/[0.04]" />
-    <div className="px-5 py-3 flex gap-2">
+    <div className="aspect-[16/9] bg-black/[0.04] flex-1" />
+    <div className="px-5 py-3 flex gap-2 border-t border-black/[0.06]">
       <div className="h-3 w-20 bg-black/[0.04] rounded-sm" />
     </div>
   </motion.div>
@@ -373,16 +413,23 @@ const DesktopFilterBar = memo(({ categories, activeCategoryId, onSelect }: Filte
         onClick={() => onSelect(null, null)}
         whileTap={{ scale: 0.95 }}
         className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${
-          !activeCategoryId ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
+          !activeCategoryId
+            ? "bg-black text-white border-black"
+            : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
         }`}>
         All
       </motion.button>
       {categories.map((cat) => (
         <motion.button key={cat.id}
-          onClick={() => onSelect(cat.id === activeCategoryId ? null : cat.id, cat.id === activeCategoryId ? null : cat.name)}
+          onClick={() => onSelect(
+            cat.id === activeCategoryId ? null : cat.id,
+            cat.id === activeCategoryId ? null : cat.name
+          )}
           whileTap={{ scale: 0.95 }}
           className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${
-            activeCategoryId === cat.id ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
+            activeCategoryId === cat.id
+              ? "bg-black text-white border-black"
+              : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
           }`}>
           {cat.name}
         </motion.button>
@@ -392,77 +439,145 @@ const DesktopFilterBar = memo(({ categories, activeCategoryId, onSelect }: Filte
 });
 
 /* ══════════════════════════════════════════
-   FILTER — MOBILE DROPDOWN
+   MOBILE FILTER DROPDOWN
+   Uses React.createPortal → renders into document.body,
+   completely escaping overflow:hidden, transform stacking
+   contexts, and z-index hierarchies from parent elements.
+   Position is calculated via getBoundingClientRect and
+   kept in sync on scroll and resize.
 ══════════════════════════════════════════ */
 
 const MobileFilterDropdown = memo(({ categories, activeCategoryId, activeCategoryName, onSelect }: FilterProps) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
 
+  const syncRect = useCallback(() => {
+    if (triggerRef.current) setTriggerRect(triggerRef.current.getBoundingClientRect());
+  }, []);
+
+  // Keep panel position in sync while open
+  useEffect(() => {
+    if (!open) return;
+    syncRect();
+    window.addEventListener("scroll", syncRect, true);
+    window.addEventListener("resize", syncRect);
+    return () => {
+      window.removeEventListener("scroll", syncRect, true);
+      window.removeEventListener("resize", syncRect);
+    };
+  }, [open, syncRect]);
+
+  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      const panel = document.getElementById("bd-mobile-cat-panel");
+      if (!triggerRef.current?.contains(t) && !panel?.contains(t)) {
+        setOpen(false);
+      }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const timer = setTimeout(() => document.addEventListener("mousedown", handler), 10);
+    return () => { clearTimeout(timer); document.removeEventListener("mousedown", handler); };
   }, [open]);
 
+  const panel =
+    open && triggerRect
+      ? createPortal(
+          <AnimatePresence>
+            <motion.div
+              id="bd-mobile-cat-panel"
+              key="bd-cat-panel"
+              initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -4, scaleY: 0.97 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                position: "fixed",
+                top: triggerRect.bottom + 6,
+                left: triggerRect.left,
+                width: triggerRect.width,
+                zIndex: 99999,
+                transformOrigin: "top center",
+              }}
+              className="bg-white border border-black/[0.12] rounded-xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto"
+            >
+              {/* All */}
+              <button
+                onClick={() => { onSelect(null, null); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] border-b border-black/[0.07] transition-colors duration-100 ${
+                  !activeCategoryId
+                    ? "text-black font-semibold bg-black/[0.04]"
+                    : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                }`}
+              >
+                <span>All categories</span>
+                {!activeCategoryId && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+              </button>
+
+              {categories.map((cat, i) => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    onSelect(
+                      cat.id === activeCategoryId ? null : cat.id,
+                      cat.id === activeCategoryId ? null : cat.name
+                    );
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] transition-colors duration-100 ${
+                    i < categories.length - 1 ? "border-b border-black/[0.05]" : ""
+                  } ${
+                    activeCategoryId === cat.id
+                      ? "text-black font-semibold bg-black/[0.04]"
+                      : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                  }`}
+                >
+                  <span>
+                    {cat.name}
+                  </span>
+                  {activeCategoryId === cat.id && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />
+                  )}
+                </button>
+              ))}
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )
+      : null;
+
   return (
-    <div ref={ref} className="md:hidden relative">
+    <div className="md:hidden">
       <motion.button
-        onClick={() => setOpen((o) => !o)}
+        ref={triggerRef}
+        onClick={() => { syncRect(); setOpen((o) => !o); }}
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.12] text-[13px] text-black/60 bg-white"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.15] rounded-lg text-[13px] bg-white shadow-sm"
       >
-        <span className={activeCategoryName ? "text-black font-medium" : "text-black/50"}>
+        <span className={activeCategoryName ? "text-black font-medium" : "text-black/45"}>
           {activeCategoryName ?? "All categories"}
         </span>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {activeCategoryId && (
-            <button onClick={(e) => { e.stopPropagation(); onSelect(null, null); }}
-              className="text-black/30 hover:text-black/60 transition-colors">
+            <button
+              onClick={(e) => { e.stopPropagation(); onSelect(null, null); setOpen(false); }}
+              className="text-black/30 hover:text-black/60 transition-colors p-0.5"
+            >
               <X size={12} strokeWidth={2} />
             </button>
           )}
-          <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+          <motion.span
+            animate={{ rotate: open ? 180 : 0 }}
+            transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
             <ChevronDown size={14} className="text-black/40" />
           </motion.span>
         </div>
       </motion.button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -4, scaleY: 0.97 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "top" }}
-            className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white border border-black/[0.1] shadow-lg overflow-hidden max-h-[60vh] overflow-y-auto"
-          >
-            <button
-              onClick={() => { onSelect(null, null); setOpen(false); }}
-              className={`w-full text-left px-4 py-3 text-[13px] border-b border-black/[0.06] transition-colors ${
-                !activeCategoryId ? "text-black font-medium bg-black/[0.03]" : "text-black/50 hover:bg-black/[0.02] hover:text-black"
-              }`}>
-              All categories
-            </button>
-            {categories.map((cat, i) => (
-              <motion.button key={cat.id}
-                initial={{ opacity: 0, x: -4 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.018, duration: 0.2 }}
-                onClick={() => { onSelect(cat.id === activeCategoryId ? null : cat.id, cat.id === activeCategoryId ? null : cat.name); setOpen(false); }}
-                className={`w-full text-left px-4 py-3 text-[13px] transition-colors ${i < categories.length - 1 ? "border-b border-black/[0.04]" : ""} ${
-                  activeCategoryId === cat.id ? "text-black font-medium bg-black/[0.03]" : "text-black/50 hover:bg-black/[0.02] hover:text-black"
-                }`}>
-                {cat.name}
-                <span className="ml-2 text-black/25 text-[11px]">({cat.count})</span>
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
+      {panel}
     </div>
   );
 });
@@ -475,7 +590,8 @@ const ActiveFilterBadge = memo(({ name, onClear }: { name: string; onClear: () =
   <motion.div
     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
     exit={{ opacity: 0, scale: 0.9 }}
-    className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white text-[11.5px] rounded-full font-medium">
+    className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white text-[11.5px] rounded-full font-medium"
+  >
     <span>{name}</span>
     <button onClick={onClear} className="hover:opacity-70 transition-opacity">
       <X size={10} strokeWidth={2} />
@@ -483,13 +599,18 @@ const ActiveFilterBadge = memo(({ name, onClear }: { name: string; onClear: () =
   </motion.div>
 ));
 
-const ResultsCount = memo(({ total, loading, categoryName }: { total: number; loading: boolean; categoryName: string | null }) => {
+const ResultsCount = memo(({ total, loading, categoryName }: {
+  total: number; loading: boolean; categoryName: string | null;
+}) => {
   if (loading) return null;
   return (
-    <motion.p key={`${total}-${categoryName}`}
+    <motion.p
+      key={`${total}-${categoryName}`}
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="text-[11.5px] text-black/30 tracking-wide">
-      {total} {total === 1 ? "article" : "articles"}{categoryName ? ` in "${categoryName}"` : ""}
+      className="text-[11.5px] text-black/30 tracking-wide"
+    >
+      {total} {total === 1 ? "article" : "articles"}
+      {categoryName ? ` in "${categoryName}"` : ""}
     </motion.p>
   );
 });
@@ -501,15 +622,21 @@ const ResultsCount = memo(({ total, loading, categoryName }: { total: number; lo
 const PaginationBtn = memo(({ onClick, disabled, active, children }: {
   onClick: () => void; disabled?: boolean; active?: boolean; children: React.ReactNode;
 }) => (
-  <motion.button onClick={onClick} disabled={disabled} whileTap={!disabled ? { scale: 0.9 } : {}}
+  <motion.button
+    onClick={onClick} disabled={disabled} whileTap={!disabled ? { scale: 0.9 } : {}}
     className={`inline-flex items-center justify-center w-9 h-9 text-sm border transition-colors duration-150 ${
-      active ? "border-black bg-black text-white" : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"
-    } disabled:opacity-30 disabled:cursor-not-allowed`}>
+      active
+        ? "border-black bg-black text-white"
+        : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"
+    } disabled:opacity-30 disabled:cursor-not-allowed`}
+  >
     {children}
   </motion.button>
 ));
 
-const Pagination = memo(({ page, totalPages, onPageChange }: { page: number; totalPages: number; onPageChange: (p: number) => void }) => {
+const Pagination = memo(({ page, totalPages, onPageChange }: {
+  page: number; totalPages: number; onPageChange: (p: number) => void;
+}) => {
   if (totalPages <= 1) return null;
   const getPages = (): (number | "…")[] => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -521,16 +648,22 @@ const Pagination = memo(({ page, totalPages, onPageChange }: { page: number; tot
     return pages;
   };
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="mt-16 flex items-center justify-center gap-2">
-      <PaginationBtn onClick={() => onPageChange(page - 1)} disabled={page === 1}><ChevronLeft size={14} /></PaginationBtn>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      className="mt-16 flex items-center justify-center gap-2"
+    >
+      <PaginationBtn onClick={() => onPageChange(page - 1)} disabled={page === 1}>
+        <ChevronLeft size={14} />
+      </PaginationBtn>
       {getPages().map((p, i) =>
         p === "…"
           ? <span key={`e-${i}`} className="w-9 text-center text-black/30 text-sm">…</span>
           : <PaginationBtn key={p} onClick={() => onPageChange(p as number)} active={p === page}>{p}</PaginationBtn>
       )}
-      <PaginationBtn onClick={() => onPageChange(page + 1)} disabled={page === totalPages}><ChevronRight size={14} /></PaginationBtn>
+      <PaginationBtn onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
+        <ChevronRight size={14} />
+      </PaginationBtn>
     </motion.div>
   );
 });
@@ -542,7 +675,8 @@ const Pagination = memo(({ page, totalPages, onPageChange }: { page: number; tot
 const EmptyState = memo(({ categoryName, onClear }: { categoryName: string; onClear: () => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-    className="col-span-2 py-24 flex flex-col items-center justify-center gap-4">
+    className="col-span-full py-24 flex flex-col items-center justify-center gap-4"
+  >
     <p className="text-black/30 text-sm tracking-wide">
       No articles in <span className="text-black/60 font-medium">"{categoryName}"</span>
     </p>
@@ -582,8 +716,8 @@ const BlogDisplay = () => {
   const updateUrl = useCallback(
     (catId: number | null, catName: string | null, p: number) => {
       const params: Record<string, string> = {};
-      if (catId) { params.category = String(catId); }
-      if (catName) { params.categoryName = catName; }
+      if (catId) params.category = String(catId);
+      if (catName) params.categoryName = catName;
       if (p > 1) params.page = String(p);
       setSearchParams(params, { replace: true });
     },
@@ -612,6 +746,12 @@ const BlogDisplay = () => {
 
   const gridKey = `${activeCategoryId ?? "all"}-${page}`;
 
+  // Chunk posts into pairs for row-level equal-height alignment
+  const postRows = Array.from(
+    { length: Math.ceil(posts.length / 2) },
+    (_, i) => posts.slice(i * 2, i * 2 + 2)
+  );
+
   return (
     <div className="min-h-screen bg-white">
       <CustomCursor />
@@ -622,7 +762,6 @@ const BlogDisplay = () => {
         <section id="blog-display" className="section-container pt-28 pb-0 relative z-10">
           <div className="max-w-[1100px] mx-auto px-4 md:px-10">
 
-            {/* Back */}
             <motion.button onClick={() => navigate(-1)}
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -636,11 +775,11 @@ const BlogDisplay = () => {
               stagger={0.07} duration={0.7} blur={10}
             />
 
-            {/* Filters */}
             <motion.div
               initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-              className="mb-8 space-y-4">
+              className="mb-8 space-y-4"
+            >
               <DesktopFilterBar
                 categories={categories}
                 activeCategoryId={activeCategoryId}
@@ -672,26 +811,40 @@ const BlogDisplay = () => {
         <section className="section-container pt-2 pb-28 relative z-10">
           <div className="max-w-[1100px] mx-auto px-4 md:px-10">
             <AnimatePresence mode="wait">
-              <motion.div key={gridKey}
+              <motion.div
+                key={gridKey}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {loading
-                  ? Array.from({ length: PER_PAGE }).map((_, i) => <SkeletonCard key={i} index={i} />)
-                  : posts.length === 0 && activeCategoryName
-                    ? <EmptyState categoryName={activeCategoryName} onClear={() => handleCategorySelect(null, null)} />
-                    : posts.map((p, i) => (
-                        <BlogCard
-                          key={p.slug}
-                          post={p}
-                          index={i}
-                          onCategoryClick={(id, name) => handleCategorySelect(id, name)}
-                        />
-                      ))
-                }
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="flex flex-col gap-4"
+              >
+                {loading ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: PER_PAGE }).map((_, i) => (
+                      <SkeletonCard key={i} index={i} />
+                    ))}
+                  </div>
+                ) : posts.length === 0 && activeCategoryName ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EmptyState
+                      categoryName={activeCategoryName}
+                      onClear={() => handleCategorySelect(null, null)}
+                    />
+                  </div>
+                ) : (
+
+                  postRows.map((pair, rowIdx) => (
+                    <BlogCardRow
+                      key={rowIdx}
+                      pair={pair}
+                      rowIndex={rowIdx}
+                      onCategoryClick={handleCategorySelect}
+                    />
+                  ))
+                )}
               </motion.div>
             </AnimatePresence>
+
             <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>
         </section>

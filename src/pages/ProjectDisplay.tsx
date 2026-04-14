@@ -5,9 +5,16 @@ import {
   useRef,
   memo,
 } from "react";
+import { createPortal } from "react-dom";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { ArrowUpRight, ChevronLeft, ChevronRight, ChevronDown, X } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  X,
+} from "lucide-react";
 
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
@@ -80,10 +87,6 @@ interface FetchState {
    HELPERS
 ══════════════════════════════════════════ */
 
-/**
- * Decode HTML entities — fixes &amp; → &, &#038; → &, &quot; → ", etc.
- * This is the single source of truth; applied to every tag and title.
- */
 const decodeHtmlEntities = (str: string): string => {
   if (typeof document === "undefined") return str;
   const txt = document.createElement("textarea");
@@ -106,14 +109,9 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
   const rawSection = getArticleSection(p);
-  // Decode entities in every tag
   const tags: string[] = rawSection
-    ? rawSection
-        .split(",")
-        .map((t) => decodeHtmlEntities(t.trim()))
-        .filter(Boolean)
+    ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
     : (p.acf?.tags?.map(decodeHtmlEntities) ?? []);
-
   return {
     id: p.id,
     slug: p.slug,
@@ -129,18 +127,11 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
    HOOKS
 ══════════════════════════════════════════ */
 
-/**
- * Fetches all projects (fields only — no _embed) to build the complete tag list.
- * Decodes entities so tag labels match exactly what's used for filtering.
- */
 const useAllTags = () => {
   const [tags, setTags] = useState<string[]>([]);
-
   useEffect(() => {
     let cancelled = false;
-    fetch(
-      `${WP_API_BASE}/projects?per_page=100&_fields=id,aioseo_head_json,acf`
-    )
+    fetch(`${WP_API_BASE}/projects?per_page=100&_fields=id,aioseo_head_json,acf`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => {
         if (cancelled) return;
@@ -148,28 +139,18 @@ const useAllTags = () => {
         for (const p of data) {
           const rawSection = getArticleSection(p);
           const tags = rawSection
-            ? rawSection
-                .split(",")
-                .map((t) => decodeHtmlEntities(t.trim()))
-                .filter(Boolean)
+            ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
             : (p.acf?.tags?.map(decodeHtmlEntities) ?? []);
           tags.forEach((t) => tagSet.add(t));
         }
         setTags(Array.from(tagSet).sort());
       })
       .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
-
   return tags;
 };
 
-/**
- * Fetches projects, paginated. When a tag filter is active we fetch all and
- * filter client-side (WP REST API has no built-in ACF tag filter without a plugin).
- */
 const useProjects = (page: number, activeTag: string | null): FetchState => {
   const [state, setState] = useState<FetchState>({
     projects: [],
@@ -183,25 +164,16 @@ const useProjects = (page: number, activeTag: string | null): FetchState => {
     setState((s) => ({ ...s, loading: true }));
 
     if (!activeTag) {
-      fetch(
-        `${WP_API_BASE}/projects?per_page=${PER_PAGE}&page=${page}&_embed=1`
-      )
+      fetch(`${WP_API_BASE}/projects?per_page=${PER_PAGE}&page=${page}&_embed=1`)
         .then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const totalPages = Number(r.headers.get("X-WP-TotalPages") ?? 1);
           const totalItems = Number(r.headers.get("X-WP-Total") ?? 0);
           const data: WPProject[] = await r.json();
           if (!cancelled)
-            setState({
-              projects: data.map(normalizeProject),
-              loading: false,
-              totalPages,
-              totalItems,
-            });
+            setState({ projects: data.map(normalizeProject), loading: false, totalPages, totalItems });
         })
-        .catch(() => {
-          if (!cancelled) setState((s) => ({ ...s, loading: false }));
-        });
+        .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
     } else {
       fetch(`${WP_API_BASE}/projects?per_page=100&_embed=1`)
         .then(async (r) => {
@@ -210,30 +182,17 @@ const useProjects = (page: number, activeTag: string | null): FetchState => {
           if (cancelled) return;
           const filtered = data
             .map(normalizeProject)
-            .filter((p) =>
-              p.tags.some(
-                (t) => t.toLowerCase() === activeTag.toLowerCase()
-              )
-            );
+            .filter((p) => p.tags.some((t) => t.toLowerCase() === activeTag.toLowerCase()));
           const totalItems = filtered.length;
           const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
           const safePage = Math.min(page, totalPages);
           const start = (safePage - 1) * PER_PAGE;
-          setState({
-            projects: filtered.slice(start, start + PER_PAGE),
-            loading: false,
-            totalPages,
-            totalItems,
-          });
+          setState({ projects: filtered.slice(start, start + PER_PAGE), loading: false, totalPages, totalItems });
         })
-        .catch(() => {
-          if (!cancelled) setState((s) => ({ ...s, loading: false }));
-        });
+        .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
     }
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [page, activeTag]);
 
   return state;
@@ -267,11 +226,9 @@ const GlitchOverlay = memo(() => (
         className="absolute inset-0"
         style={{
           background:
-            i === 0
-              ? "rgba(255,0,0,0.2)"
-              : i === 1
-              ? "rgba(0,255,0,0.15)"
-              : "rgba(0,150,255,0.2)",
+            i === 0 ? "rgba(255,0,0,0.2)"
+            : i === 1 ? "rgba(0,255,0,0.15)"
+            : "rgba(0,150,255,0.2)",
           mixBlendMode: "screen",
         }}
       />
@@ -280,16 +237,56 @@ const GlitchOverlay = memo(() => (
 ));
 
 /* ══════════════════════════════════════════
-   PROJECT CARD
+   PROJECT CARD ROW
+   Strategy: each "row" is its own 2-col CSS grid
+   with rows [auto 1fr]. The card header occupies
+   row-1 and the image occupies row-2. Because both
+   cards in the same row share that grid, the auto
+   row stretches to the taller header — giving equal
+   header heights without any JS measurement.
+   On mobile the grid collapses to 1 col and each
+   card renders its own header + image stacked.
 ══════════════════════════════════════════ */
 
-interface ProjectCardProps {
+interface ProjectCardRowProps {
+  pair: NormalizedProject[];
+  rowIndex: number;
+  onTagClick: (tag: string) => void;
+}
+
+const ProjectCardRow = memo(({ pair, rowIndex, onTagClick }: ProjectCardRowProps) => {
+  return (
+    <div
+      className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"
+      style={{ gridTemplateRows: "auto" }}
+    >
+      {pair.map((project, i) => (
+        <ProjectCardSubgrid
+          key={project.slug}
+          project={project}
+          index={rowIndex * 2 + i}
+          onTagClick={onTagClick}
+        />
+      ))}
+    </div>
+  );
+});
+
+/* ══════════════════════════════════════════
+   PROJECT CARD SUBGRID
+   Each card is a flex-col with the header growing
+   to natural height and the image filling the rest.
+   Equal header heights are achieved at the ROW level
+   by using a CSS subgrid container per pair.
+══════════════════════════════════════════ */
+
+interface ProjectCardSubgridProps {
   project: NormalizedProject;
   index: number;
   onTagClick: (tag: string) => void;
 }
 
-const ProjectCard = memo(({ project, index, onTagClick }: ProjectCardProps) => {
+const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubgridProps) => {
   const { glitching, trigger } = useGlitch();
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -301,17 +298,24 @@ const ProjectCard = memo(({ project, index, onTagClick }: ProjectCardProps) => {
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="group overflow-hidden border border-black/10 bg-white/5 backdrop-blur-xl relative"
+      className="group overflow-hidden border border-black/10 bg-white/5 backdrop-blur-xl relative flex flex-col h-full"
       onMouseEnter={() => { setHovered(true); trigger(); }}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Header */}
+
+      {/* HEADER */}
       <Link to={`/project/${project.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
-        <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3">
-          <div className="min-w-0 flex-1">
+        <div className="flex justify-between items-start px-5 py-4  gap-3">
+
+          {/* LEFT */}
+          <div className="min-w-0 flex-1 flex flex-col">
+
+            {/* TITLE */}
             <span className="text-[15px] text-black font-medium leading-snug block">
               {project.title}
             </span>
+
+            {/* TAGS — FULLY VISIBLE (NO CLIP / NO OVERFLOW ISSUE) */}
             {project.tags.length > 0 && (
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {project.tags.map((tag) => (
@@ -329,8 +333,10 @@ const ProjectCard = memo(({ project, index, onTagClick }: ProjectCardProps) => {
                 ))}
               </div>
             )}
+
           </div>
-          {/* Dual-icon animated arrow */}
+
+          {/* ARROW */}
           <div className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5">
             <motion.span
               animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
@@ -347,18 +353,25 @@ const ProjectCard = memo(({ project, index, onTagClick }: ProjectCardProps) => {
               <ArrowUpRight size={16} className="text-black" />
             </motion.span>
           </div>
+
         </div>
       </Link>
 
-      {/* Image */}
-      <Link to={`/project/${project.slug}`} style={{ textDecoration: "none" }}>
-        <div className="relative aspect-[16/9] overflow-hidden">
+      {/* IMAGE */}
+      <Link
+        to={`/project/${project.slug}`}
+        style={{ textDecoration: "none" }}
+        className="mt-auto block"
+      >
+       <div className="relative w-full h-[220px] overflow-hidden">
+
           <motion.img
             src={project.img}
             alt={project.title}
             className="absolute inset-0 w-full h-full object-cover"
             animate={{ opacity: hovered && glitching ? 0 : 1 }}
           />
+
           <motion.img
             src={project.hoverImg}
             alt={project.title}
@@ -366,17 +379,21 @@ const ProjectCard = memo(({ project, index, onTagClick }: ProjectCardProps) => {
             initial={{ opacity: 0, scale: 1.06 }}
             animate={{
               opacity: hovered && !glitching ? 1 : 0,
-              scale: hovered ? 1 : 1.06,
+              scale: hovered ? 1 : 1.06
             }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           />
-          <AnimatePresence>{glitching && <GlitchOverlay />}</AnimatePresence>
+
+          <AnimatePresence>
+            {glitching && <GlitchOverlay />}
+          </AnimatePresence>
+
         </div>
       </Link>
+
     </motion.div>
   );
 });
-
 /* ══════════════════════════════════════════
    SKELETON CARD
 ══════════════════════════════════════════ */
@@ -386,13 +403,13 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
-    className="border border-black/10 overflow-hidden"
+    className="border border-black/10 overflow-hidden flex flex-col"
   >
     <div className="px-5 py-4 border-b border-black/10 space-y-2">
       <div className="h-4 bg-black/[0.06] rounded-sm w-3/4 animate-pulse" />
       <div className="flex gap-1.5">
         {[60, 80, 70].map((w, i) => (
-          <div key={i} className="h-4 bg-black/[0.04] rounded-sm animate-pulse" style={{ width: w }} />
+          <div key={i} className="h-5 bg-black/[0.04] rounded-sm animate-pulse" style={{ width: w }} />
         ))}
       </div>
     </div>
@@ -401,7 +418,7 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
 ));
 
 /* ══════════════════════════════════════════
-   DESKTOP TAG FILTER BAR — shows ALL tags
+   DESKTOP TAG FILTER BAR
 ══════════════════════════════════════════ */
 
 interface TagFilterBarProps {
@@ -412,7 +429,6 @@ interface TagFilterBarProps {
 
 const DesktopTagFilterBar = memo(({ tags, activeTag, onTagSelect }: TagFilterBarProps) => {
   if (!tags.length) return null;
-
   return (
     <div className="hidden md:flex flex-wrap gap-2">
       <motion.button
@@ -446,45 +462,121 @@ const DesktopTagFilterBar = memo(({ tags, activeTag, onTagSelect }: TagFilterBar
 
 /* ══════════════════════════════════════════
    MOBILE TAG DROPDOWN
+   Uses React.createPortal to render into document.body,
+   completely escaping overflow:hidden, transform stacking
+   contexts, and z-index hierarchies from parent elements.
+   Position is calculated via getBoundingClientRect and
+   kept in sync on scroll and resize.
 ══════════════════════════════════════════ */
 
 const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarProps) => {
   const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
+
+  const syncRect = useCallback(() => {
+    if (triggerRef.current) setTriggerRect(triggerRef.current.getBoundingClientRect());
+  }, []);
+
+  // Keep panel position in sync while open
+  useEffect(() => {
+    if (!open) return;
+    syncRect();
+    window.addEventListener("scroll", syncRect, true);
+    window.addEventListener("resize", syncRect);
+    return () => {
+      window.removeEventListener("scroll", syncRect, true);
+      window.removeEventListener("resize", syncRect);
+    };
+  }, [open, syncRect]);
 
   // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      const t = e.target as Node;
+      const panel = document.getElementById("pd-mobile-tag-panel");
+      if (!triggerRef.current?.contains(t) && !panel?.contains(t)) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    // Small delay so the triggering click doesn't immediately close
+    const timer = setTimeout(() => document.addEventListener("mousedown", handler), 10);
+    return () => { clearTimeout(timer); document.removeEventListener("mousedown", handler); };
   }, [open]);
 
-  const label = activeTag ?? "All categories";
+  const panel =
+    open && triggerRect
+      ? createPortal(
+          <AnimatePresence>
+            <motion.div
+              id="pd-mobile-tag-panel"
+              key="pd-tag-panel"
+              initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
+              animate={{ opacity: 1, y: 0, scaleY: 1 }}
+              exit={{ opacity: 0, y: -4, scaleY: 0.97 }}
+              transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                position: "fixed",
+                top: triggerRect.bottom + 6,
+                left: triggerRect.left,
+                width: triggerRect.width,
+                zIndex: 99999,
+                transformOrigin: "top center",
+              }}
+              className="bg-white border border-black/[0.12] rounded-xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto"
+            >
+              {/* All */}
+              <button
+                onClick={() => { onTagSelect(null); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] border-b border-black/[0.07] transition-colors duration-100 ${
+                  !activeTag
+                    ? "text-black font-semibold bg-black/[0.04]"
+                    : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                }`}
+              >
+                <span>All categories</span>
+                {!activeTag && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+              </button>
+
+              {tags.map((tag, i) => (
+                <button
+                  key={tag}
+                  onClick={() => { onTagSelect(tag === activeTag ? null : tag); setOpen(false); }}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] transition-colors duration-100 ${
+                    i < tags.length - 1 ? "border-b border-black/[0.05]" : ""
+                  } ${
+                    activeTag === tag
+                      ? "text-black font-semibold bg-black/[0.04]"
+                      : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                  }`}
+                >
+                  <span>{tag}</span>
+                  {activeTag === tag && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+                </button>
+              ))}
+            </motion.div>
+          </AnimatePresence>,
+          document.body
+        )
+      : null;
 
   return (
-    <div ref={dropdownRef} className="md:hidden relative">
-      {/* Trigger */}
+    <div className="md:hidden">
       <motion.button
-        onClick={() => setOpen((o) => !o)}
+        ref={triggerRef}
+        onClick={() => { syncRect(); setOpen((o) => !o); }}
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.12] rounded-lg text-[13px] text-black/60 bg-white"
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.15] rounded-lg text-[13px] bg-white shadow-sm"
       >
-        <span className={activeTag ? "text-black font-medium" : "text-black/50"}>
-          {label}
+        <span className={activeTag ? "text-black font-medium" : "text-black/45"}>
+          {activeTag ?? "All categories"}
         </span>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {activeTag && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onTagSelect(null);
-              }}
-              className="text-black/30 hover:text-black/60 transition-colors"
+              onClick={(e) => { e.stopPropagation(); onTagSelect(null); setOpen(false); }}
+              className="text-black/30 hover:text-black/60 transition-colors p-0.5"
               aria-label="Clear filter"
             >
               <X size={12} strokeWidth={2} />
@@ -499,53 +591,7 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
         </div>
       </motion.button>
 
-      {/* Dropdown panel */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
-            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-            exit={{ opacity: 0, y: -4, scaleY: 0.97 }}
-            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-            style={{ transformOrigin: "top" }}
-            className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white border border-black/[0.1] rounded-lg shadow-lg overflow-hidden max-h-[60vh] overflow-y-auto"
-          >
-            {/* All option */}
-            <button
-              onClick={() => { onTagSelect(null); setOpen(false); }}
-              className={`w-full text-left px-4 py-3 text-[13px] border-b border-black/[0.06] transition-colors duration-100 ${
-                !activeTag
-                  ? "text-black font-medium bg-black/[0.03]"
-                  : "text-black/50 hover:bg-black/[0.02] hover:text-black"
-              }`}
-            >
-              All categories
-            </button>
-
-            {tags.map((tag, i) => (
-              <motion.button
-                key={tag}
-                initial={{ opacity: 0, x: -4 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.018, duration: 0.2 }}
-                onClick={() => {
-                  onTagSelect(tag === activeTag ? null : tag);
-                  setOpen(false);
-                }}
-                className={`w-full text-left px-4 py-3 text-[13px] transition-colors duration-100 ${
-                  i < tags.length - 1 ? "border-b border-black/[0.04]" : ""
-                } ${
-                  activeTag === tag
-                    ? "text-black font-medium bg-black/[0.03]"
-                    : "text-black/50 hover:bg-black/[0.02] hover:text-black"
-                }`}
-              >
-                {tag}
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {panel}
     </div>
   );
 });
@@ -564,11 +610,7 @@ const ActiveFilterBadge = memo(({ tag, onClear }: { tag: string; onClear: () => 
     className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white text-[11.5px] rounded-full font-medium"
   >
     <span>{tag}</span>
-    <button
-      onClick={onClear}
-      className="hover:opacity-70 transition-opacity"
-      aria-label="Remove filter"
-    >
+    <button onClick={onClear} className="hover:opacity-70 transition-opacity" aria-label="Remove filter">
       <X size={10} strokeWidth={2} />
     </button>
   </motion.div>
@@ -578,9 +620,7 @@ const ActiveFilterBadge = memo(({ tag, onClear }: { tag: string; onClear: () => 
    RESULTS COUNT
 ══════════════════════════════════════════ */
 
-const ResultsCount = memo(({
-  total, loading, activeTag,
-}: {
+const ResultsCount = memo(({ total, loading, activeTag }: {
   total: number; loading: boolean; activeTag: string | null;
 }) => {
   if (loading) return null;
@@ -601,9 +641,7 @@ const ResultsCount = memo(({
    PAGINATION
 ══════════════════════════════════════════ */
 
-const PaginationBtn = memo(({
-  onClick, disabled, active, children,
-}: {
+const PaginationBtn = memo(({ onClick, disabled, active, children }: {
   onClick: () => void; disabled?: boolean; active?: boolean; children: React.ReactNode;
 }) => (
   <motion.button
@@ -620,25 +658,19 @@ const PaginationBtn = memo(({
   </motion.button>
 ));
 
-const Pagination = memo(({
-  page, totalPages, onPageChange,
-}: {
+const Pagination = memo(({ page, totalPages, onPageChange }: {
   page: number; totalPages: number; onPageChange: (p: number) => void;
 }) => {
   if (totalPages <= 1) return null;
-
   const getPages = (): (number | "…")[] => {
-    if (totalPages <= 7)
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
     const pages: (number | "…")[] = [1];
     if (page > 3) pages.push("…");
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++)
-      pages.push(i);
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
     if (page < totalPages - 2) pages.push("…");
     pages.push(totalPages);
     return pages;
   };
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -676,7 +708,7 @@ const EmptyState = memo(({ activeTag, onClear }: { activeTag: string; onClear: (
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -8 }}
     transition={{ duration: 0.4 }}
-    className="col-span-2 py-24 flex flex-col items-center justify-center gap-4"
+    className="col-span-full py-24 flex flex-col items-center justify-center gap-4"
   >
     <p className="text-black/30 text-sm tracking-wide">
       No projects tagged{" "}
@@ -699,14 +731,12 @@ const ProjectDisplay = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Read initial state from URL
   const tagParam = searchParams.get("tag");
   const pageParam = Number(searchParams.get("page") ?? 1);
 
   const [activeTag, setActiveTag] = useState<string | null>(tagParam);
   const [page, setPage] = useState<number>(Math.max(1, pageParam));
 
-  // Keep state in sync if URL params change externally (e.g. browser back/forward)
   useEffect(() => {
     setActiveTag(tagParam);
     setPage(Math.max(1, pageParam));
@@ -755,6 +785,12 @@ const ProjectDisplay = () => {
 
   const gridKey = `${activeTag ?? "all"}-${page}`;
 
+  // Chunk projects into pairs for row-level subgrid alignment
+  const projectRows = Array.from(
+    { length: Math.ceil(projects.length / 2) },
+    (_, i) => projects.slice(i * 2, i * 2 + 2)
+  );
+
   return (
     <div className="min-h-screen bg-white">
       <CustomCursor />
@@ -768,7 +804,6 @@ const ProjectDisplay = () => {
         >
           <div className="max-w-[1100px] mx-auto px-4 md:px-10">
 
-            {/* Back */}
             <motion.button
               onClick={() => navigate(-1)}
               initial={{ opacity: 0, y: 8 }}
@@ -780,7 +815,6 @@ const ProjectDisplay = () => {
               Back
             </motion.button>
 
-            {/* Heading */}
             <AnimatedHeading
               lines={["Projects", "we're proud of."]}
               className="text-[clamp(2.2rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em] max-w-[640px] mb-10 md:mt-4"
@@ -789,42 +823,22 @@ const ProjectDisplay = () => {
               blur={10}
             />
 
-            {/* Filter controls */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="mb-8 space-y-4"
             >
-              {/* Desktop: pill buttons (all tags, wrapping) */}
-              <DesktopTagFilterBar
-                tags={allTags}
-                activeTag={activeTag}
-                onTagSelect={handleTagSelect}
-              />
+              <DesktopTagFilterBar tags={allTags} activeTag={activeTag} onTagSelect={handleTagSelect} />
+              <MobileTagDropdown tags={allTags} activeTag={activeTag} onTagSelect={handleTagSelect} />
 
-              {/* Mobile: dropdown select */}
-              <MobileTagDropdown
-                tags={allTags}
-                activeTag={activeTag}
-                onTagSelect={handleTagSelect}
-              />
-
-              {/* Active badge + count row */}
               <div className="flex items-center gap-3 min-h-[24px]">
                 <AnimatePresence>
                   {activeTag && (
-                    <ActiveFilterBadge
-                      tag={activeTag}
-                      onClear={() => handleTagSelect(null)}
-                    />
+                    <ActiveFilterBadge tag={activeTag} onClear={() => handleTagSelect(null)} />
                   )}
                 </AnimatePresence>
-                <ResultsCount
-                  total={totalItems}
-                  loading={loading}
-                  activeTag={activeTag}
-                />
+                <ResultsCount total={totalItems} loading={loading} activeTag={activeTag} />
               </div>
             </motion.div>
           </div>
@@ -840,23 +854,32 @@ const ProjectDisplay = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                className="flex flex-col gap-4"
               >
                 {loading ? (
-                  Array.from({ length: PER_PAGE }).map((_, i) => (
-                    <SkeletonCard key={i} index={i} />
-                  ))
+                  /* Skeleton uses simple 2-col grid — no subgrid needed */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Array.from({ length: PER_PAGE }).map((_, i) => (
+                      <SkeletonCard key={i} index={i} />
+                    ))}
+                  </div>
                 ) : projects.length === 0 && activeTag ? (
-                  <EmptyState
-                    activeTag={activeTag}
-                    onClear={() => handleTagSelect(null)}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EmptyState activeTag={activeTag} onClear={() => handleTagSelect(null)} />
+                  </div>
                 ) : (
-                  projects.map((p, i) => (
-                    <ProjectCard
-                      key={p.slug}
-                      project={p}
-                      index={i}
+                  /*
+                    Each pair of cards shares a subgrid row container.
+                    Desktop: 2 cols, rows [auto 1fr].
+                      - "auto" row = tallest header in the pair sets the height.
+                      - "1fr" row = image fills the rest equally.
+                    Mobile: collapses to 1 col, each card renders normally.
+                  */
+                  projectRows.map((pair, rowIdx) => (
+                    <ProjectCardRow
+                      key={rowIdx}
+                      pair={pair}
+                      rowIndex={rowIdx}
                       onTagClick={handleTagSelect}
                     />
                   ))
@@ -864,11 +887,7 @@ const ProjectDisplay = () => {
               </motion.div>
             </AnimatePresence>
 
-            <Pagination
-              page={page}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            <Pagination page={page} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>
         </section>
       </div>
