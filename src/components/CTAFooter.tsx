@@ -1,179 +1,161 @@
+import { motion } from "framer-motion";
 import {
-  Twitter,
   Instagram,
-  Dribbble,
   Linkedin,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 
-/* 🔥 SOCIAL LINKS */
 const socials = [
-  {
-    icon: Instagram,
-    href: "https://www.instagram.com/p/DG5c5GTPtgh/",
-  },
-  {
-    icon: Linkedin,
-    href: "https://in.linkedin.com/company/kolacommunications",
-  },
-
+  { icon: Instagram, href: "https://www.instagram.com/p/DG5c5GTPtgh/", label: "Instagram" },
+  { icon: Linkedin, href: "https://in.linkedin.com/company/kolacommunications", label: "LinkedIn" },
 ];
 
-const CTAFooter = () => {
-  return (
-    <footer
-      id="contact"
-      className="bg-black text-white pt-24 pb-16 mt-16 relative overflow-hidden"
-    >
-      <div className="max-w-[1200px] mx-auto px-6">
+const services = [
+  "Website Development",
+  "SEO & AEO",
+  "Lead Generation & Conversion",
+  "Brand Identity & Design",
+  "Performance Marketing",
+  "Social Media Marketing",
+  "Content Creation & Strategy",
+  "AI-Powered Tools & Applications",
+];
 
-        {/* ================= HERO TEXT ================= */}
-        <h2 className="text-[clamp(2.8rem,6vw,5rem)] leading-[1.05] tracking-[-0.03em] font-semibold mb-20">
-          <span className="text-white">Lets create</span>
-          <br />
-          <span className="text-white/40">
-            incredible work together.
-          </span>
-        </h2>
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5 },
+  }),
+};
 
-        {/* ================= TOP GRID ================= */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-14">
+const CTAFooter = () => (
+  <footer id="contact" className="bg-[#0a0a0a] text-white pt-20 relative overflow-hidden">
+    <div className="max-w-[1200px] mx-auto px-6 md:px-10">
 
-          {/* EMAIL */}
-          <div>
-            <p className="text-sm text-white/60 mb-2">Email</p>
-            <a
-              href="mailto:business@kolacommunications.com"
-              className="text-lg font-medium hover:opacity-70 transition"
-            >
-              business@kolacommunications.com
-            </a>
-          </div>
+      {/* HERO */}
+      <motion.h2
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true }}
+        variants={fadeUp}
+        custom={0}
+        className="text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[1.05] tracking-[-0.03em] mb-16"
+      >
+        Let's create<br />
+        <span className="text-white/20">incredible work together.</span>
+      </motion.h2>
 
-          {/* CALL */}
-          <div>
-            <p className="text-sm text-white/60 mb-2">Call Us</p>
-            <a
-              href="tel:+918108969630"
-              className="text-lg font-medium hover:opacity-70 transition"
-            >
-              +91-8108969630
-            </a>
-          </div>
+      {/* GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 pb-14 border-b border-white/10">
 
-          {/* SOCIAL */}
-          <div>
-            <p className="text-sm text-white/60 mb-3">Social</p>
-
-            <div className="flex items-center gap-2">
-
-              {/* followers pill */}
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-white text-black text-xs font-medium">
-                Kola <span className="opacity-70">Communications</span>
-              </div>
-
-              {socials.map(({ icon: Icon, href }, i) => (
-                <a
-                  key={i}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    w-9 h-9 rounded-full
-                    bg-white/10
-                    flex items-center justify-center
-                    hover:bg-white hover:text-black
-                    transition-all duration-300
-                  "
-                >
-                  <Icon size={16} />
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ================= DIVIDER ================= */}
-        <div className="border-t border-white/10 pt-10">
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
-
-            {/* MENU */}
-            <div>
-              <p className="text-xs text-white/60 uppercase tracking-widest mb-4">
-                Menu
-              </p>
-
-              <div className="flex gap-12">
-                <div className="flex flex-col gap-3">
-                  <a href="#work" className="hover:opacity-70">
-                    Work
-                  </a>
-                  <a href="#pricing" className="hover:opacity-70">
-                    Pricing
-                  </a>
-                </div>
-
-                <div className="flex flex-col gap-3">
-                  <a href="#services" className="hover:opacity-70">
-                    Services
-                  </a>
-                  <a href="#blog" className="hover:opacity-70">
-                    Blog
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* LEGAL */}
-            <div>
-              <p className="text-xs text-white/60 uppercase tracking-widest mb-4">
-                Legal
-              </p>
-
-              <div className="flex flex-col gap-3">
-                <a href="#" className="hover:opacity-70">
-                  Terms of service
-                </a>
-                <a href="#" className="hover:opacity-70">
-                  Privacy Policy
-                </a>
-              </div>
-            </div>
-
-            {/* CONTACT + ADDRESS */}
-            <div className="flex flex-col md:items-end gap-2 text-sm text-white/80">
-              <p className="max-w-[260px] text-right">
-                36, BK Housing Society, Shankar Lane, Kandivali West, Mumbai - 400067
-              </p>
-              <p>© 2026 Kola Communications</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ================= HUGE TEXT ================= */}
-        <div className="mt-20 relative">
-
-          <p
-            className="
-              text-[clamp(5rem,18vw,14rem)]
-              font-black
-              tracking-[-0.04em]
-              text-white/10
-              leading-none
-              whitespace-nowrap
-              select-none
-            "
-          >
-            KOLA
+        {/* BRAND */}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={1}>
+          <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Kola Communications</p>
+          <p className="text-[13px] text-white/45 leading-relaxed mb-5 max-w-[280px]">
+            Experience the future of business with intelligent, scalable solutions tailored to your needs.
           </p>
 
-          {/* blur glow */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-        </div>
+          <div className="flex gap-2">
+            {socials.map(({ icon: Icon, href, label }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-white/55 hover:bg-white/10 hover:border-white/35 hover:text-white transition-all"
+              >
+                <Icon size={15} />
+              </a>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* SERVICES */}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={2}>
+          <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Services</p>
+          <div className="flex flex-col gap-2.5">
+            {services.map((s) => (
+              <a key={s} href="#" className="text-[13px] text-white/55 hover:text-white transition">
+                {s}
+              </a>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* COMPANY */}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={3}>
+          <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Company</p>
+          <div className="flex flex-col gap-2.5">
+            {[
+              { label: "About Us", href: "/#about" },
+              { label: "Pricing", href: "/#pricing" },
+              { label: "Blog", href: "/blog" },
+              { label: "Projects", href: "/projects" },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} className="text-[13px] text-white/55 hover:text-white transition">
+                {label}
+              </a>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* CONTACT */}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={4}>
+          <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Contact</p>
+
+          <div className="flex flex-col gap-4 text-[13px] text-white/65">
+
+            {/* EMAIL */}
+            <a href="mailto:business@kolacommunications.com" className="flex items-center gap-2 hover:text-white transition">
+              <Mail size={16} /> business@kolacommunications.com
+            </a>
+
+            {/* PHONE */}
+            <a href="tel:+918108969630" className="flex items-center gap-2 hover:text-white transition">
+              <Phone size={16} /> +91 81089 69630
+            </a>
+
+            {/* ADDRESS */}
+            <div className="flex items-start gap-2">
+              <MapPin size={16} className="mt-0.5" />
+              <span>
+                36, BK Housing Society, Shankar Lane,<br />
+                Kandivali West, Mumbai - 400067
+              </span>
+            </div>
+
+            {/* MAP */}
+            <div className="mt-3 rounded-lg overflow-hidden border border-white/10">
+              <iframe
+                src="https://maps.google.com/maps?q=Kandivali%20West%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-[140px] "
+                loading="lazy"
+              />
+            </div>
+
+          </div>
+        </motion.div>
 
       </div>
-    </footer>
-  );
-};
+
+      {/* BOTTOM */}
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-2 py-6">
+        <p className="text-[12px] text-white/65">
+          © 2026 Kola Communications. All rights reserved.
+        </p>
+      </div>
+
+      {/* HUGE TEXT */}
+      <p className="md:hidden text-[clamp(4rem,14vw,10rem)] font-black tracking-[-0.04em] text-white/[0.04] leading-none select-none whitespace-nowrap overflow-hidden -mb-4">
+        KOLA 
+      </p>
+
+    </div>
+  </footer>
+);
 
 export default CTAFooter;

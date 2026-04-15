@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Calendar } from "lucide-react";
-import avatarJoseph from "@/assets/avatar.jpg";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import ContactForm from "@/components/ContactForm";
 
 /* ─── Data ─── */
 
@@ -48,36 +48,24 @@ const NAV_H = 80;
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(0);
 
-  const sectionRef  = useRef<HTMLElement>(null);
-  const ctaWrapRef  = useRef<HTMLDivElement>(null);
-
-  /*
-    Strategy: keep CTA always `position: absolute` inside the section.
-    Never switch to `fixed` — that causes the jump.
-    Instead, update `top` every scroll frame so it tracks the viewport
-    as if it were fixed, but stays in the section's coordinate space.
-    When it would go below the last FAQ, clamp it.
-  */
+  const sectionRef = useRef<HTMLElement>(null);
+  const ctaWrapRef = useRef<HTMLDivElement>(null);
   const [ctaTop, setCtaTop] = useState(NAV_H);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     const update = () => {
       const section = sectionRef.current;
-      const cta     = ctaWrapRef.current;
+      const cta = ctaWrapRef.current;
       if (!section || !cta) return;
 
-      const sr   = section.getBoundingClientRect();
+      const sr = section.getBoundingClientRect();
       const ctaH = cta.offsetHeight;
 
-      /*
-        Desired viewport position for the CTA top = NAV_H (below navbar).
-        In section coords: desired_top = NAV_H - sr.top
-        (because section.getBoundingClientRect().top is how far the section
-        top is from the viewport top — if section is scrolled up, sr.top is negative)
-      */
       const desiredTop = NAV_H - sr.top;
 
-      const minTop = 96; 
+      const minTop = 96;
       const maxTop = sr.height - ctaH - 96;
 
       const clampedTop = Math.min(Math.max(desiredTop, minTop), maxTop);
@@ -107,9 +95,9 @@ const FAQSection = () => {
       ref={sectionRef}
       className="py-24 border-t border-b border-border section-container relative"
     >
+      <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="max-w-[1100px] mx-auto px-4 md:px-10">
         <div className="flex flex-col lg:flex-row gap-14">
-
           {/* ═══ LEFT — FAQ list ═══ */}
           <div className="flex-1 min-w-0">
             <AnimatedHeading
@@ -121,7 +109,6 @@ const FAQSection = () => {
                 font-semibold
                 mb-12
               "
-              highlightClassName="text-[#9b9b9b]"
             />
 
             <div className="space-y-3">
@@ -133,9 +120,10 @@ const FAQSection = () => {
                     layout
                     className={`
                       rounded-[18px] border transition
-                      ${isOpen
-                        ? "border-gray-300 bg-[#f8f8f8]"
-                        : "border-gray-300 bg-[#fafafa] hover:bg-[#f5f5f5]"
+                      ${
+                        isOpen
+                          ? "border-gray-300 bg-[#f8f8f8]"
+                          : "border-gray-300 bg-[#fafafa] hover:bg-[#f5f5f5]"
                       }
                     `}
                   >
@@ -144,11 +132,6 @@ const FAQSection = () => {
                       className="w-full flex items-center justify-between px-5 py-4"
                     >
                       <div className="flex items-center gap-4">
-                        {index !== 0 && (
-                          <span className="text-xs text-[#999] font-mono">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                        )}
                         <span className="text-[14px] font-medium text-[#111]">
                           {faq.q}
                         </span>
@@ -167,7 +150,10 @@ const FAQSection = () => {
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+                          transition={{
+                            duration: 0.25,
+                            ease: [0.25, 1, 0.5, 1],
+                          }}
                           className="overflow-hidden"
                         >
                           <p className="px-5 pb-5 text-[14px] text-[#666] leading-relaxed">
@@ -183,12 +169,13 @@ const FAQSection = () => {
           </div>
 
           {/* Spacer to reserve right column width */}
-          <div className="hidden lg:block flex-shrink-0 w-[360px]" aria-hidden />
-
+          <div
+            className="hidden lg:block flex-shrink-0 w-[360px]"
+            aria-hidden
+          />
         </div>
       </div>
-
-      {/* ═══ CTA — always absolute, top updated via JS ═══ */}
+        {/* ═══ RIGHT — CTA (positioned absolute) ═══ */}
       <div
         ref={ctaWrapRef}
         className="hidden lg:block"
@@ -198,7 +185,6 @@ const FAQSection = () => {
           right: 40,
           width: 360,
           zIndex: 10,
-          /* Use will-change so browser composites this on GPU */
           willChange: "top",
         }}
       >
@@ -223,6 +209,7 @@ const FAQSection = () => {
               whileTap={{ scale: 0.96 }}
               whileHover={{ scale: 1.03 }}
               className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-full text-sm font-medium"
+              onClick={() => setContactOpen(true)}
             >
               <Calendar size={16} />
               Schedule Now
@@ -243,7 +230,10 @@ const FAQSection = () => {
             Learn more about how we work and how we can help your business grow.
           </p>
           <div className="flex items-center gap-4 mt-6">
-            <button className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-full text-sm font-medium">
+            <button onClick={() => {
+                      setContactOpen(true);
+                      setMobileOpen(false);
+                    }} className="flex items-center gap-2 bg-black text-white px-5 py-3 rounded-full text-sm font-medium">
               <Calendar size={16} />
               Schedule Now
             </button>

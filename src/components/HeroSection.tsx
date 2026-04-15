@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import ContactForm from "@/components/ContactForm";
 
 /* ─── Animation keyframes (injected once) ─────────────────────────────── */
 const ANIM_STYLES = `
@@ -69,7 +70,15 @@ const STEPS = [
 ];
 
 /* ─── Floating metric chip ─────────────────────────────────────────────── */
-function MetricChip({ floatClass, borderColor, label, value, valueColor, sub, className = "" }) {
+function MetricChip({
+  floatClass,
+  borderColor,
+  label,
+  value,
+  valueColor,
+  sub,
+  className = "",
+}) {
   return (
     <div
       className={`${floatClass} ${className} absolute z-10 rounded-xl bg-white px-3.5 py-2.5 min-w-[124px]`}
@@ -81,7 +90,10 @@ function MetricChip({ floatClass, borderColor, label, value, valueColor, sub, cl
       <div className="text-[10px] text-gray-400 uppercase tracking-wide mb-1 font-medium">
         {label}
       </div>
-      <div className="text-[19px] font-bold leading-none mb-1" style={{ color: valueColor }}>
+      <div
+        className="text-[19px] font-bold leading-none mb-1"
+        style={{ color: valueColor }}
+      >
         {value}
       </div>
       <div className="text-[10px] text-emerald-500 font-medium">{sub}</div>
@@ -94,7 +106,10 @@ function GrowthPipelineVisual() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setActive((p) => (p + 1) % STEPS.length), 2400);
+    const id = setInterval(
+      () => setActive((p) => (p + 1) % STEPS.length),
+      2400,
+    );
     return () => clearInterval(id);
   }, []);
 
@@ -104,12 +119,7 @@ function GrowthPipelineVisual() {
     <>
       <style>{ANIM_STYLES}</style>
 
-      {/*
-        Padding creates headroom so the absolute-positioned floating chips
-        don't clip. Right chip is hidden below sm to avoid narrow-screen overflow.
-      */}
       <div className="relative pt-6 pb-6 px-3 sm:px-7">
-
         {/* Chip: top-right — Organic Traffic */}
         <MetricChip
           floatClass="gp-fa"
@@ -145,7 +155,6 @@ function GrowthPipelineVisual() {
 
         {/* ── Main panel ── */}
         <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/60 p-5 sm:p-6">
-
           {/* Scan-line shimmer */}
           <div
             className="gp-scan pointer-events-none absolute left-0 right-0 z-10"
@@ -326,10 +335,13 @@ function GrowthPipelineVisual() {
 
 /* ─── Hero Section ─────────────────────────────────────────────────────── */
 const HeroSection = () => {
+  const [contactOpen, setContactOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <section className="pt-32 pb-12 md:mt-32 md:pb-20 section-container p-4 md:p-10">
+      <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-
         {/* Left: copy — unchanged from your original */}
         <div className="flex flex-col gap-6">
           <AnimatedHeading
@@ -351,19 +363,21 @@ const HeroSection = () => {
               reach the right audience, and turn clicks into customers.
             </span>
           </p>
-          <a
-            href="#contact"
+          <button
+            onClick={() => {
+              setContactOpen(true);
+              setMobileOpen(false);
+            }}
             className="inline-flex items-center gap-3 rounded-full bg-primary text-primary-foreground p-4 py-2 w-fit text-md font-medium hover:opacity-90 transition-opacity group"
           >
             Book a call with us
-          </a>
+          </button>
         </div>
 
         {/* Right: animated visual */}
         <div className="w-full">
           <GrowthPipelineVisual />
         </div>
-
       </div>
     </section>
   );

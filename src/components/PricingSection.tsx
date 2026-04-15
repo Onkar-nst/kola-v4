@@ -6,8 +6,10 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import pricingBg from "@/assets/pricing-card-bg.jpg";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import ContactForm from "@/components/ContactForm";
 
 /* ---------------- DATA ---------------- */
 const features = [
@@ -78,8 +80,13 @@ const FloatingCard = () => {
 
 /* ---------------- COMPONENT ---------------- */
 const PricingSection = () => {
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [contactOpen, setContactOpen] = useState(false);
+  
+    
   return (
-    <section className="py-24 section-container">
+    <section id="pricing" className="py-24 section-container">
+      <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="mx-auto max-w-[1100px] p-2 md:p-10">
         {/* ================= HEADER ================= */}
         <div className="grid lg:grid-cols-2 gap-12 mb-20 items-center">
@@ -189,6 +196,7 @@ const PricingSection = () => {
 
                 <motion.button
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => setContactOpen(true)}
                   className="
                     rounded-full bg-black text-white
                     px-6 py-3 text-sm font-medium
@@ -223,6 +231,7 @@ const PricingSection = () => {
 
                 <motion.button
                   whileTap={{ scale: 0.95 }}
+                  onClick={() => setContactOpen(true)}
                   className="
                     flex items-center gap-2
                     bg-white text-black
@@ -230,7 +239,7 @@ const PricingSection = () => {
                     font-medium
                   "
                 >
-                  Request a Proposal <ArrowRight size={16} />
+                  Request Proposal <ArrowRight size={16} />
                 </motion.button>
               </div>
             </div>

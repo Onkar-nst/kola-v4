@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, CheckCircle2, Loader2 } from "lucide-react";
+import { X, Send, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface ContactFormProps {
@@ -12,13 +13,150 @@ interface ContactFormProps {
 }
 
 const fields = [
-  { name: "name", label: "Your Name", type: "text", placeholder: "Jane Smith", required: true },
-  { name: "email", label: "Email Address", type: "email", placeholder: "jane@company.com", required: true },
-  { name: "company", label: "Company / Brand", type: "text", placeholder: "Acme Inc.", required: false },
-  { name: "message", label: "Tell us about your project", type: "textarea", placeholder: "Goals, timeline, budget…", required: true },
+  { name: "name",    label: "Your Name",                  type: "text",     placeholder: "Jane Smith",               required: true  },
+  { name: "email",   label: "Email Address",              type: "email",    placeholder: "jane@company.com",         required: true  },
+  { name: "company", label: "Company / Brand",            type: "text",     placeholder: "Acme Inc.",                required: false },
+  { name: "message", label: "Tell us about your project", type: "textarea", placeholder: "Goals, timeline, budget…", required: true  },
 ];
 
-const Inner = ({ status, values, focused, errorMsg, handleChange, handleClose, handleSubmit, setFocused }: any) => (
+const useIsDesktop = () => {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 768 : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+};
+
+const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService = "" }) => {
+  const [values, setValues] = useState({ name: "", email: "", company: "", message: "" });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const isDesktop = useIsDesktop();
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setValues((v) => ({ ...v, [e.target.name]: e.target.value }));
+
+  const handleSubmit = async () => {
+    setStatus("loading");
+    // const { error } = await supabase.from("contact_submissions").insert([values]);
+    setStatus("success");
+  };
+
+  const handleClose = () => {
+    onClose();
+    setTimeout(() => {
+      setStatus("idle");
+      setValues({ name: "", email: "", company: "", message: "" });
+    }, 300);
+  };
+
+  const innerContent = (
+    <FormInner
+      status={status}
+      values={values}
+      handleChange={handleChange}
+      handleClose={handleClose}
+      handleSubmit={handleSubmit}
+    />
+  );
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* BACKDROP */}
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={handleClose}
+            style={{
+              position: "fixed",
+              inset: 0,
+              backgroundColor: "rgba(0,0,0,0.45)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 9998,
+            }}
+          />
+
+          {/* MOBILE — bottom sheet */}
+          {!isDesktop && (
+            <motion.div
+              key="mobile-sheet"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                zIndex: 9999,
+                backgroundColor: "#fff",
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+                overflow: "hidden",
+              }}
+            >
+              {innerContent}
+            </motion.div>
+          )}
+
+          {/* DESKTOP — centered modal */}
+          {isDesktop && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+              }}
+            >
+              <motion.div
+                key="desktop-modal"
+                initial={{ opacity: 0, scale: 0.96, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                style={{
+                  width: 480,
+                  backgroundColor: "#fff",
+                  borderRadius: 20,
+                  boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
+                  pointerEvents: "auto",
+                  overflow: "hidden",
+                }}
+              >
+                {innerContent}
+              </motion.div>
+            </div>
+          )}
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+};
+
+type InnerProps = {
+  status: string;
+  values: Record<string, string>;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  handleClose: () => void;
+  handleSubmit: () => void;
+};
+
+const FormInner: React.FC<InnerProps> = ({ status, values, handleChange, handleClose, handleSubmit }) => (
   <AnimatePresence mode="wait">
     {status === "success" ? (
       <motion.div
@@ -38,33 +176,34 @@ const Inner = ({ status, values, focused, errorMsg, handleChange, handleClose, h
         </button>
       </motion.div>
     ) : (
-      <div>
-        {/* HEADER */}
-        <div className="flex justify-between px-5 pt-5 pb-4 border-b">
+      <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <div className="flex justify-between items-start px-5 pt-5 pb-4 border-b border-black/8">
           <div>
             <p className="text-[14px] font-semibold">Start a project</p>
             <p className="text-[11px] text-black/35">Kola Communications</p>
           </div>
-          <button onClick={handleClose} className="w-7 h-7 flex items-center justify-center">
+          <button
+            onClick={handleClose}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-black/5 transition"
+          >
             <X size={14} />
           </button>
         </div>
 
-        {/* FORM */}
         <div className="px-5 py-4 space-y-3">
           {fields.map((field) => (
             <div key={field.name}>
-              <label className="text-[10px] uppercase text-black/40">
+              <label className="block text-[10px] uppercase tracking-wide text-black/40 mb-1">
                 {field.label}
               </label>
-
               {field.type === "textarea" ? (
                 <textarea
                   name={field.name}
                   value={values[field.name]}
                   onChange={handleChange}
                   placeholder={field.placeholder}
-                  className="w-full border px-3 py-2 rounded-xl"
+                  rows={3}
+                  className="w-full border border-black/10 px-3 py-2 rounded-xl text-[13px] resize-none focus:outline-none focus:border-black/30 transition"
                 />
               ) : (
                 <input
@@ -73,110 +212,30 @@ const Inner = ({ status, values, focused, errorMsg, handleChange, handleClose, h
                   value={values[field.name]}
                   onChange={handleChange}
                   placeholder={field.placeholder}
-                  className="w-full border px-3 py-2 rounded-xl"
+                  className="w-full border border-black/10 px-3 py-2 rounded-xl text-[13px] focus:outline-none focus:border-black/30 transition"
                 />
               )}
             </div>
           ))}
         </div>
 
-        {/* BUTTON */}
         <div className="px-5 pb-5">
           <button
             onClick={handleSubmit}
-            className="w-full py-3 bg-black text-white rounded-xl flex items-center justify-center gap-2"
+            disabled={status === "loading"}
+            className="w-full py-3 bg-black text-white rounded-xl flex items-center justify-center gap-2 text-[13px] font-medium disabled:opacity-50 transition"
           >
-            Send Message <Send size={14} />
+            {status === "loading" ? "Sending…" : <> Send Message <Send size={13} /> </>}
           </button>
+          {status === "error" && (
+            <p className="text-[11px] text-red-500 text-center mt-2">
+              Something went wrong. Please try again.
+            </p>
+          )}
         </div>
-      </div>
+      </motion.div>
     )}
   </AnimatePresence>
 );
-
-const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService = "" }) => {
-  const [values, setValues] = useState({ name: "", email: "", company: "", message: "" });
-  const [status, setStatus] = useState("idle");
-  const [errorMsg, setErrorMsg] = useState("");
-
-  const handleChange = (e: any) => {
-    setValues({ ...values, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async () => {
-    setStatus("loading");
-
-    const { error } = await supabase.from("contact_submissions").insert([values]);
-
-    if (error) {
-      setStatus("error");
-    } else {
-      setStatus("success");
-    }
-  };
-
-  const handleClose = () => {
-    onClose();
-    setTimeout(() => {
-      setStatus("idle");
-      setValues({ name: "", email: "", company: "", message: "" });
-    }, 300);
-  };
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* BACKDROP */}
-          <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
-            onClick={handleClose}
-          />
-
-          {/* MOBILE */}
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-[9999] md:hidden"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-          >
-            <Inner
-              status={status}
-              values={values}
-              errorMsg={errorMsg}
-              handleChange={handleChange}
-              handleClose={handleClose}
-              handleSubmit={handleSubmit}
-            />
-          </motion.div>
-
-          {/* DESKTOP (FIXED CENTER) */}
-          <motion.div
-            className="hidden md:block bg-white rounded-2xl shadow-2xl z-[9999]"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              translate: "-50% -50%", 
-              width: "480px",
-            }}
-          >
-            <Inner
-              status={status}
-              values={values}
-              errorMsg={errorMsg}
-              handleChange={handleChange}
-              handleClose={handleClose}
-              handleSubmit={handleSubmit}
-            />
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-};
 
 export default ContactForm;
