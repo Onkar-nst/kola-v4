@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, CheckCircle2 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 interface ContactFormProps {
   open: boolean;
@@ -42,8 +41,23 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
 
   const handleSubmit = async () => {
     setStatus("loading");
-    // const { error } = await supabase.from("contact_submissions").insert([values]);
-    setStatus("success");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName:    values.name,
+          email:       values.email,
+          companyName: values.company,
+          message:     values.message,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Request failed");
+      setStatus("success");
+    } catch {
+      setStatus("error");
+    }
   };
 
   const handleClose = () => {
@@ -68,7 +82,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
     <AnimatePresence>
       {open && (
         <>
-          {/* BACKDROP */}
           <motion.div
             key="backdrop"
             initial={{ opacity: 0 }}
@@ -85,7 +98,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
             }}
           />
 
-          {/* MOBILE — bottom sheet */}
           {!isDesktop && (
             <motion.div
               key="mobile-sheet"
@@ -109,7 +121,6 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
             </motion.div>
           )}
 
-          {/* DESKTOP — centered modal */}
           {isDesktop && (
             <div
               style={{
