@@ -20,7 +20,6 @@ export default async function handler(req, res) {
       },
     });
 
-    // ✅ INDIAN TIME FIX
     const submittedAt = new Date().toLocaleString("en-IN", {
       timeZone: "Asia/Kolkata",
       weekday: "long",
@@ -34,117 +33,156 @@ export default async function handler(req, res) {
     const firstName = fullName.split(" ")[0];
     const year = new Date().getFullYear();
 
-    // ✅ ADMIN EMAIL (ORIGINAL KOLA UI — UNCHANGED)
+    // ── ADMIN EMAIL ────────────────────────────────────────────────────────────
     const adminHtml = `<!DOCTYPE html>
 <html lang="en">
-<body style="margin:0;padding:0;background-color:#f0f0f5;font-family:Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#f3f4f9;font-family:Helvetica,Arial,sans-serif;">
   <table width="100%" style="padding:48px 20px;">
     <tr><td align="center">
 
-      <table width="600" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(60,60,160,0.08);">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e0ddf5;">
 
+        <!-- Header -->
         <tr>
-          <td style="padding:40px 48px 28px;">
-            <p style="font-size:20px;font-weight:500;letter-spacing:3px;">KOLA</p>
-            <p style="font-size:11px;color:#9090a8;">Communications</p>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#6366f1 60%,#818cf8 100%);padding:36px 40px 32px;">
+            <p style="margin:0;font-size:22px;font-weight:600;letter-spacing:4px;color:#ffffff;">KOLA</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c7d2fe;letter-spacing:1px;">Communications</p>
+            <p style="margin:24px 0 0;font-size:20px;font-weight:500;color:#ffffff;line-height:1.4;">
+              New inquiry <span style="color:#a5b4fc;">received</span>
+            </p>
           </td>
         </tr>
 
+        <!-- Sender details -->
         <tr>
-          <td style="padding:0 48px 32px;">
-            <h2>You have a new message</h2>
-            <p>Someone submitted your contact form.</p>
+          <td style="padding:28px 40px 0;">
+            <p style="margin:0 0 12px;font-size:11px;font-weight:500;letter-spacing:1.2px;color:#818cf8;text-transform:uppercase;">Sender details</p>
+
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding:12px 0;border-bottom:1px solid #e0ddf5;font-size:14px;color:#6b7280;width:120px;">Full name</td>
+                <td style="padding:12px 0;border-bottom:1px solid #e0ddf5;font-size:14px;color:#1e1b4b;font-weight:500;text-align:right;">${fullName}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;border-bottom:1px solid #e0ddf5;font-size:14px;color:#6b7280;">Email</td>
+                <td style="padding:12px 0;border-bottom:1px solid #e0ddf5;font-size:14px;color:#4f46e5;font-weight:500;text-align:right;">${email}</td>
+              </tr>
+              <tr>
+                <td style="padding:12px 0;font-size:14px;color:#6b7280;">Company</td>
+                <td style="padding:12px 0;font-size:14px;color:#1e1b4b;font-weight:500;text-align:right;">${companyName || "Not provided"}</td>
+              </tr>
+            </table>
           </td>
         </tr>
 
+        <!-- Message -->
         <tr>
-          <td style="padding:0 48px;">
-            <p><b>Name:</b> ${fullName}</p>
-            <p><b>Email:</b> ${email}</p>
-            <p><b>Company:</b> ${companyName || "Not provided"}</p>
-          </td>
-        </tr>
-
-        <tr>
-          <td style="padding:20px 48px;">
-            <div style="background:#f7f7fc;padding:15px;border-radius:10px;">
-              ${message}
+          <td style="padding:20px 40px;">
+            <div style="background:#f5f3ff;border-radius:10px;padding:18px 20px;border:1px solid #ddd6fe;">
+              <p style="margin:0 0 8px;font-size:11px;color:#818cf8;letter-spacing:1px;text-transform:uppercase;">Message</p>
+              <p style="margin:0;font-size:14px;color:#374151;line-height:1.75;">${message}</p>
             </div>
           </td>
         </tr>
 
+        <!-- Timestamp -->
         <tr>
-          <td style="padding:20px 48px;font-size:12px;color:#888;">
-            Submitted — ${submittedAt}<br/>
-            © ${year} Kola Communications
+          <td style="padding:0 40px 28px;">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:#eef2ff;color:#4f46e5;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:500;border:1px solid #c7d2fe;">
+              &#9679;&nbsp; Submitted — ${submittedAt}
+            </span>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f5f3ff;padding:16px 40px;border-top:1px solid #ddd6fe;">
+            <table width="100%">
+              <tr>
+                <td style="font-size:11px;font-weight:500;color:#6366f1;letter-spacing:1px;">KOLA</td>
+                <td style="font-size:12px;color:#a5afc7;text-align:right;">© ${year} Kola Communications</td>
+              </tr>
+            </table>
           </td>
         </tr>
 
       </table>
-
     </td></tr>
   </table>
 </body>
 </html>`;
 
-    // ✅ AUTO REPLY (PROFESSIONAL)
+    // ── AUTO-REPLY EMAIL ───────────────────────────────────────────────────────
     const autoReplyHtml = `<!DOCTYPE html>
 <html lang="en">
-<body style="margin:0;padding:0;background-color:#f0f0f5;font-family:Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background-color:#f3f4f9;font-family:Helvetica,Arial,sans-serif;">
   <table width="100%" style="padding:48px 20px;">
     <tr><td align="center">
 
-      <table width="600" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 20px rgba(60,60,160,0.08);">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e0ddf5;">
 
+        <!-- Header -->
         <tr>
-          <td style="padding:40px 48px 28px;">
-            <p style="font-size:20px;font-weight:500;letter-spacing:3px;">KOLA</p>
-            <p style="font-size:11px;color:#9090a8;">Communications</p>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#6366f1 60%,#818cf8 100%);padding:36px 40px 32px;">
+            <p style="margin:0;font-size:22px;font-weight:600;letter-spacing:4px;color:#ffffff;">KOLA</p>
+            <p style="margin:4px 0 0;font-size:11px;color:#c7d2fe;letter-spacing:1px;">Communications</p>
+            <p style="margin:24px 0 0;font-size:20px;font-weight:500;color:#ffffff;line-height:1.4;">
+              We've got <span style="color:#a5b4fc;">your message</span>
+            </p>
           </td>
         </tr>
 
+        <!-- Body -->
         <tr>
-          <td style="padding:0 48px 32px;">
-            <h2>Hi ${firstName},</h2>
+          <td style="padding:32px 40px 28px;">
 
-            <p style="color:#555;line-height:1.7;">
-              Thank you for reaching out to <b>Kola Communications</b>.
+            <p style="margin:0 0 20px;font-size:22px;font-weight:500;color:#1e1b4b;">Hi ${firstName},</p>
+
+            <p style="margin:0 0 14px;font-size:14px;color:#4b5563;line-height:1.75;">
+              Thank you for reaching out to <strong style="color:#4f46e5;font-weight:500;">Kola Communications</strong>. We've received your message and truly appreciate you taking the time to connect with us.
             </p>
 
-            <p style="color:#555;line-height:1.7;">
-              We’ve received your message and our team will get back to you within <b>24 hours</b>.
+            <p style="margin:0 0 20px;font-size:14px;color:#4b5563;line-height:1.75;">
+              Our team will review your inquiry and get back to you within <strong style="color:#4f46e5;font-weight:500;">24 hours</strong>.
             </p>
 
-            <div style="margin-top:20px;padding:15px;background:#f7f7fc;border-radius:10px;">
-              <p style="margin:0 0 5px;font-size:12px;color:#9090a8;">Your Message</p>
-              <p style="margin:0;">${message}</p>
+            <!-- Message recap -->
+            <div style="background:#f5f3ff;border-left:3px solid #6366f1;border-radius:0 10px 10px 0;padding:16px 20px;margin:0 0 20px;">
+              <p style="margin:0 0 8px;font-size:11px;color:#818cf8;letter-spacing:1px;text-transform:uppercase;">Your message</p>
+              <p style="margin:0;font-size:14px;color:#374151;line-height:1.75;">${message}</p>
             </div>
 
-            <p style="margin-top:20px;color:#555;">
-              If your request is urgent, feel free to reply to this email.
+            <p style="margin:0 0 28px;font-size:14px;color:#4b5563;line-height:1.75;">
+              If your request is urgent, feel free to reply directly to this email — we're happy to help.
             </p>
 
-            <p style="margin-top:20px;">
-              Best regards,<br/>
-              <b>Kola Communications Team</b>
-            </p>
+            <hr style="border:none;border-top:1px solid #e0ddf5;margin:0 0 20px;" />
+
+            <p style="margin:0;font-size:14px;font-weight:500;color:#1e1b4b;">Kola Communications Team</p>
+            <p style="margin:4px 0 0;font-size:12px;color:#818cf8;">Brand &amp; Creative Communication</p>
+
           </td>
         </tr>
 
+        <!-- Footer -->
         <tr>
-          <td style="padding:20px 48px;font-size:12px;color:#888;">
-            © ${year} Kola Communications
+          <td style="background:#f5f3ff;padding:16px 40px;border-top:1px solid #ddd6fe;">
+            <table width="100%">
+              <tr>
+                <td style="font-size:11px;font-weight:500;color:#6366f1;letter-spacing:1px;">KOLA</td>
+                <td style="font-size:12px;color:#a5afc7;text-align:right;">© ${year} Kola Communications</td>
+              </tr>
+            </table>
           </td>
         </tr>
 
       </table>
-
     </td></tr>
   </table>
 </body>
 </html>`;
 
-    // 🔥 1. SEND ADMIN EMAIL
+    // Send admin email
     await transporter.sendMail({
       from: `"Kola Communications" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
@@ -153,7 +191,7 @@ export default async function handler(req, res) {
       html: adminHtml,
     });
 
-    // 🔥 2. SEND AUTO REPLY
+    // Send auto-reply
     await transporter.sendMail({
       from: `"Kola Communications" <${process.env.EMAIL_USER}>`,
       to: email,
