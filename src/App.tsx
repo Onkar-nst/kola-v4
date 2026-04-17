@@ -7,6 +7,8 @@ import { lazy, Suspense, useEffect } from "react";
 
 import Navbar from "@/components/Navbar";
 import Lenis from "@studio-freight/lenis";
+import { HelmetProvider } from "react-helmet-async";
+
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -15,6 +17,7 @@ const ProjectDisplay = lazy(() => import("./pages/ProjectDisplay"));
 const BlogDisplay = lazy(() => import("./pages/BlogDisplay"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 
+import SectionSkeleton from "./components/SectionSkeleton";
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
 
 const queryClient = new QueryClient();
@@ -52,19 +55,13 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-
+        <HelmetProvider>
         <BrowserRouter>
           <ScrollToTopWrapper>
             <SmoothScroll>
               <Navbar />
 
-              <Suspense
-                fallback={
-                  <div className="h-screen flex items-center justify-center text-sm text-muted-foreground">
-                    Loading...
-                  </div>
-                }
-              >
+              <Suspense fallback={<SectionSkeleton/>}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="*" element={<NotFound />} />
@@ -77,6 +74,7 @@ const App = () => {
             </SmoothScroll>
           </ScrollToTopWrapper>
         </BrowserRouter>
+        </HelmetProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

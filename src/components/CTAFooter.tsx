@@ -79,7 +79,7 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Services</p>
           <div className="flex flex-col gap-2.5">
             {services.map((s) => (
-              <a key={s} href="#" className="text-[13px] text-white/55 hover:text-white transition">
+              <a key={s} href="/#services" className="text-[13px] text-white/55 hover:text-white transition">
                 {s}
               </a>
             ))}
@@ -123,7 +123,7 @@ const CTAFooter = () => (
             <div className="flex items-start gap-2">
               <MapPin size={16} className="mt-0.5" />
               <span>
-                36, BK Housing Society, Shankar Lane,<br />
+                36, BK Housing Society, Shankar Lane,
                 Kandivali West, Mumbai - 400067
               </span>
             </div>

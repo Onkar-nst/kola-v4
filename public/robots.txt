@@ -1,14 +1,33 @@
+# 🌐 Global rules
+User-agent: *
+Allow: /
+
+# Block non-SEO routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /_vercel/
+Disallow: /private/
+
+#  Important: Allow rendering resources
+Allow: /*.js$
+Allow: /*.css$
+
+#  AI Crawlers (AEO optimization)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
-User-agent: *
-Allow: /
+#  Sitemap location
+Sitemap: https://kolacommunications.com/sitemap.xml

@@ -1,6 +1,6 @@
-import { motion } from "framer-motion";
+import { motion, cubicBezier } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import avatarImg from "@/assets/avatar.jpg";
+// import avatarImg from "@/assets/avatar.jpg";
 import AnimatedHeading from "@/components/AnimatedHeading";
 
 /* ---------------- DATA ---------------- */
@@ -41,7 +41,7 @@ const cardVariants = {
     transition: {
       delay: i * 0.08,
       duration: 0.7,
-      ease: [0.16, 1, 0.3, 1],
+      ease: cubicBezier(0.16, 1, 0.3, 1),
     },
   }),
 };
@@ -112,7 +112,7 @@ const TestimonialsSection = () => {
                         max-w-[760px]
                       "
                     />
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <div className="flex -space-x-3">
               {[1, 2, 3, 4, 5].map((i) => (
                 <img key={i} src={avatarImg} className="w-8 h-8 rounded-full border-2 border-white" />
@@ -122,7 +122,7 @@ const TestimonialsSection = () => {
               <div className="text-sm">★★★★★</div>
               <div className="text-xs text-[#777]">99+ Happy clients</div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* ================= DESKTOP ================= */}

@@ -14,10 +14,6 @@ import CTAFooter from "@/components/CTAFooter";
 import SectionDivider from "@/components/SectionDivider";
 import ContactForm from "@/components/ContactForm";
 
-/* ══════════════════════════════════════════
-   CONSTANTS
-══════════════════════════════════════════ */
-
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 
 /* ══════════════════════════════════════════
@@ -72,6 +68,15 @@ interface WPPost {
   };
 }
 
+interface WPProject {
+  id: number;
+  slug: string;
+  title: { rendered: string };
+  aioseo_head_json?: { schema?: AioseoSchema };
+  acf?: { hover_img?: string; tags?: string[] };
+  _embedded?: { "wp:featuredmedia"?: Array<{ source_url: string }> };
+}
+
 interface NormalizedRelated {
   id: number;
   slug: string;
@@ -79,6 +84,13 @@ interface NormalizedRelated {
   img: string;
   formattedDate: string;
   categories: string[];
+}
+
+interface NormalizedProject {
+  slug: string;
+  title: string;
+  img: string;
+  tags: string[];
 }
 
 /* ══════════════════════════════════════════
@@ -97,9 +109,7 @@ const stripHtml = (html: string) =>
 
 const formatDate = (iso: string): string => {
   try {
-    return new Intl.DateTimeFormat("en-US", {
-      month: "long", day: "numeric", year: "numeric",
-    }).format(new Date(iso));
+    return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
   } catch { return iso; }
 };
 
@@ -109,53 +119,41 @@ const estimateReadTime = (html: string): number =>
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
   for (const node of schema["@graph"]) {
-    if (
-      (node["@type"] === "NewsArticle" ||
-        node["@type"] === "Article" ||
-        node["@type"] === "WebPage") &&
-      node.image
-    )
+    if ((node["@type"] === "NewsArticle" || node["@type"] === "Article" || node["@type"] === "WebPage") && node.image)
       return (node.image as { url: string }).url ?? "";
   }
   return "";
 };
 
 const getSchemaArticleNode = (schema?: AioseoSchema) =>
-  schema?.["@graph"]?.find(
-    (n) => n["@type"] === "NewsArticle" || n["@type"] === "Article"
-  );
+  schema?.["@graph"]?.find((n) => n["@type"] === "NewsArticle" || n["@type"] === "Article");
 
-/**
- * Extract tags from articleSection in the AIOSEO @graph.
- * e.g. "SEO &amp; AEO, Website Development, React JS"
- * → ["SEO & AEO", "Website Development", "React JS"]
- */
 const getArticleTags = (schema?: AioseoSchema): string[] => {
   const node = getSchemaArticleNode(schema);
   if (!node?.articleSection) return [];
-  return (node.articleSection as string)
-    .split(",")
-    .map((t) => decodeHtmlEntities(t.trim()))
-    .filter(Boolean);
+  return (node.articleSection as string).split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean);
+};
+
+const getProjectArticleSection = (p: WPProject): string => {
+  const schema = p.aioseo_head_json?.schema;
+  if (!schema?.["@graph"]) return "";
+  const article = (schema["@graph"] as Array<{ "@type": string; articleSection?: string }>).find((n) => n["@type"] === "Article");
+  return article?.articleSection ?? "";
 };
 
 const normalizeRelated = (p: WPPost): NormalizedRelated => {
-  const img =
-    p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
-    getSchemaImageUrl(p.aioseo_head_json?.schema) ??
-    "/placeholder.jpg";
-  const categories =
-    p._embedded?.["wp:term"]?.[0]
-      ?.map((t) => decodeHtmlEntities(t.name))
-      .slice(0, 2) ?? [];
-  return {
-    id: p.id,
-    slug: p.slug,
-    title: decodeHtmlEntities(p.title.rendered),
-    img,
-    formattedDate: formatDate(p.date),
-    categories,
-  };
+  const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
+  const categories = p._embedded?.["wp:term"]?.[0]?.map((t) => decodeHtmlEntities(t.name)).slice(0, 2) ?? [];
+  return { id: p.id, slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, formattedDate: formatDate(p.date), categories };
+};
+
+const normalizeProject = (p: WPProject): NormalizedProject => {
+  const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
+  const rawSection = getProjectArticleSection(p);
+  const tags: string[] = rawSection
+    ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean).slice(0, 2)
+    : (p.acf?.tags?.map(decodeHtmlEntities) ?? []).slice(0, 2);
+  return { slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, tags };
 };
 
 /* ══════════════════════════════════════════
@@ -168,14 +166,12 @@ const upsertMeta = (sel: string, attrKey: string, attrVal: string, content: stri
   if (!el) { el = document.createElement("meta"); el.setAttribute(attrKey, attrVal); document.head.appendChild(el); }
   el.setAttribute("content", content);
 };
-
 const upsertCanonical = (href: string) => {
   if (!href) return;
   let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (!el) { el = document.createElement("link"); el.rel = "canonical"; document.head.appendChild(el); }
   el.href = href;
 };
-
 const upsertJsonLd = (data: object, id: string) => {
   let el = document.getElementById(id) as HTMLScriptElement | null;
   if (!el) { el = document.createElement("script"); el.id = id; el.type = "application/ld+json"; document.head.appendChild(el); }
@@ -193,12 +189,9 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
     const ogImage = getSchemaImageUrl(seo?.schema) || img;
     const publishedTime = (seo?.["article:published_time"] as string) ?? post.date;
     const modifiedTime = (seo?.["article:modified_time"] as string) ?? post.modified;
-    const articleSection = articleNode?.articleSection
-      ? decodeHtmlEntities(articleNode.articleSection as string)
-      : "";
+    const articleSection = articleNode?.articleSection ? decodeHtmlEntities(articleNode.articleSection as string) : "";
     const prevTitle = document.title;
     document.title = metaTitle;
-
     upsertMeta('meta[name="description"]', "name", "description", metaDesc);
     upsertMeta('meta[name="keywords"]', "name", "keywords", seo?.keywords ?? "");
     upsertMeta('meta[name="robots"]', "name", "robots", seo?.robots ?? "");
@@ -216,11 +209,7 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
     upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", decodeHtmlEntities((seo?.["twitter:description"] as string) ?? metaDesc));
     upsertMeta('meta[name="twitter:image"]', "name", "twitter:image", ogImage);
     if (seo?.schema) upsertJsonLd(seo.schema, "kola-blog-jsonld");
-
-    return () => {
-      document.title = prevTitle;
-      document.getElementById("kola-blog-jsonld")?.remove();
-    };
+    return () => { document.title = prevTitle; document.getElementById("kola-blog-jsonld")?.remove(); };
   }, [post, img, plainDesc]);
 };
 
@@ -244,15 +233,29 @@ const FadeUp = memo(({ children, delay = 0, className = "" }: {
   );
 });
 
+const LineReveal = memo(({ children, delay = 0, className = "" }: {
+  children: React.ReactNode; delay?: number; className?: string;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  return (
+    <div ref={ref} className={`overflow-hidden ${className}`}>
+      <motion.div initial={{ y: "100%" }} animate={inView ? { y: 0 } : {}}
+        transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}>
+        {children}
+      </motion.div>
+    </div>
+  );
+});
+
 /* ══════════════════════════════════════════
-   DRAG CAROUSEL  (mobile related posts)
+   DRAG CAROUSEL
 ══════════════════════════════════════════ */
 
 const DragCarousel = memo(({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragLeft, setDragLeft] = useState(-800);
-
   useEffect(() => {
     const measure = () => {
       if (!trackRef.current || !containerRef.current) return;
@@ -264,14 +267,11 @@ const DragCarousel = memo(({ children, className = "" }: { children: React.React
     if (containerRef.current) ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, [children]);
-
   return (
-    <div ref={containerRef} className={className}
-      style={{ overflow: "hidden", marginLeft: "-1rem", marginRight: "-1rem" }}>
+    <div ref={containerRef} className={className} style={{ overflow: "hidden", marginLeft: "-1rem", marginRight: "-1rem" }}>
       <motion.div ref={trackRef} drag="x"
         dragConstraints={{ left: dragLeft, right: 0 }}
-        dragElastic={0.08}
-        dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+        dragElastic={0.08} dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
         style={{ display: "flex", gap: "12px", paddingLeft: "1rem", paddingRight: "1rem", width: "max-content", cursor: "grab" }}>
         {children}
       </motion.div>
@@ -314,14 +314,11 @@ const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
       <p className="text-[21px] font-semibold tracking-[-0.03em] text-black leading-[1.18] mb-7 max-w-[300px]">
         Let's build something that works for you.
       </p>
-      <motion.button
-        onClick={onOpenContact}
+      <motion.button onClick={onOpenContact}
         initial="rest" whileHover="hover" animate="rest"
         className="group relative overflow-hidden inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black text-white text-[13px] font-medium leading-none">
         <span className="relative z-10">Start a Project</span>
-        <motion.span
-          variants={{ rest: { x: 0, y: 0 }, hover: { x: 3, y: -3 } }}
-          transition={{ duration: 0.18 }} className="relative z-10">
+        <motion.span variants={{ rest: { x: 0, y: 0 }, hover: { x: 3, y: -3 } }} transition={{ duration: 0.18 }} className="relative z-10">
           <ArrowUpRight size={13} strokeWidth={1.8} />
         </motion.span>
         <motion.span
@@ -343,14 +340,12 @@ const BlogPageSkeleton = () => (
       <div className="h-4 w-12 bg-black/[0.06] rounded mb-10" />
       <div className="w-full h-[480px] bg-black/[0.05] rounded-[20px] mb-10" />
       <div className="flex gap-2 mb-5">
-        {[80, 100, 70, 90].map((w, i) => (
-          <div key={i} className="h-5 bg-black/[0.04] rounded-full" style={{ width: w }} />
-        ))}
+        {[80, 100, 70, 90].map((w, i) => <div key={i} className="h-5 bg-black/[0.04] rounded-full" style={{ width: w }} />)}
       </div>
       <div className="h-9 w-3/4 bg-black/[0.06] rounded mb-3" />
       <div className="h-9 w-1/2 bg-black/[0.05] rounded mb-8" />
       <div className="h-px bg-black/[0.05] mb-12" />
-      <div className="space-y-3 max-w-[680px]">
+      <div className="space-y-3">
         {[100, 95, 88, 100, 92, 60].map((w, i) => (
           <div key={i} className="h-3.5 bg-black/[0.04] rounded" style={{ width: `${w}%` }} />
         ))}
@@ -358,6 +353,40 @@ const BlogPageSkeleton = () => (
     </div>
   </div>
 );
+
+/* ══════════════════════════════════════════
+   PROJECT SIDEBAR CARD  (matches ProjectPage style exactly)
+══════════════════════════════════════════ */
+
+const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProject; index: number }) => {
+  const navigate = useNavigate();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      onClick={() => navigate(`/project/${project.slug}`)}
+      className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0"
+    >
+      <div className="relative overflow-hidden rounded-[10px] mb-2.5 h-[120px]">
+        <img src={project.img} alt={project.title}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+          loading="lazy" />
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
+        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+          <ArrowUpRight size={10} />
+        </div>
+      </div>
+      <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug">
+        {project.title}
+      </p>
+      {project.tags.length > 0 && (
+        <p className="text-[11px] text-black/28 mt-0.5">{project.tags.join(" · ")}</p>
+      )}
+    </motion.div>
+  );
+});
 
 /* ══════════════════════════════════════════
    BLOG PAGE  ←  default export
@@ -369,6 +398,7 @@ const BlogPage = () => {
 
   const [post, setPost] = useState<WPPost | null>(null);
   const [related, setRelated] = useState<NormalizedRelated[]>([]);
+  const [sidebarProjects, setSidebarProjects] = useState<NormalizedProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -382,12 +412,8 @@ const BlogPage = () => {
     post?._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(post?.aioseo_head_json?.schema) ??
     "/placeholder.jpg";
-  const altText =
-    post?._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ??
-    (post ? decodeHtmlEntities(post.title.rendered) : "");
-  const plainDesc = post
-    ? decodeHtmlEntities(stripHtml(post.excerpt.rendered)).slice(0, 160)
-    : "";
+  const altText = post?._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ?? (post ? decodeHtmlEntities(post.title.rendered) : "");
+  const plainDesc = post ? decodeHtmlEntities(stripHtml(post.excerpt.rendered)).slice(0, 160) : "";
 
   useBlogSEO(post, featuredImg, plainDesc);
 
@@ -396,17 +422,15 @@ const BlogPage = () => {
     if (!slug) return;
     let cancelled = false;
     setLoading(true); setNotFound(false); setPost(null);
-
     fetch(`${WP_API_BASE}/posts?slug=${encodeURIComponent(slug)}&_embed=1`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() as Promise<WPPost[]>; })
       .then((data) => { if (cancelled) return; if (!data.length) setNotFound(true); else setPost(data[0]); })
       .catch(() => { if (!cancelled) setNotFound(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
-
     return () => { cancelled = true; };
   }, [slug]);
 
-  // ── Fetch 3 related posts (same category) ──
+  // ── Fetch related articles (same category) ──
   useEffect(() => {
     if (!post) return;
     let cancelled = false;
@@ -414,22 +438,29 @@ const BlogPage = () => {
     const url = catId
       ? `${WP_API_BASE}/posts?per_page=4&categories=${catId}&_embed=1&exclude=${post.id}`
       : `${WP_API_BASE}/posts?per_page=4&_embed=1&exclude=${post.id}`;
-
     fetch(url)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => { if (!cancelled) setRelated(data.slice(0, 3).map(normalizeRelated)); })
       .catch(() => {});
-
     return () => { cancelled = true; };
   }, [post]);
+
+  // ── Fetch 3 sidebar projects ──
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${WP_API_BASE}/projects?per_page=3&_embed=1`)
+      .then((r) => r.json() as Promise<WPProject[]>)
+      .then((data) => { if (!cancelled) setSidebarProjects(data.map(normalizeProject)); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   if (loading) return <BlogPageSkeleton />;
 
   if (notFound || !post) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <p className="text-black/50 text-sm">Article not found.</p>
-      <button onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-sm text-black hover:text-black/60 transition-colors">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-black hover:text-black/60 transition-colors">
         <ArrowLeft size={14} /> Go back
       </button>
     </div>
@@ -440,22 +471,14 @@ const BlogPage = () => {
   const formattedDate = formatDate(post.date);
   const readTime = estimateReadTime(post.content.rendered);
 
-  // WP taxonomy categories (for linking to /blog?category=...)
-  const categories =
-    post._embedded?.["wp:term"]?.[0]?.map((t) => ({
-      id: t.id,
-      name: decodeHtmlEntities(t.name),
-      slug: t.slug,
-    })) ?? [];
+  const categories = post._embedded?.["wp:term"]?.[0]?.map((t) => ({
+    id: t.id, name: decodeHtmlEntities(t.name), slug: t.slug,
+  })) ?? [];
 
-  // Tags from AIOSEO articleSection — "SEO &amp; AEO, Website Development, React JS, ..."
   const articleTags = getArticleTags(post.aioseo_head_json?.schema);
-
   const articleNode = getSchemaArticleNode(post.aioseo_head_json?.schema);
-  const authorName =
-    typeof articleNode?.author === "object" && articleNode?.author !== null
-      ? (articleNode.author as { name?: string }).name ?? ""
-      : "";
+  const authorName = typeof articleNode?.author === "object" && articleNode?.author !== null
+    ? (articleNode.author as { name?: string }).name ?? "" : "";
   const showAuthor = authorName && authorName.toLowerCase() !== "admin";
 
   return (
@@ -471,8 +494,7 @@ const BlogPage = () => {
 
             {/* BACK */}
             <FadeUp delay={0}>
-              <motion.button onClick={() => navigate(-1)}
-                initial="rest" whileHover="hover" animate="rest"
+              <motion.button onClick={() => navigate(-1)} initial="rest" whileHover="hover" animate="rest"
                 className="mb-10 flex items-center gap-2 text-sm text-black/35 hover:text-black transition-colors">
                 <span className="relative w-4 h-4 overflow-hidden">
                   <motion.span variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: -16, y: 16, opacity: 0 } }} className="absolute"><ArrowLeft size={14} /></motion.span>
@@ -482,27 +504,23 @@ const BlogPage = () => {
               </motion.button>
             </FadeUp>
 
-            {/* DESKTOP hero image */}
-            <motion.div
-              className="hidden md:block overflow-hidden rounded-[20px] mb-10 w-full"
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
+            {/* DESKTOP hero */}
+            <motion.div className="hidden md:block overflow-hidden rounded-[20px] mb-10 w-full"
+              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}>
               <motion.img src={featuredImg} alt={altText}
                 style={{ y: imgY, scale: imgScale }}
-                className="w-full h-[500px] lg:h-[540px] object-cover"
-                loading="eager" />
+                className="w-full h-[500px] lg:h-[540px] object-cover" loading="eager" />
             </motion.div>
 
             {/* MOBILE hero */}
             <motion.div className="md:hidden overflow-hidden rounded-[18px] mb-8"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
-              <img src={featuredImg} alt={altText}
-                className="w-full h-[240px] object-cover" loading="eager" />
+              <img src={featuredImg} alt={altText} className="w-full h-[240px] object-cover" loading="eager" />
             </motion.div>
 
-            {/* WP CATEGORIES — as linked pills */}
+            {/* CATEGORIES */}
             {categories.length > 0 && (
               <FadeUp delay={0.1}>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -510,9 +528,7 @@ const BlogPage = () => {
                     <Link key={cat.id}
                       to={`/blog?category=${cat.id}&categoryName=${encodeURIComponent(cat.name)}`}
                       style={{ textDecoration: "none" }}>
-                      <motion.span
-                        whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                        transition={{ duration: 0.15 }}
+                      <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
                         className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 transition-colors duration-150 cursor-pointer">
                         {cat.name}
                       </motion.span>
@@ -526,36 +542,29 @@ const BlogPage = () => {
             <motion.div className="mb-5 w-full"
               initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}>
-              <h1 className="
-                text-[clamp(1.75rem,4vw,3rem)]
-                font-semibold leading-[1.12] tracking-[-0.03em]
-                text-black break-words hyphens-auto max-w-[900px]">
+              <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-black break-words hyphens-auto max-w-[900px]">
                 {displayTitle}
               </h1>
             </motion.div>
 
-            {/* META ROW */}
+            {/* META */}
             <FadeUp delay={0.22}>
               <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pb-6 text-[12px] text-black/35">
                 <span>{formattedDate}</span>
                 <span className="w-1 h-1 rounded-full bg-black/20 shrink-0" />
                 <span>{readTime} min read</span>
                 {showAuthor && (
-                  <>
-                    <span className="w-1 h-1 rounded-full bg-black/20 shrink-0" />
-                    <span>By {authorName}</span>
-                  </>
+                  <><span className="w-1 h-1 rounded-full bg-black/20 shrink-0" /><span>By {authorName}</span></>
                 )}
               </div>
             </FadeUp>
 
-            {/* ARTICLE TAGS from articleSection — shown as flat pills below meta */}
+            {/* ARTICLE TAGS */}
             {articleTags.length > 0 && (
               <FadeUp delay={0.28}>
                 <div className="flex flex-wrap gap-1.5 pb-10">
                   {articleTags.map((tag) => (
-                    <span key={tag}
-                      className="px-2.5 py-0.5 text-[10.5px] border border-black/[0.08] rounded-full text-black/35 bg-black/[0.015] tracking-wide">
+                    <span key={tag} className="px-2.5 py-0.5 text-[10.5px] border border-black/[0.08] rounded-full text-black/35 bg-black/[0.015] tracking-wide">
                       {tag}
                     </span>
                   ))}
@@ -567,109 +576,173 @@ const BlogPage = () => {
 
         <SectionDivider />
 
-        {/* ═══════════════ CONTENT — single full-width column ═══════════════ */}
+        {/* ═══════════════ CONTENT + SIDEBAR ═══════════════ */}
         <section className="section-container pt-12 pb-28 relative z-10">
           <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+            {/*
+              Two-column on desktop: content left, projects sidebar right.
+              Single column on mobile: content first, then sidebar below.
+            */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 lg:gap-16">
 
-            <FadeUp delay={0.05}>
-              <div className="
-                blog-content
-                text-[15px] text-black/60 leading-[1.88] tracking-[-0.01em]
-                [&_h1]:text-[clamp(1.5rem,3vw,2rem)] [&_h1]:font-semibold [&_h1]:text-black [&_h1]:leading-tight [&_h1]:tracking-[-0.025em] [&_h1]:mt-10 [&_h1]:mb-5
-                [&_h2]:text-[clamp(1.25rem,2.5vw,1.6rem)] [&_h2]:font-semibold [&_h2]:text-black [&_h2]:leading-tight [&_h2]:tracking-[-0.02em] [&_h2]:mt-10 [&_h2]:mb-4
-                [&_h3]:text-[17px] [&_h3]:font-semibold [&_h3]:text-black [&_h3]:leading-snug [&_h3]:tracking-[-0.015em] [&_h3]:mt-8 [&_h3]:mb-3
-                [&_h4]:text-[15px] [&_h4]:font-semibold [&_h4]:text-black/80 [&_h4]:mt-6 [&_h4]:mb-2
-                [&_p]:mb-5 [&_p:last-child]:mb-0 [&_p]:text-black/58
-                [&_a]:text-black [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-black/55 [&_a]:transition-colors
-                [&_strong]:text-black/80 [&_strong]:font-semibold
-                [&_em]:italic [&_em]:text-black/55
-                [&_blockquote]:border-l-2 [&_blockquote]:border-black/20 [&_blockquote]:pl-5 [&_blockquote]:my-6 [&_blockquote]:text-black/50 [&_blockquote]:italic
-                [&_ul]:mt-3 [&_ul]:mb-5 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ul]:list-none
-                [&_ul>li]:flex [&_ul>li]:gap-3 [&_ul>li]:text-black/55
-                [&_ul>li]:before:content-['—'] [&_ul>li]:before:text-black/20 [&_ul>li]:before:shrink-0
-                [&_ol]:mt-3 [&_ol]:mb-5 [&_ol]:space-y-2.5 [&_ol]:pl-5
-                [&_ol>li]:text-black/55
-                [&_img]:rounded-[12px] [&_img]:w-full [&_img]:max-h-[480px] [&_img]:my-8 [&_img]:object-cover [&_img]:block
-                [&_figure]:my-8 [&_figure]:max-w-full [&_figure_img]:max-h-[480px] [&_figure_img]:object-cover
-                [&_figcaption]:text-[12px] [&_figcaption]:text-black/35 [&_figcaption]:text-center [&_figcaption]:mt-2
-                [&_hr]:border-black/[0.08] [&_hr]:my-10
-                [&_pre]:bg-black/[0.04] [&_pre]:rounded-[8px] [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:my-6 [&_pre]:text-[13px]
-                [&_code]:bg-black/[0.05] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_code]:text-black/70
-                [&_table]:w-full [&_table]:my-6 [&_table]:text-[13.5px]
-                [&_th]:text-left [&_th]:pb-2 [&_th]:border-b [&_th]:border-black/10 [&_th]:font-medium [&_th]:text-black/60
-                [&_td]:py-2.5 [&_td]:border-b [&_td]:border-black/[0.06] [&_td]:text-black/55
-              "
-                dangerouslySetInnerHTML={{ __html: post.content.rendered }}
-              />
-            </FadeUp>
-
-            {/* ── RELATED ARTICLES — 3-col desktop, drag carousel mobile ── */}
-            {related.length > 0 && (
-              <div className="mt-16 pt-10 border-t border-black/[0.06]">
+              {/* ── LEFT: article body ── */}
+              <div>
                 <FadeUp delay={0.05}>
-                  <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-7">
-                    Related Articles
-                  </p>
+                  <div className="
+                    blog-content
+                    text-[15px] text-black/60 leading-[1.88] tracking-[-0.01em]
+                    [&_h1]:text-[clamp(1.5rem,3vw,2rem)] [&_h1]:font-semibold [&_h1]:text-black [&_h1]:leading-tight [&_h1]:tracking-[-0.025em] [&_h1]:mt-10 [&_h1]:mb-5
+                    [&_h2]:text-[clamp(1.25rem,2.5vw,1.6rem)] [&_h2]:font-semibold [&_h2]:text-black [&_h2]:leading-tight [&_h2]:tracking-[-0.02em] [&_h2]:mt-10 [&_h2]:mb-4
+                    [&_h3]:text-[17px] [&_h3]:font-semibold [&_h3]:text-black [&_h3]:leading-snug [&_h3]:tracking-[-0.015em] [&_h3]:mt-8 [&_h3]:mb-3
+                    [&_h4]:text-[15px] [&_h4]:font-semibold [&_h4]:text-black/80 [&_h4]:mt-6 [&_h4]:mb-2
+                    [&_p]:mb-5 [&_p:last-child]:mb-0 [&_p]:text-black/58
+                    [&_a]:text-black [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-black/55 [&_a]:transition-colors
+                    [&_strong]:text-black/80 [&_strong]:font-semibold
+                    [&_em]:italic [&_em]:text-black/55
+                    [&_blockquote]:border-l-2 [&_blockquote]:border-black/20 [&_blockquote]:pl-5 [&_blockquote]:my-6 [&_blockquote]:text-black/50 [&_blockquote]:italic
+                    [&_ul]:mt-3 [&_ul]:mb-5 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ul]:list-none
+                    [&_ul>li]:flex [&_ul>li]:gap-3 [&_ul>li]:text-black/55
+                    [&_ul>li]:before:content-['—'] [&_ul>li]:before:text-black/20 [&_ul>li]:before:shrink-0
+                    [&_ol]:mt-3 [&_ol]:mb-5 [&_ol]:space-y-2.5 [&_ol]:pl-5
+                    [&_ol>li]:text-black/55
+                    [&_img]:rounded-[12px] [&_img]:w-full [&_img]:max-h-[480px] [&_img]:my-8 [&_img]:object-cover [&_img]:block
+                    [&_figure]:my-8 [&_figure]:max-w-full [&_figure_img]:max-h-[480px] [&_figure_img]:object-cover
+                    [&_figcaption]:text-[12px] [&_figcaption]:text-black/35 [&_figcaption]:text-center [&_figcaption]:mt-2
+                    [&_hr]:border-black/[0.08] [&_hr]:my-10
+                    [&_pre]:bg-black/[0.04] [&_pre]:rounded-[8px] [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:my-6 [&_pre]:text-[13px]
+                    [&_code]:bg-black/[0.05] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_code]:text-black/70
+                    [&_table]:w-full [&_table]:my-6 [&_table]:text-[13.5px]
+                    [&_th]:text-left [&_th]:pb-2 [&_th]:border-b [&_th]:border-black/10 [&_th]:font-medium [&_th]:text-black/60
+                    [&_td]:py-2.5 [&_td]:border-b [&_td]:border-black/[0.06] [&_td]:text-black/55
+                  "
+                    dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+                  />
                 </FadeUp>
 
-                {/* Desktop 3-col grid */}
-                <div className="hidden md:grid grid-cols-3 gap-4">
-                  {related.map((p, i) => (
-                    <FadeUp key={p.slug} delay={0.06 + i * 0.07}>
-                      <div onClick={() => navigate(`/blog/${p.slug}`)}
-                        className="group cursor-pointer">
-                        <div className="relative overflow-hidden rounded-[10px] mb-3 h-[150px]">
-                          <img src={p.img} alt={p.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                            loading="lazy" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
-                          <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
-                            <ArrowUpRight size={10} />
-                          </div>
-                        </div>
-                        <p className="text-[13px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2 mb-1">
-                          {p.title}
-                        </p>
-                        {p.categories.length > 0 && (
-                          <p className="text-[11px] text-black/30">{p.categories.slice(0, 1).join(" · ")}</p>
-                        )}
-                        <p className="text-[11px] text-black/25 mt-0.5">{p.formattedDate}</p>
-                      </div>
+                {/* Related articles */}
+                {related.length > 0 && (
+                  <div className="mt-16 pt-10 border-t border-black/[0.06]">
+                    <FadeUp delay={0.05}>
+                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-7">
+                        Related Articles
+                      </p>
                     </FadeUp>
-                  ))}
-                </div>
 
-                {/* Mobile drag carousel */}
-                <div className="md:hidden">
-                  <DragCarousel>
-                    {related.map((p, i) => (
-                      <motion.div key={p.slug}
-                        initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                        onClick={() => navigate(`/blog/${p.slug}`)}
-                        style={{ width: "68vw", flexShrink: 0 }}
-                        className="cursor-pointer group">
-                        <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
-                          <img src={p.img} alt={p.title}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            loading="lazy" />
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                          <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                            <ArrowUpRight size={11} />
+                    {/* Desktop 3-col */}
+                    <div className="hidden md:grid grid-cols-3 gap-4">
+                      {related.map((p, i) => (
+                        <FadeUp key={p.slug} delay={0.06 + i * 0.07}>
+                          <div onClick={() => navigate(`/blog/${p.slug}`)} className="group cursor-pointer">
+                            <div className="relative overflow-hidden rounded-[10px] mb-3 h-[120px]">
+                              <img src={p.img} alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                                loading="lazy" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+                                <ArrowUpRight size={10} />
+                              </div>
+                            </div>
+                            <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2 mb-1">{p.title}</p>
+                            {p.categories.length > 0 && <p className="text-[11px] text-black/30">{p.categories.slice(0, 1).join(" · ")}</p>}
+                            <p className="text-[11px] text-black/25 mt-0.5">{p.formattedDate}</p>
                           </div>
-                        </div>
-                        <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">{p.title}</p>
-                        <p className="text-[11px] text-black/30 mt-0.5">{p.formattedDate}</p>
-                      </motion.div>
-                    ))}
-                  </DragCarousel>
-                </div>
-              </div>
-            )}
+                        </FadeUp>
+                      ))}
+                    </div>
 
-            {/* ── CTA ── */}
-            <InlineCTA onOpenContact={() => setContactOpen(true)} />
+                    {/* Mobile drag carousel */}
+                    <div className="md:hidden">
+                      <DragCarousel>
+                        {related.map((p, i) => (
+                          <motion.div key={p.slug}
+                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            onClick={() => navigate(`/blog/${p.slug}`)}
+                            style={{ width: "68vw", flexShrink: 0 }}
+                            className="cursor-pointer group">
+                            <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                              <img src={p.img} alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                              <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                                <ArrowUpRight size={11} />
+                              </div>
+                            </div>
+                            <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">{p.title}</p>
+                            <p className="text-[11px] text-black/30 mt-0.5">{p.formattedDate}</p>
+                          </motion.div>
+                        ))}
+                      </DragCarousel>
+                    </div>
+                  </div>
+                )}
+
+                {/* Mobile projects carousel */}
+                {sidebarProjects.length > 0 && (
+                  <div className="md:hidden mt-16">
+                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
+                      Our Projects
+                    </p>
+                    <DragCarousel>
+                      {sidebarProjects.map((p, i) => (
+                        <motion.div key={p.slug}
+                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          onClick={() => navigate(`/project/${p.slug}`)}
+                          style={{ width: "62vw", flexShrink: 0 }}
+                          className="cursor-pointer group">
+                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                            <img src={p.img} alt={p.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                              <ArrowUpRight size={11} />
+                            </div>
+                          </div>
+                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors">{p.title}</p>
+                          {p.tags.length > 0 && <p className="text-[11px] text-black/30 mt-0.5">{p.tags.join(" · ")}</p>}
+                        </motion.div>
+                      ))}
+                    </DragCarousel>
+                  </div>
+                )}
+
+                {/* CTA */}
+                <InlineCTA onOpenContact={() => setContactOpen(true)} />
+              </div>
+
+              {/* ── RIGHT: sticky projects sidebar (desktop only) ── */}
+              {sidebarProjects.length > 0 && (
+                <div className="hidden md:block">
+                  <div className="sticky top-28">
+                    <LineReveal className="mb-5">
+                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
+                        Our Projects
+                      </p>
+                    </LineReveal>
+
+                    <div className="flex flex-col">
+                      {sidebarProjects.map((project, i) => (
+                        <ProjectSidebarCard key={project.slug} project={project} index={i} />
+                      ))}
+                    </div>
+
+                    <motion.button
+                      onClick={() => navigate("/projects")}
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                      className="mt-5 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1">
+                      View all projects <ArrowUpRight size={10} />
+                    </motion.button>
+                  </div>
+                </div>
+              )}
+
+            </div>
           </div>
         </section>
       </div>

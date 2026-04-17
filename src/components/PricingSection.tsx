@@ -80,12 +80,11 @@ const FloatingCard = () => {
 
 /* ---------------- COMPONENT ---------------- */
 const PricingSection = () => {
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [contactOpen, setContactOpen] = useState(false);
-  
-    
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+
   return (
-    <section id="pricing" className="py-24 section-container">
+    <section id="pricing" className="py-12 section-container">
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="mx-auto max-w-[1100px] p-2 md:p-10">
         {/* ================= HEADER ================= */}
@@ -178,13 +177,13 @@ const PricingSection = () => {
 
               <p className="text-sm text-muted-foreground mb-6">
                 <span className="font-semibold text-foreground">
-                  A fully managed monthly engagement covering strategy, execution, and reporting —
+                  A fully managed monthly engagement covering strategy,
+                  execution, and reporting —
                 </span>{" "}
-                so you can focus on running your business. 
+                so you can focus on running your business.
               </p>
 
               <div className="border-t border-border pt-6">
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-8">
                   {features.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-sm">
@@ -203,7 +202,7 @@ const PricingSection = () => {
                     shadow-lg hover:opacity-90 transition
                   "
                 >
-                Book a Free Call
+                  Book a Free Call
                 </motion.button>
               </div>
             </div>
@@ -213,9 +212,13 @@ const PricingSection = () => {
           <div className="rounded-[22px] bg-black text-white p-6 md:p-8">
             <div className="grid lg:grid-cols-2 gap-8 items-center">
               <div>
-                <h3 className="text-2xl font-semibold mb-3">One-Time Project</h3>
+                <h3 className="text-2xl font-semibold mb-3">
+                  One-Time Project
+                </h3>
                 <p className="text-sm text-white/70">
-                  End-to-end digital marketing execution for a specific campaign or launch. Perfect for businesses with a defined goal and timeline. 
+                  End-to-end digital marketing execution for a specific campaign
+                  or launch. Perfect for businesses with a defined goal and
+                  timeline.
                 </p>
               </div>
 
@@ -228,20 +231,41 @@ const PricingSection = () => {
                     </div>
                   ))}
                 </div>
-
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setContactOpen(true)}
-                  className="
-                    flex items-center gap-2
-                    bg-white text-black
-                    px-6 py-3 rounded-full
-                    font-medium
-                  "
-                >
-                  Request Proposal <ArrowRight size={16} />
-                </motion.button>
               </div>
+            </div>
+
+            {/*  BUTTON BELOW  */}
+            <div className="flex justify-center mt-8">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                whileHover="hover"
+                initial="rest"
+                animate="rest"
+                onClick={() => setContactOpen(true)}
+                className="
+      flex items-center gap-2
+      bg-white text-black
+      px-6 py-3 rounded-full
+      font-medium
+    "
+              >
+                Request Proposal
+                <motion.span
+                  variants={{
+                    rest: { x: 0, opacity: 1 },
+                    hover: {
+                      x: [0, 10, -6, 0],
+                      opacity: [1, 0, 0, 1],
+                    },
+                  }}
+                  transition={{
+                    duration: 0.45, 
+                    ease: "easeInOut",
+                  }}
+                >
+                  <ArrowRight size={16} />
+                </motion.span>
+              </motion.button>
             </div>
           </div>
         </div>

@@ -68,42 +68,42 @@ const services = [
   {
     icon: "https://cdn-icons-png.flaticon.com/512/1006/1006771.png",
     title: "Website Development",
-    desc: "Custom websites built for speed, SEO and scalability.",
+    desc: "Fast, SEO-optimized websites built for performance and scalability.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/2956/2956744.png",
     title: "SEO & AEO",
-    desc: "Rank higher on Google and AI search results.",
+    desc: "Improve rankings on Google and AI-driven search platforms.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
     title: "Lead Generation & Conversion",
-    desc: "Optimized funnels that convert visitors into customers.",
+    desc: "High-converting funnels that turn traffic into qualified leads.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/3281/3281289.png",
     title: "Brand Identity & Design",
-    desc: "Build a strong and memorable brand presence.",
+    desc: "Strategic branding that builds trust and lasting recognition.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
     title: "Performance Marketing",
-    desc: "ROI-focused campaigns across ads platforms.",
+    desc: "Data-driven ad campaigns focused on ROI and conversions.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
     title: "Social Media Marketing",
-    desc: "Grow your audience and engagement organically.",
+    desc: "Grow engagement and audience with consistent content strategies.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/4697/4697143.png",
     title: "Content Creation & Strategy",
-    desc: "Content that builds trust and drives conversions.",
+    desc: "SEO-focused content that drives traffic and builds authority.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/8637/8637099.png",
     title: "AI-Powered Tools & Applications",
-    desc: "Automation, chatbots, and AI workflows.",
+    desc: "Custom AI tools, automation, and intelligent workflows.",
   },
 ];
 

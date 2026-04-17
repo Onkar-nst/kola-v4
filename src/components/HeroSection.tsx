@@ -355,12 +355,11 @@ const HeroSection = () => {
           />
           <p className="body-lg max-w-md">
             <span className="font-semibold">
-              From website development to SEO, lead generation and beyond — we
-              craft data-driven digital marketing strategies that grow your
-              brand,{" "}
+              From website development to SEO, lead generation and beyond{" "}
             </span>
             <span className="text-muted-foreground">
-              reach the right audience, and turn clicks into customers.
+              — we craft data-driven digital marketing strategies that grow your
+              brand, reach the right audience, and turn clicks into customers.
             </span>
           </p>
           <button

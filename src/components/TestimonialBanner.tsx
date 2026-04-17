@@ -9,7 +9,6 @@ const TestimonialBanner = () => {
           "Working with Kola Communications has been a game-changer for our business. Their innovative approach to content and design helped us connect more deeply with our audience."
         </p>
         <div className="flex items-center justify-center gap-3 mt-8">
-          <img src={avatarImg} alt="Dhairya Shah" className="w-10 h-10 rounded-full object-cover" width={40} height={40} loading="lazy" style={{filter: 'hue-rotate(120deg)'}} />
           <div className="text-left">
             <p className="text-sm font-semibold">Dhairya Shah</p>
             <p className="text-xs text-muted-foreground">Content & Design</p>
