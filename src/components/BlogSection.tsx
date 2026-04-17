@@ -382,7 +382,7 @@ const BlogSection = () => {
   const [featured, ...rest] = posts;
 
   return (
-    <section className="py-24 section-container">
+    <section className="py-12 section-container">
       <div className="max-w-[1100px] mx-auto p-4 md:p-10">
 
         {/* Header */}
