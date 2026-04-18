@@ -159,7 +159,6 @@ export default async function handler(req, res) {
             <hr style="border:none;border-top:1px solid #e0ddf5;margin:0 0 20px;" />
 
             <p style="margin:0;font-size:14px;font-weight:500;color:#1e1b4b;">Kola Communications Team</p>
-            <p style="margin:4px 0 0;font-size:12px;color:#818cf8;">Brand &amp; Creative Communication</p>
 
           </td>
         </tr>

@@ -118,10 +118,11 @@ const CTAFooter = () => (
             <a href="tel:+918108969630" className="flex items-center gap-2 hover:text-white transition">
               <Phone size={16} /> +91 81089 69630
             </a>
+            
 
             {/* ADDRESS */}
             <div className="flex items-start gap-2">
-              <MapPin size={16} className="mt-0.5" />
+              <MapPin size={32} className="" />
               <span>
                 36, BK Housing Society, Shankar Lane,
                 Kandivali West, Mumbai - 400067
