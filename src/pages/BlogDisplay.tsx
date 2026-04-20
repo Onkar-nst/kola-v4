@@ -268,7 +268,7 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
       onMouseLeave={() => setHovered(false)}
     >
       {/* Header */}
-      <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
+      <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
         <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3">
           <div className="min-w-0 flex-1">
             <span className="text-[14.5px] text-black font-medium leading-snug block">
@@ -311,7 +311,7 @@ const BlogCard = memo(({ post, index, onCategoryClick }: BlogCardProps) => {
       </Link>
 
       {/* Image + meta — flex-1 fills remaining card height */}
-      <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
+      <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
         <div className="relative aspect-[16/9] overflow-hidden flex-1">
           <motion.img
             src={post.img}
@@ -761,10 +761,10 @@ const BlogDisplay = () => {
         <meta name="keywords" content="Kola Communications Blog, Digital Marketing Blog India, Website Development Blog India, SEO Blog India, AEO Blog India, WordPress Tips India, Shopify Tips India, Social Media Marketing Blog India, Content Writing Blog India, AI Tools Blog India, Web Development Insights India, Digital Marketing Tips Mumbai, Website Design Tips India, SEO Tips for Small Business India, AEO Guide India, WordPress Development Tips India, Shopify Store Tips India, Lead Generation Tips India, Content Strategy Blog India, Digital Agency Blog Mumbai, Website SEO Tips India, Kola Communications Insights, Marketing Blog Mumbai, Business Growth Blog India, Digital Solutions Blog India, Website Development Blog, SEO Blog, AEO Blog, WordPress Tips, Shopify Tips, Social Media Marketing Blog, Content Writing Blog, AI Tools Blog, Web Development Insights, Website Design Tips, SEO Tips for Small Business, AEO Guide, WordPress Development Tips, Shopify Store Tips, Lead Generation Tips, Content Strategy Blog, Digital Agency Blog, Website SEO Tips, Marketing Blog, Business Growth Blog, Digital Solutions Blog" />
         <meta property="og:title" content="Digital Marketing Insights | Kola Communications Blog" />
         <meta property="og:description" content="Kola Communications blog covers website development, SEO, AEO, WordPress, Shopify, social media, content writing and AI tools for businesses growing online." />
-        <meta property="og:url" content="https://www.kolacommunications.com/blog" />
+        <meta property="og:url" content="https://www.kolacommunications.com/blogs" />
         <meta property="og:image" content="https://www.kolacommunications.com/og-image.jpg" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.kolacommunications.com/blog" />
+        <link rel="canonical" href="https://www.kolacommunications.com/blogs" />
       </Helmet>
       <CustomCursor />
       <div className="relative overflow-hidden">

@@ -117,7 +117,7 @@ const ServicesSection = () => {
   };
 
   return (
-    <section id="services" className="min-h-[90vh] flex items-center py-20">
+    <section id="ourwork" className="min-h-[90vh] flex items-center py-20">
       <div className="section-container w-full p-4 md:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
           {/* ================= LEFT ================= */}

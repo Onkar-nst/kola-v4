@@ -92,8 +92,7 @@ const CTAFooter = () => (
           <div className="flex flex-col gap-2.5">
             {[
               { label: "About Us", href: "/#about" },
-              { label: "Pricing", href: "/#pricing" },
-              { label: "Blog", href: "/blog" },
+              { label: "Blog", href: "/blogs" },
               { label: "Projects", href: "/projects" },
             ].map(({ label, href }) => (
               <a key={label} href={href} className="text-[13px] text-white/55 hover:text-white transition">

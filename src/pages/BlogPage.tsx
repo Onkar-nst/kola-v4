@@ -526,7 +526,7 @@ const BlogPage = () => {
                 <div className="flex flex-wrap gap-2 mb-4">
                   {categories.map((cat) => (
                     <Link key={cat.id}
-                      to={`/blog?category=${cat.id}&categoryName=${encodeURIComponent(cat.name)}`}
+                      to={`/blogs?category=${cat.id}&categoryName=${encodeURIComponent(cat.name)}`}
                       style={{ textDecoration: "none" }}>
                       <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
                         className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 transition-colors duration-150 cursor-pointer">
@@ -632,7 +632,7 @@ const BlogPage = () => {
                     <div className="hidden md:grid grid-cols-3 gap-4">
                       {related.map((p, i) => (
                         <FadeUp key={p.slug} delay={0.06 + i * 0.07}>
-                          <div onClick={() => navigate(`/blog/${p.slug}`)} className="group cursor-pointer">
+                          <div onClick={() => navigate(`/blogs/${p.slug}`)} className="group cursor-pointer">
                             <div className="relative overflow-hidden rounded-[10px] mb-3 h-[120px]">
                               <img src={p.img} alt={p.title}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
@@ -658,7 +658,7 @@ const BlogPage = () => {
                             initial={{ opacity: 0, y: 18, scale: 0.96 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            onClick={() => navigate(`/blog/${p.slug}`)}
+                            onClick={() => navigate(`/blogs/${p.slug}`)}
                             style={{ width: "68vw", flexShrink: 0 }}
                             className="cursor-pointer group">
                             <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">

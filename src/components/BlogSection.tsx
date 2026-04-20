@@ -161,7 +161,7 @@ const FeaturedCard = memo(({ post }: { post: NormalizedPost }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }}>
+    <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }}>
       <FadeUp delay={0.05}>
         <motion.div
           onMouseEnter={() => setHovered(true)}
@@ -245,7 +245,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link to={`/blog/${post.slug}`} style={{ textDecoration: "none" }}>
+    <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }}>
       <FadeUp delay={0.08 + index * 0.06}>
         <motion.div
           onMouseEnter={() => setHovered(true)}
@@ -333,7 +333,7 @@ const CardSkeleton = () => (
 const ViewAllButton = () => {
   const [hovered, setHovered] = useState(false);
   return (
-    <Link to="/blog" style={{ textDecoration: "none" }}>
+    <Link to="/blogs" style={{ textDecoration: "none" }}>
       <motion.div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}

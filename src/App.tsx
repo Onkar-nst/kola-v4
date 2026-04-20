@@ -67,8 +67,8 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                   <Route path="/project/:slug" element={<ProjectPage />} />
                   <Route path="/projects" element={<ProjectDisplay />} />
-                  <Route path="/blog" element={<BlogDisplay />} />
-                  <Route path="/blog/:slug" element={<BlogPage />} />
+                  <Route path="/blogs" element={<BlogDisplay />} />
+                  <Route path="/blogs/:slug" element={<BlogPage />} />
                 </Routes>
               </Suspense>
             </SmoothScroll>
