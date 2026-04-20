@@ -25,51 +25,66 @@ const Index = () => {
     <div className="min-h-screen bg-background">
 
       <Helmet>
-        <title>Kola Communications | AI, Web & Growth Solutions</title>
-
+        <title>Kola Communications | Website & Digital Marketing Agency</title>
         <meta
           name="description"
-          content="Kola Communications builds high-performance websites, AI-powered tools, and marketing systems that drive traffic, leads, and conversions."
+          content="Kola Communications — WordPress websites, Shopify stores, custom coded web solutions, SEO, AEO, social media and lead generation. Trusted by brands worldwide."
         />
-
         <meta
           name="keywords"
-          content="website development, SEO agency, AI tools, digital marketing, performance marketing India"
+          content="Kola Communications, Kola Communications Website, Website Development Agency Mumbai, WordPress Website Development India, Shopify Website Development India, Custom Coded Website India, Digital Marketing Agency Mumbai, SEO Agency Mumbai, AEO Agency India, Social Media Agency Mumbai, Lead Generation Agency India, Website Design Agency India, Kola Agency Mumbai, Web Development Company India, WordPress Development Company Mumbai, Shopify Store Development India, Custom Website Design India, SEO Services India, AEO Services India, Social Media Marketing Mumbai, Lead Generation Services India, Digital Solutions Agency Mumbai, Website Agency India, Kola Communications Services, Kola Communications Portfolio"
         />
-
-        <meta name="robots" content="index, follow" />
-
-        <link rel="canonical" href="https://kolacommunications.com/" />
-
-        {/* Open Graph */}
-        <meta property="og:title" content="Kola Communications | AI, Web & Growth" />
+        <meta property="og:title" content="Kola Communications | Website & Digital Marketing Agency" />
         <meta
           property="og:description"
-          content="We build websites, AI tools, and growth systems that scale businesses."
+          content="Kola Communications — WordPress websites, Shopify stores, custom coded web solutions, SEO, AEO, social media and lead generation. Trusted by brands worldwide."
         />
-        <meta property="og:url" content="https://kolacommunications.com/" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Kola Communications" />
+        <meta property="og:url" content="https://www.kolacommunications.com" />
+        <meta property="og:image" content="https://www.kolacommunications.com/og-image.jpg" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://www.kolacommunications.com" />
 
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Kola Communications" />
-        <meta
-          name="twitter:description"
-          content="AI-powered digital solutions and growth systems."
-        />
-
-        {/* 🔥 AEO (Organization Schema) */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Kola Communications",
-            url: "https://kolacommunications.com",
-            logo: "https://kolacommunications.com/logo.png",
-            sameAs: [
+            "@type": ["LocalBusiness", "ProfessionalService"],
+            "name": "Kola Communications",
+            "url": "https://www.kolacommunications.com",
+            "logo": "https://www.kolacommunications.com/logo.png",
+            "image": "https://www.kolacommunications.com/og-image.jpg",
+            "description": "Kola Communications is a Mumbai-based website and digital marketing agency specialising in WordPress, Shopify, custom coded development, SEO, AEO, social media and lead generation.",
+            "address": {
+              "@type": "PostalAddress",
+              "addressLocality": "Mumbai",
+              "addressRegion": "Maharashtra",
+              "addressCountry": "IN"
+            },
+            "areaServed": [
+              { "@type": "Country", "name": "India" },
+              { "@type": "Country", "name": "Australia" },
+              { "@type": "Country", "name": "United Kingdom" },
+              { "@type": "Country", "name": "United Arab Emirates" },
+              { "@type": "Country", "name": "United States" }
+            ],
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Digital Marketing & Website Services",
+              "itemListElement": [
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "WordPress Website Development" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Shopify Store Development" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Coded Website Development" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SEO" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AEO" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Social Media Marketing" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Lead Generation" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Content Writing" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI Tools Development" }}
+              ]
+            },
+            "sameAs": [
               "https://www.linkedin.com/company/kolacommunications",
-              "https://www.instagram.com/kolacommunications"
+              "https://www.instagram.com/kolacommunications",
+              "https://www.facebook.com/kolacommunications"
             ]
           })}
         </script>

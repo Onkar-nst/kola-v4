@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import ContactForm from "@/components/ContactForm";
+import logo from "/KolaLogo.jpg"
 
 const avatarImg =
   "https://oskiqdthpejzihtjybwc.supabase.co/storage/v1/object/public/kola-website%20images/logo-2.png";
-const logo = "https://kolacommunications.com/favicon.png";
+// const logo = "https://kolacommunications.com/favicon.png";
 
 const navLinks = [
   { label: "Services", to: "/#services", type: "hash" },
@@ -40,7 +41,7 @@ const Navbar = () => {
         >
           {/* LOGO */}
           <Link to="/" className="flex items-center gap-2.5 text-sm font-medium">
-            <img src={logo} className="w-8 h-8 rounded-full" />
+            <img src={logo} className="w-8 h-8 bg-white rounded-full" />
             <img src={avatarImg} className="w-16 h-8 rounded-full" />
           </Link>
 

@@ -9,6 +9,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
 import CTAFooter from "@/components/CTAFooter";
@@ -754,6 +755,17 @@ const BlogDisplay = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      <Helmet>
+        <title>Digital Marketing Insights | Kola Communications Blog</title>
+        <meta name="description" content="Kola Communications blog covers website development, SEO, AEO, WordPress, Shopify, social media, content writing and AI tools for businesses growing online." />
+        <meta name="keywords" content="Kola Communications Blog, Digital Marketing Blog India, Website Development Blog India, SEO Blog India, AEO Blog India, WordPress Tips India, Shopify Tips India, Social Media Marketing Blog India, Content Writing Blog India, AI Tools Blog India, Web Development Insights India, Digital Marketing Tips Mumbai, Website Design Tips India, SEO Tips for Small Business India, AEO Guide India, WordPress Development Tips India, Shopify Store Tips India, Lead Generation Tips India, Content Strategy Blog India, Digital Agency Blog Mumbai, Website SEO Tips India, Kola Communications Insights, Marketing Blog Mumbai, Business Growth Blog India, Digital Solutions Blog India, Website Development Blog, SEO Blog, AEO Blog, WordPress Tips, Shopify Tips, Social Media Marketing Blog, Content Writing Blog, AI Tools Blog, Web Development Insights, Website Design Tips, SEO Tips for Small Business, AEO Guide, WordPress Development Tips, Shopify Store Tips, Lead Generation Tips, Content Strategy Blog, Digital Agency Blog, Website SEO Tips, Marketing Blog, Business Growth Blog, Digital Solutions Blog" />
+        <meta property="og:title" content="Digital Marketing Insights | Kola Communications Blog" />
+        <meta property="og:description" content="Kola Communications blog covers website development, SEO, AEO, WordPress, Shopify, social media, content writing and AI tools for businesses growing online." />
+        <meta property="og:url" content="https://www.kolacommunications.com/blog" />
+        <meta property="og:image" content="https://www.kolacommunications.com/og-image.jpg" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://www.kolacommunications.com/blog" />
+      </Helmet>
       <CustomCursor />
       <div className="relative overflow-hidden">
         <ColumnGuides />
