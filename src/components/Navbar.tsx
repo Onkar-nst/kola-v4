@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
 import ContactForm from "@/components/ContactForm";
-import logo from "/KolaLogo.jpg"
+import logo from "/KolaFavicon.jpg"
 
 const avatarImg =
   "https://oskiqdthpejzihtjybwc.supabase.co/storage/v1/object/public/kola-website%20images/logo-2.png";
