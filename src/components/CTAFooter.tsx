@@ -93,7 +93,7 @@ const CTAFooter = () => (
             {[
               { label: "About Us", href: "/#about" },
               { label: "Blog", href: "/blogs" },
-              { label: "Projects", href: "/projects" },
+              { label: "Our work", href: "/projects" },
             ].map(({ label, href }) => (
               <a key={label} href={href} className="text-[13px] text-white/55 hover:text-white transition">
                 {label}
