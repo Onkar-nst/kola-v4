@@ -183,33 +183,54 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
     if (!post) return;
     const seo = post.aioseo_head_json;
     const articleNode = getSchemaArticleNode(seo?.schema);
-    const metaTitle = seo?.title ?? decodeHtmlEntities(post.title.rendered);
-    const metaDesc = seo?.description ?? plainDesc;
-    const canonical = seo?.canonical_url ?? "";
-    const ogImage = getSchemaImageUrl(seo?.schema) || img;
+
+    const metaTitle    = seo?.title ?? decodeHtmlEntities(post.title.rendered);
+    const metaDesc     = seo?.description ?? plainDesc;
+    const ogImage      = getSchemaImageUrl(seo?.schema) || img;
     const publishedTime = (seo?.["article:published_time"] as string) ?? post.date;
-    const modifiedTime = (seo?.["article:modified_time"] as string) ?? post.modified;
-    const articleSection = articleNode?.articleSection ? decodeHtmlEntities(articleNode.articleSection as string) : "";
+    const modifiedTime  = (seo?.["article:modified_time"] as string) ?? post.modified;
+    const articleSection = articleNode?.articleSection
+      ? decodeHtmlEntities(articleNode.articleSection as string)
+      : "";
+
+    // ── CANONICAL FIX ──────────────────────────────────────────────────
+    // 1. Never use a canonical that points to the CMS subdomain
+    // 2. Always fall back to the real public URL if AIOSEO hasn't set one
+    const rawCanonical = seo?.canonical_url ?? "";
+    const canonical =
+      rawCanonical && !rawCanonical.includes("cms.kolacommunications.com")
+        ? rawCanonical
+        : `https://kolacommunications.com/blogs/${post.slug}`;
+    // ──────────────────────────────────────────────────────────────────
+
     const prevTitle = document.title;
     document.title = metaTitle;
-    upsertMeta('meta[name="description"]', "name", "description", metaDesc);
-    upsertMeta('meta[name="keywords"]', "name", "keywords", seo?.keywords ?? "");
-    upsertMeta('meta[name="robots"]', "name", "robots", seo?.robots ?? "");
-    upsertCanonical(canonical);
-    upsertMeta('meta[property="og:type"]', "property", "og:type", "article");
-    upsertMeta('meta[property="og:title"]', "property", "og:title", decodeHtmlEntities((seo?.["og:title"] as string) ?? metaTitle));
-    upsertMeta('meta[property="og:description"]', "property", "og:description", decodeHtmlEntities((seo?.["og:description"] as string) ?? metaDesc));
-    upsertMeta('meta[property="og:image"]', "property", "og:image", ogImage);
-    upsertMeta('meta[property="og:url"]', "property", "og:url", canonical);
-    upsertMeta('meta[property="article:published_time"]', "property", "article:published_time", publishedTime);
-    upsertMeta('meta[property="article:modified_time"]', "property", "article:modified_time", modifiedTime);
-    upsertMeta('meta[property="article:section"]', "property", "article:section", articleSection);
-    upsertMeta('meta[name="twitter:card"]', "name", "twitter:card", "summary_large_image");
-    upsertMeta('meta[name="twitter:title"]', "name", "twitter:title", decodeHtmlEntities((seo?.["twitter:title"] as string) ?? metaTitle));
+
+    upsertMeta('meta[name="description"]',  "name", "description", metaDesc);
+    upsertMeta('meta[name="keywords"]',     "name", "keywords",    seo?.keywords ?? "");
+    upsertMeta('meta[name="robots"]',       "name", "robots",      seo?.robots ?? "index, follow");
+    upsertCanonical(canonical); // Now always has a value
+
+    upsertMeta('meta[property="og:type"]',               "property", "og:type",               "article");
+    upsertMeta('meta[property="og:title"]',              "property", "og:title",               decodeHtmlEntities((seo?.["og:title"] as string) ?? metaTitle));
+    upsertMeta('meta[property="og:description"]',        "property", "og:description",         decodeHtmlEntities((seo?.["og:description"] as string) ?? metaDesc));
+    upsertMeta('meta[property="og:image"]',              "property", "og:image",               ogImage);
+    upsertMeta('meta[property="og:url"]',                "property", "og:url",                 canonical); // Uses fixed canonical
+    upsertMeta('meta[property="article:published_time"]',"property", "article:published_time", publishedTime);
+    upsertMeta('meta[property="article:modified_time"]', "property", "article:modified_time",  modifiedTime);
+    upsertMeta('meta[property="article:section"]',       "property", "article:section",        articleSection);
+
+    upsertMeta('meta[name="twitter:card"]',        "name", "twitter:card",        "summary_large_image");
+    upsertMeta('meta[name="twitter:title"]',       "name", "twitter:title",       decodeHtmlEntities((seo?.["twitter:title"] as string) ?? metaTitle));
     upsertMeta('meta[name="twitter:description"]', "name", "twitter:description", decodeHtmlEntities((seo?.["twitter:description"] as string) ?? metaDesc));
-    upsertMeta('meta[name="twitter:image"]', "name", "twitter:image", ogImage);
+    upsertMeta('meta[name="twitter:image"]',       "name", "twitter:image",       ogImage);
+
     if (seo?.schema) upsertJsonLd(seo.schema, "kola-blog-jsonld");
-    return () => { document.title = prevTitle; document.getElementById("kola-blog-jsonld")?.remove(); };
+
+    return () => {
+      document.title = prevTitle;
+      document.getElementById("kola-blog-jsonld")?.remove();
+    };
   }, [post, img, plainDesc]);
 };
 

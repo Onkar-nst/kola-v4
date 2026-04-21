@@ -1,4 +1,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://www.kolacommunications.com/sitemap.xml
+Sitemap: https://kolacommunications.com/sitemap.xml

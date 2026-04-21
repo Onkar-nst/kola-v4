@@ -6,5 +6,14 @@
       "permanent": true
     }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }]
+  "rewrites": [
+    { "source": "/sitemap.xml",  "destination": "/api/sitemap.xml"  },
+    { "source": "/blogs/:slug",  "destination": "/api/blog-render"  },
+    { "source": "/(.*)",         "destination": "/"                 }
+  ],
+  "functions": {
+    "api/blog-render.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  }
 }
