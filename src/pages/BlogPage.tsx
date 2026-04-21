@@ -7,7 +7,6 @@ import {
   useInView,
 } from "framer-motion";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
-
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
 import CTAFooter from "@/components/CTAFooter";
@@ -19,7 +18,6 @@ const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 /* ══════════════════════════════════════════
    TYPES
 ══════════════════════════════════════════ */
-
 interface AioseoSchema {
   "@context"?: string;
   "@graph"?: Array<{
@@ -34,7 +32,6 @@ interface AioseoSchema {
   }>;
   [key: string]: unknown;
 }
-
 interface AioseoHeadJson {
   title?: string;
   description?: string;
@@ -50,7 +47,6 @@ interface AioseoHeadJson {
   "article:modified_time"?: string;
   [key: string]: unknown;
 }
-
 interface WPPost {
   id: number;
   slug: string;
@@ -67,7 +63,6 @@ interface WPPost {
     "wp:term"?: Array<Array<{ id: number; name: string; slug: string }>>;
   };
 }
-
 interface WPProject {
   id: number;
   slug: string;
@@ -76,7 +71,6 @@ interface WPProject {
   acf?: { hover_img?: string; tags?: string[] };
   _embedded?: { "wp:featuredmedia"?: Array<{ source_url: string }> };
 }
-
 interface NormalizedRelated {
   id: number;
   slug: string;
@@ -85,7 +79,6 @@ interface NormalizedRelated {
   formattedDate: string;
   categories: string[];
 }
-
 interface NormalizedProject {
   slug: string;
   title: string;
@@ -96,26 +89,21 @@ interface NormalizedProject {
 /* ══════════════════════════════════════════
    HELPERS
 ══════════════════════════════════════════ */
-
 const decodeHtmlEntities = (str: string): string => {
   if (typeof document === "undefined") return str;
   const txt = document.createElement("textarea");
   txt.innerHTML = str;
   return txt.value;
 };
-
 const stripHtml = (html: string) =>
   html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-
 const formatDate = (iso: string): string => {
   try {
     return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
   } catch { return iso; }
 };
-
 const estimateReadTime = (html: string): number =>
   Math.max(1, Math.ceil(stripHtml(html).split(/\s+/).length / 200));
-
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
   for (const node of schema["@graph"]) {
@@ -124,29 +112,24 @@ const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   }
   return "";
 };
-
 const getSchemaArticleNode = (schema?: AioseoSchema) =>
   schema?.["@graph"]?.find((n) => n["@type"] === "NewsArticle" || n["@type"] === "Article");
-
 const getArticleTags = (schema?: AioseoSchema): string[] => {
   const node = getSchemaArticleNode(schema);
   if (!node?.articleSection) return [];
   return (node.articleSection as string).split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean);
 };
-
 const getProjectArticleSection = (p: WPProject): string => {
   const schema = p.aioseo_head_json?.schema;
   if (!schema?.["@graph"]) return "";
   const article = (schema["@graph"] as Array<{ "@type": string; articleSection?: string }>).find((n) => n["@type"] === "Article");
   return article?.articleSection ?? "";
 };
-
 const normalizeRelated = (p: WPPost): NormalizedRelated => {
   const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
   const categories = p._embedded?.["wp:term"]?.[0]?.map((t) => decodeHtmlEntities(t.name)).slice(0, 2) ?? [];
   return { id: p.id, slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, formattedDate: formatDate(p.date), categories };
 };
-
 const normalizeProject = (p: WPProject): NormalizedProject => {
   const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
   const rawSection = getProjectArticleSection(p);
@@ -159,7 +142,6 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
 /* ══════════════════════════════════════════
    SEO HOOK
 ══════════════════════════════════════════ */
-
 const upsertMeta = (sel: string, attrKey: string, attrVal: string, content: string) => {
   if (!content) return;
   let el = document.head.querySelector<HTMLMetaElement>(sel);
@@ -177,13 +159,11 @@ const upsertJsonLd = (data: object, id: string) => {
   if (!el) { el = document.createElement("script"); el.id = id; el.type = "application/ld+json"; document.head.appendChild(el); }
   el.textContent = JSON.stringify(data);
 };
-
 const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
   useEffect(() => {
     if (!post) return;
     const seo = post.aioseo_head_json;
     const articleNode = getSchemaArticleNode(seo?.schema);
-
     const metaTitle    = seo?.title ?? decodeHtmlEntities(post.title.rendered);
     const metaDesc     = seo?.description ?? plainDesc;
     const ogImage      = getSchemaImageUrl(seo?.schema) || img;
@@ -208,14 +188,14 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
 
     upsertMeta('meta[name="description"]',  "name", "description", metaDesc);
     upsertMeta('meta[name="keywords"]',     "name", "keywords",    seo?.keywords ?? "");
-    upsertMeta('meta[name="robots"]',       "name", "robots",      seo?.robots ?? "index, follow");
-    upsertCanonical(canonical); // Now always has a value
+    upsertMeta('meta[name="robots"]',       "name", "robots",      "index, follow");
+    upsertCanonical(canonical);
 
     upsertMeta('meta[property="og:type"]',               "property", "og:type",               "article");
     upsertMeta('meta[property="og:title"]',              "property", "og:title",               decodeHtmlEntities((seo?.["og:title"] as string) ?? metaTitle));
     upsertMeta('meta[property="og:description"]',        "property", "og:description",         decodeHtmlEntities((seo?.["og:description"] as string) ?? metaDesc));
     upsertMeta('meta[property="og:image"]',              "property", "og:image",               ogImage);
-    upsertMeta('meta[property="og:url"]',                "property", "og:url",                 canonical); // Uses fixed canonical
+    upsertMeta('meta[property="og:url"]',                "property", "og:url",                 canonical);
     upsertMeta('meta[property="article:published_time"]',"property", "article:published_time", publishedTime);
     upsertMeta('meta[property="article:modified_time"]', "property", "article:modified_time",  modifiedTime);
     upsertMeta('meta[property="article:section"]',       "property", "article:section",        articleSection);
@@ -237,7 +217,6 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
 /* ══════════════════════════════════════════
    UI PRIMITIVES
 ══════════════════════════════════════════ */
-
 const FadeUp = memo(({ children, delay = 0, className = "" }: {
   children: React.ReactNode; delay?: number; className?: string;
 }) => {
@@ -253,7 +232,6 @@ const FadeUp = memo(({ children, delay = 0, className = "" }: {
     </motion.div>
   );
 });
-
 const LineReveal = memo(({ children, delay = 0, className = "" }: {
   children: React.ReactNode; delay?: number; className?: string;
 }) => {
@@ -272,7 +250,6 @@ const LineReveal = memo(({ children, delay = 0, className = "" }: {
 /* ══════════════════════════════════════════
    DRAG CAROUSEL
 ══════════════════════════════════════════ */
-
 const DragCarousel = memo(({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
   const trackRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -303,7 +280,6 @@ const DragCarousel = memo(({ children, className = "" }: { children: React.React
 /* ══════════════════════════════════════════
    READING PROGRESS BAR
 ══════════════════════════════════════════ */
-
 const ReadingProgressBar = () => {
   const [progress, setProgress] = useState(0);
   useEffect(() => {
@@ -325,7 +301,6 @@ const ReadingProgressBar = () => {
 /* ══════════════════════════════════════════
    INLINE CTA
 ══════════════════════════════════════════ */
-
 const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
   <FadeUp delay={0.05}>
     <div className="mt-16 pt-10 border-t border-black/[0.06]">
@@ -354,7 +329,6 @@ const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
 /* ══════════════════════════════════════════
    LOADING SKELETON
 ══════════════════════════════════════════ */
-
 const BlogPageSkeleton = () => (
   <div className="min-h-screen bg-white animate-pulse">
     <div className="max-w-[1100px] mx-auto px-4 md:px-10 pt-24 pb-28">
@@ -378,7 +352,6 @@ const BlogPageSkeleton = () => (
 /* ══════════════════════════════════════════
    PROJECT SIDEBAR CARD  (matches ProjectPage style exactly)
 ══════════════════════════════════════════ */
-
 const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProject; index: number }) => {
   const navigate = useNavigate();
   return (
@@ -412,11 +385,9 @@ const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProjec
 /* ══════════════════════════════════════════
    BLOG PAGE  ←  default export
 ══════════════════════════════════════════ */
-
 const BlogPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-
   const [post, setPost] = useState<WPPost | null>(null);
   const [related, setRelated] = useState<NormalizedRelated[]>([]);
   const [sidebarProjects, setSidebarProjects] = useState<NormalizedProject[]>([]);
@@ -424,19 +395,77 @@ const BlogPage = () => {
   const [notFound, setNotFound] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
-  const heroRef = useRef<HTMLDivElement>(null);
+  const heroRef    = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null); // ← SmartFrame fix
+
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
-  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
+  const imgY     = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
   const imgScale = useTransform(scrollYProgress, [0, 1], [1, 1.05]);
 
   const featuredImg =
     post?._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(post?.aioseo_head_json?.schema) ??
     "/placeholder.jpg";
-  const altText = post?._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ?? (post ? decodeHtmlEntities(post.title.rendered) : "");
+  const altText   = post?._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ?? (post ? decodeHtmlEntities(post.title.rendered) : "");
   const plainDesc = post ? decodeHtmlEntities(stripHtml(post.excerpt.rendered)).slice(0, 160) : "";
 
   useBlogSEO(post, featuredImg, plainDesc);
+
+  // ── Re-execute <script> tags injected via dangerouslySetInnerHTML ──
+  // Browsers intentionally don't run scripts set via innerHTML / dangerouslySetInnerHTML.
+  // This effect clones every <script> found in the rendered content and appends it to
+  // <body> so the browser executes it — required for SmartFrame and any other
+  // third-party embed scripts stored in WordPress post content.
+  useEffect(() => {
+    if (!contentRef.current || !post) return;
+
+    const addedScripts: HTMLScriptElement[] = [];
+    const loadedSrcs = new Set<string>(); // deduplicate by src
+
+    const scriptEls = contentRef.current.querySelectorAll("script");
+
+    scriptEls.forEach((originalScript) => {
+      const newScript = document.createElement("script");
+
+      // Copy every attribute (async, src, type, data-*, etc.)
+      Array.from(originalScript.attributes).forEach((attr) => {
+        newScript.setAttribute(attr.name, attr.value);
+      });
+
+      // Copy inline script body if present
+      if (originalScript.textContent) {
+        newScript.textContent = originalScript.textContent;
+      }
+
+      // Skip duplicate external scripts (SmartFrame's embed.js appears twice in content)
+      const src = newScript.getAttribute("src");
+      if (src) {
+        if (loadedSrcs.has(src)) return;
+        loadedSrcs.add(src);
+      }
+
+      document.body.appendChild(newScript);
+      addedScripts.push(newScript);
+    });
+
+    // After SmartFrame's embed.js loads it registers the custom element automatically.
+    // If the <smartframe-embed> elements were already parsed before the script loaded,
+    // nudge SmartFrame's init function (if exposed) as a safety net.
+    const reinitTimeout = setTimeout(() => {
+      const win = window as Window & {
+        SmartFrame?: { init?: () => void };
+      };
+      if (typeof win.SmartFrame?.init === "function") {
+        win.SmartFrame.init();
+      }
+    }, 600);
+
+    return () => {
+      clearTimeout(reinitTimeout);
+      // Clean up scripts on unmount / slug change to prevent duplicates
+      addedScripts.forEach((s) => s.remove());
+    };
+  }, [post]); // Re-runs whenever the post changes (navigating between blog posts)
 
   // ── Fetch post ──
   useEffect(() => {
@@ -477,7 +506,6 @@ const BlogPage = () => {
   }, []);
 
   if (loading) return <BlogPageSkeleton />;
-
   if (notFound || !post) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
       <p className="text-black/50 text-sm">Article not found.</p>
@@ -488,19 +516,17 @@ const BlogPage = () => {
   );
 
   /* ── Derived ── */
-  const displayTitle = decodeHtmlEntities(post.title.rendered);
+  const displayTitle  = decodeHtmlEntities(post.title.rendered);
   const formattedDate = formatDate(post.date);
-  const readTime = estimateReadTime(post.content.rendered);
-
-  const categories = post._embedded?.["wp:term"]?.[0]?.map((t) => ({
+  const readTime      = estimateReadTime(post.content.rendered);
+  const categories    = post._embedded?.["wp:term"]?.[0]?.map((t) => ({
     id: t.id, name: decodeHtmlEntities(t.name), slug: t.slug,
   })) ?? [];
-
-  const articleTags = getArticleTags(post.aioseo_head_json?.schema);
-  const articleNode = getSchemaArticleNode(post.aioseo_head_json?.schema);
-  const authorName = typeof articleNode?.author === "object" && articleNode?.author !== null
+  const articleTags  = getArticleTags(post.aioseo_head_json?.schema);
+  const articleNode  = getSchemaArticleNode(post.aioseo_head_json?.schema);
+  const authorName   = typeof articleNode?.author === "object" && articleNode?.author !== null
     ? (articleNode.author as { name?: string }).name ?? "" : "";
-  const showAuthor = authorName && authorName.toLowerCase() !== "admin";
+  const showAuthor   = authorName && authorName.toLowerCase() !== "admin";
 
   return (
     <div className="min-h-screen bg-white">
@@ -609,33 +635,36 @@ const BlogPage = () => {
               {/* ── LEFT: article body ── */}
               <div>
                 <FadeUp delay={0.05}>
-                  <div className="
-                    blog-content
-                    text-[15px] text-black/60 leading-[1.88] tracking-[-0.01em]
-                    [&_h1]:text-[clamp(1.5rem,3vw,2rem)] [&_h1]:font-semibold [&_h1]:text-black [&_h1]:leading-tight [&_h1]:tracking-[-0.025em] [&_h1]:mt-10 [&_h1]:mb-5
-                    [&_h2]:text-[clamp(1.25rem,2.5vw,1.6rem)] [&_h2]:font-semibold [&_h2]:text-black [&_h2]:leading-tight [&_h2]:tracking-[-0.02em] [&_h2]:mt-10 [&_h2]:mb-4
-                    [&_h3]:text-[17px] [&_h3]:font-semibold [&_h3]:text-black [&_h3]:leading-snug [&_h3]:tracking-[-0.015em] [&_h3]:mt-8 [&_h3]:mb-3
-                    [&_h4]:text-[15px] [&_h4]:font-semibold [&_h4]:text-black/80 [&_h4]:mt-6 [&_h4]:mb-2
-                    [&_p]:mb-5 [&_p:last-child]:mb-0 [&_p]:text-black/58
-                    [&_a]:text-black [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-black/55 [&_a]:transition-colors
-                    [&_strong]:text-black/80 [&_strong]:font-semibold
-                    [&_em]:italic [&_em]:text-black/55
-                    [&_blockquote]:border-l-2 [&_blockquote]:border-black/20 [&_blockquote]:pl-5 [&_blockquote]:my-6 [&_blockquote]:text-black/50 [&_blockquote]:italic
-                    [&_ul]:mt-3 [&_ul]:mb-5 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ul]:list-none
-                    [&_ul>li]:flex [&_ul>li]:gap-3 [&_ul>li]:text-black/55
-                    [&_ul>li]:before:content-['—'] [&_ul>li]:before:text-black/20 [&_ul>li]:before:shrink-0
-                    [&_ol]:mt-3 [&_ol]:mb-5 [&_ol]:space-y-2.5 [&_ol]:pl-5
-                    [&_ol>li]:text-black/55
-                    [&_img]:rounded-[12px] [&_img]:w-full [&_img]:max-h-[480px] [&_img]:my-8 [&_img]:object-cover [&_img]:block
-                    [&_figure]:my-8 [&_figure]:max-w-full [&_figure_img]:max-h-[480px] [&_figure_img]:object-cover
-                    [&_figcaption]:text-[12px] [&_figcaption]:text-black/35 [&_figcaption]:text-center [&_figcaption]:mt-2
-                    [&_hr]:border-black/[0.08] [&_hr]:my-10
-                    [&_pre]:bg-black/[0.04] [&_pre]:rounded-[8px] [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:my-6 [&_pre]:text-[13px]
-                    [&_code]:bg-black/[0.05] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_code]:text-black/70
-                    [&_table]:w-full [&_table]:my-6 [&_table]:text-[13.5px]
-                    [&_th]:text-left [&_th]:pb-2 [&_th]:border-b [&_th]:border-black/10 [&_th]:font-medium [&_th]:text-black/60
-                    [&_td]:py-2.5 [&_td]:border-b [&_td]:border-black/[0.06] [&_td]:text-black/55
-                  "
+                  {/* ↓ contentRef attached here for SmartFrame script injection */}
+                  <div
+                    ref={contentRef}
+                    className="
+                      blog-content
+                      text-[15px] text-black/60 leading-[1.88] tracking-[-0.01em]
+                      [&_h1]:text-[clamp(1.5rem,3vw,2rem)] [&_h1]:font-semibold [&_h1]:text-black [&_h1]:leading-tight [&_h1]:tracking-[-0.025em] [&_h1]:mt-10 [&_h1]:mb-5
+                      [&_h2]:text-[clamp(1.25rem,2.5vw,1.6rem)] [&_h2]:font-semibold [&_h2]:text-black [&_h2]:leading-tight [&_h2]:tracking-[-0.02em] [&_h2]:mt-10 [&_h2]:mb-4
+                      [&_h3]:text-[17px] [&_h3]:font-semibold [&_h3]:text-black [&_h3]:leading-snug [&_h3]:tracking-[-0.015em] [&_h3]:mt-8 [&_h3]:mb-3
+                      [&_h4]:text-[15px] [&_h4]:font-semibold [&_h4]:text-black/80 [&_h4]:mt-6 [&_h4]:mb-2
+                      [&_p]:mb-5 [&_p:last-child]:mb-0 [&_p]:text-black/58
+                      [&_a]:text-black [&_a]:underline [&_a]:underline-offset-2 [&_a:hover]:text-black/55 [&_a]:transition-colors
+                      [&_strong]:text-black/80 [&_strong]:font-semibold
+                      [&_em]:italic [&_em]:text-black/55
+                      [&_blockquote]:border-l-2 [&_blockquote]:border-black/20 [&_blockquote]:pl-5 [&_blockquote]:my-6 [&_blockquote]:text-black/50 [&_blockquote]:italic
+                      [&_ul]:mt-3 [&_ul]:mb-5 [&_ul]:space-y-2.5 [&_ul]:pl-0 [&_ul]:list-none
+                      [&_ul>li]:flex [&_ul>li]:gap-3 [&_ul>li]:text-black/55
+                      [&_ul>li]:before:content-['—'] [&_ul>li]:before:text-black/20 [&_ul>li]:before:shrink-0
+                      [&_ol]:mt-3 [&_ol]:mb-5 [&_ol]:space-y-2.5 [&_ol]:pl-5
+                      [&_ol>li]:text-black/55
+                      [&_img]:rounded-[12px] [&_img]:w-full [&_img]:max-h-[480px] [&_img]:my-8 [&_img]:object-cover [&_img]:block
+                      [&_figure]:my-8 [&_figure]:max-w-full [&_figure_img]:max-h-[480px] [&_figure_img]:object-cover
+                      [&_figcaption]:text-[12px] [&_figcaption]:text-black/35 [&_figcaption]:text-center [&_figcaption]:mt-2
+                      [&_hr]:border-black/[0.08] [&_hr]:my-10
+                      [&_pre]:bg-black/[0.04] [&_pre]:rounded-[8px] [&_pre]:p-5 [&_pre]:overflow-x-auto [&_pre]:my-6 [&_pre]:text-[13px]
+                      [&_code]:bg-black/[0.05] [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-[13px] [&_code]:text-black/70
+                      [&_table]:w-full [&_table]:my-6 [&_table]:text-[13.5px]
+                      [&_th]:text-left [&_th]:pb-2 [&_th]:border-b [&_th]:border-black/10 [&_th]:font-medium [&_th]:text-black/60
+                      [&_td]:py-2.5 [&_td]:border-b [&_td]:border-black/[0.06] [&_td]:text-black/55
+                    "
                     dangerouslySetInnerHTML={{ __html: post.content.rendered }}
                   />
                 </FadeUp>
@@ -648,7 +677,6 @@ const BlogPage = () => {
                         Related Articles
                       </p>
                     </FadeUp>
-
                     {/* Desktop 3-col */}
                     <div className="hidden md:grid grid-cols-3 gap-4">
                       {related.map((p, i) => (
@@ -670,7 +698,6 @@ const BlogPage = () => {
                         </FadeUp>
                       ))}
                     </div>
-
                     {/* Mobile drag carousel */}
                     <div className="md:hidden">
                       <DragCarousel>
@@ -745,13 +772,11 @@ const BlogPage = () => {
                         Our Projects
                       </p>
                     </LineReveal>
-
                     <div className="flex flex-col">
                       {sidebarProjects.map((project, i) => (
                         <ProjectSidebarCard key={project.slug} project={project} index={i} />
                       ))}
                     </div>
-
                     <motion.button
                       onClick={() => navigate("/projects")}
                       whileHover={{ x: 2 }}
@@ -762,7 +787,6 @@ const BlogPage = () => {
                   </div>
                 </div>
               )}
-
             </div>
           </div>
         </section>
