@@ -611,9 +611,14 @@ const BlogPage = () => {
               <FadeUp delay={0.28}>
                 <div className="flex flex-wrap gap-1.5 pb-10">
                   {articleTags.map((tag) => (
-                    <span key={tag} className="px-2.5 py-0.5 text-[10.5px] border border-black/[0.08] rounded-full text-black/35 bg-black/[0.015] tracking-wide">
-                      {tag}
-                    </span>
+                    <Link key={tag}
+                      to={`/blogs?tag=${encodeURIComponent(tag)}`}
+                      style={{ textDecoration: "none" }}>
+                      <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
+                        className="inline-block px-2.5 py-0.5 text-[10.5px] border border-black/[0.08] rounded-full text-black/35 bg-black/[0.015] tracking-wide hover:border-black/20 hover:text-black/50 transition-colors duration-150 cursor-pointer">
+                        {tag}
+                      </motion.span>
+                    </Link>
                   ))}
                 </div>
               </FadeUp>
