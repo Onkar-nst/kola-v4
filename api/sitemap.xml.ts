@@ -40,7 +40,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
       urlTag(
         `${SITE}/blogs/${p.slug}`,
         new Date(p.modified).toISOString().split("T")[0],
-        "monthly",
+        "weekly",
         "0.8"
       )
     );

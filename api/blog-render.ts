@@ -91,7 +91,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const metaDesc   = escapeHtml((seo.description as string) ?? excerpt);
     const ogTitle    = escapeHtml((seo["og:title"] as string) ?? title);
     const ogDesc     = escapeHtml((seo["og:description"] as string) ?? excerpt);
-    const robotsMeta = (seo.robots as string) ?? "index, follow";
+    const robotsMeta = "index, follow";
     const jsonLd     = seo.schema ? JSON.stringify(seo.schema) : null;
 
     const html = `<!DOCTYPE html>
