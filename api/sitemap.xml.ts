@@ -33,7 +33,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
     const staticUrls = [
       urlTag(`${SITE}/`,        today, "daily",  "1.0"),
       urlTag(`${SITE}/projects`, today, "weekly", "0.9"),
-      urlTag(`${SITE}/blogs`,   today, "weekly", "0.9"),
+      urlTag(`${SITE}/blogs`,   today, "daily", "0.9"),
     ];
 
     const blogUrls = posts.map((p) =>
