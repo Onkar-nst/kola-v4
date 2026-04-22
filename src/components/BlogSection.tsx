@@ -30,6 +30,7 @@ interface WPPost {
   slug: string;
   title: { rendered: string };
   excerpt: { rendered: string };
+  content?: { rendered: string };
   date: string;
   featured_media: number;
   aioseo_head_json?: {
@@ -83,8 +84,13 @@ const formatDate = (iso: string): string => {
   }
 };
 
-const estimateReadTime = (excerpt: string): number =>
-  Math.max(1, Math.ceil(stripHtml(excerpt).split(/\s+/).length / 200));
+const estimateReadTime = (excerpt: string, content?: string): number => {
+  const source = content ? stripHtml(content) : stripHtml(excerpt);
+  const wordCount = content
+    ? source.split(/\s+/).length
+    : Math.round(source.split(/\s+/).length * 8); // excerpt heuristic
+  return Math.max(1, Math.round(wordCount / 200));
+};
 
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
@@ -127,7 +133,7 @@ const normalizePost = (p: WPPost): NormalizedPost => {
     img,
     imgAlt,
     categories,
-    readTime: estimateReadTime(p.excerpt.rendered),
+    readTime: estimateReadTime(p.excerpt.rendered, p.content?.rendered),
   };
 };
 
@@ -210,9 +216,9 @@ const FeaturedCard = memo(({ post }: { post: NormalizedPost }) => {
             {/* Footer */}
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-[11.5px] text-black/35">{post.formattedDate}</span>
+                <span className="text-[11px] text-black/30">{post.formattedDate}</span>
                 <span className="w-1 h-1 rounded-full bg-black/20" />
-                <span className="text-[11.5px] text-black/35">{post.readTime} min read</span>
+                <span className="text-[11px] text-black/30">{post.readTime} min read</span>
               </div>
               {/* Animated arrow */}
               <div className="relative w-4 h-4 overflow-hidden">
@@ -282,7 +288,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
             <div className="flex items-center gap-2 mt-3">
               <span className="text-[11px] text-black/30">{post.formattedDate}</span>
               <span className="w-0.5 h-0.5 rounded-full bg-black/20" />
-              <span className="text-[11px] text-black/30">{post.readTime} min</span>
+              <span className="text-[11px] text-black/30">{post.readTime} min read</span>
             </div>
           </div>
         </motion.div>
@@ -369,7 +375,7 @@ const BlogSection = () => {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/posts?per_page=5&_embed=1&orderby=date&order=desc`)
+    fetch(`${WP_API_BASE}/posts?per_page=5&_embed=1&orderby=date&order=desc&_fields=id,slug,title,excerpt,content,date,featured_media,aioseo_head_json,_embedded`)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => {
         if (!cancelled) setPosts(data.map(normalizePost));
