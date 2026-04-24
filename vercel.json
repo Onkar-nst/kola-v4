@@ -1,3 +1,4 @@
+
 {
   "redirects": [
     {
@@ -7,9 +8,31 @@
     }
   ],
   "rewrites": [
-    { "source": "/sitemap.xml",  "destination": "/api/sitemap.xml"  },
-    { "source": "/blogs/:slug",  "destination": "/api/blog-render"  },
-    { "source": "/(.*)",         "destination": "/"                 }
+    { "source": "/sitemap.xml", "destination": "/api/sitemap.xml" },
+    {
+      "source": "/",
+      "destination": "/api/markdown",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/markdown.*"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/api/markdown",
+      "has": [
+        {
+          "type": "header",
+          "key": "accept",
+          "value": ".*text/markdown.*"
+        }
+      ]
+    },
+    { "source": "/blogs/:slug", "destination": "/api/blog-render" },
+    { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
     "api/blog-render.ts": {
