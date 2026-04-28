@@ -303,7 +303,7 @@ const ReadingProgressBar = () => {
 ══════════════════════════════════════════ */
 const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
   <FadeUp delay={0.05}>
-    <div className="mt-16 pt-10 border-t border-black/[0.06]">
+    {/* <div className="mt-16 pt-10 border-t border-black/[0.06]">
       <p className="text-[10px] tracking-[0.22em] uppercase text-black/28 font-semibold mb-5">
         Start a project
       </p>
@@ -322,7 +322,35 @@ const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
           transition={{ duration: 0.45 }}
           className="absolute inset-0 bg-white skew-x-12 pointer-events-none" />
       </motion.button>
-    </div>
+    </div> */}
+        <div className="rounded-[22px] pt-10 mt-16 bg-black text-white p-6 md:p-8">
+            <div className="grid lg:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-semibold mb-3">
+                   Start a project
+                </h3>
+                <p className="text-sm text-white/70">
+                  Let's build something that works for you.
+                </p>
+              </div>
+            </div>
+
+            {/*  BUTTON BELOW  */}
+            <div className="flex justify-center mt-8">
+              <motion.button onClick={onOpenContact}
+        initial="rest" whileHover="hover" animate="rest"
+        className="group bg-white  relative overflow-hidden inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-black text-white text-[13px] font-medium leading-none">
+        <span className="relative text-black z-10">Start a Project</span>
+        <motion.span variants={{ rest: { x: 0, y: 0 }, hover: { x: 3, y: -3 } }} transition={{ duration: 0.18 }} className="relative text-black z-10">
+          <ArrowUpRight size={13} strokeWidth={1.8} />
+        </motion.span>
+        <motion.span
+          variants={{ rest: { x: "-110%", opacity: 0 }, hover: { x: "210%", opacity: 0.12 } }}
+          transition={{ duration: 0.45 }}
+          className="absolute inset-0 bg-white skew-x-12 pointer-events-none" />
+      </motion.button>
+            </div>
+          </div>
   </FadeUp>
 ));
 
@@ -673,6 +701,7 @@ const BlogPage = () => {
                     dangerouslySetInnerHTML={{ __html: post.content.rendered }}
                   />
                 </FadeUp>
+                <InlineCTA onOpenContact={() => setContactOpen(true)} />
 
                 {/* Related articles */}
                 {related.length > 0 && (
@@ -731,7 +760,7 @@ const BlogPage = () => {
                     </div>
                   </div>
                 )}
-
+            
                 {/* Mobile projects carousel */}
                 {sidebarProjects.length > 0 && (
                   <div className="md:hidden mt-16">
@@ -765,7 +794,7 @@ const BlogPage = () => {
                 )}
 
                 {/* CTA */}
-                <InlineCTA onOpenContact={() => setContactOpen(true)} />
+
               </div>
 
               {/* ── RIGHT: sticky projects sidebar (desktop only) ── */}
