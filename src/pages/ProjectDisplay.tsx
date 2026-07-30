@@ -153,14 +153,33 @@ const useAllTags = () => {
 };
 
 const useProjects = (page: number, activeTag: string | null): FetchState => {
-  const [state, setState] = useState<FetchState>({
-    projects: [],
-    loading: true,
-    totalPages: 1,
-    totalItems: 0,
+  const [state, setState] = useState<FetchState>(() => {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__INITIAL_DATA__?.projects &&
+      page === 1 &&
+      activeTag === null
+    ) {
+      return {
+        projects: (window as any).__INITIAL_DATA__.projects.projects,
+        loading: false,
+        totalPages: (window as any).__INITIAL_DATA__.projects.totalPages,
+        totalItems: (window as any).__INITIAL_DATA__.projects.totalItems,
+      };
+    }
+    return { projects: [], loading: true, totalPages: 1, totalItems: 0 };
   });
 
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__INITIAL_DATA__?.projects &&
+      page === 1 &&
+      activeTag === null &&
+      state.projects.length > 0
+    ) {
+      return;
+    }
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
 

@@ -240,11 +240,35 @@ const usePosts = (
   categoryId: number | null,
   activeTag: string | null
 ): FetchState => {
-  const [state, setState] = useState<FetchState>({
-    posts: [], loading: true, totalPages: 1, totalItems: 0,
+  const [state, setState] = useState<FetchState>(() => {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__INITIAL_DATA__?.blogs &&
+      page === 1 &&
+      categoryId === null &&
+      activeTag === null
+    ) {
+      return {
+        posts: (window as any).__INITIAL_DATA__.blogs.posts,
+        loading: false,
+        totalPages: (window as any).__INITIAL_DATA__.blogs.totalPages,
+        totalItems: (window as any).__INITIAL_DATA__.blogs.totalItems,
+      };
+    }
+    return { posts: [], loading: true, totalPages: 1, totalItems: 0 };
   });
 
   useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      (window as any).__INITIAL_DATA__?.blogs &&
+      page === 1 &&
+      categoryId === null &&
+      activeTag === null &&
+      state.posts.length > 0
+    ) {
+      return;
+    }
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
 

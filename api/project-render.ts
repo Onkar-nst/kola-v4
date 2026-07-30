@@ -28,8 +28,8 @@ const safeJsonStringify = (obj: any): string =>
 
 /* ── Main handler ── */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Extract slug: /blogs/my-post-slug → "my-post-slug"
-  const slug = req.url?.split("/blogs/")[1]?.split("?")[0] ?? "";
+  // Extract slug: /project/my-project-slug → "my-project-slug"
+  const slug = req.url?.split("/project/")[1]?.split("?")[0] ?? "";
 
   if (!slug) {
     try {
@@ -45,35 +45,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const apiRes = await fetch(
-      `${WP_API}/posts?slug=${encodeURIComponent(slug)}&status=publish&_embed=1` +
-      `&_fields=title,excerpt,content,slug,date,modified,aioseo_head_json,_embedded`,
+      `${WP_API}/projects?slug=${encodeURIComponent(slug)}&status=publish&_embed=1`,
       { signal: AbortSignal.timeout(8000) } // 8s timeout
     );
 
     if (!apiRes.ok) throw new Error(`WP API ${apiRes.status}`);
 
-    const posts = (await apiRes.json()) as Array<any>;
+    const projects = (await apiRes.json()) as Array<any>;
 
-    if (!posts.length) {
+    if (!projects.length) {
       return res.status(404).send(
         `<!DOCTYPE html><html><head><title>Not Found</title>
          <meta name="robots" content="noindex"/></head>
-         <body><h1>404 – Page not found</h1></body></html>`
+         <body><h1>404 – Project not found</h1></body></html>`
       );
     }
 
-    const post      = posts[0];
-    const seo       = (post.aioseo_head_json ?? {}) as Record<string, any>;
-    const title     = post.title.rendered;
-    const excerpt   = post.excerpt.rendered.replace(/<[^>]+>/g, "").trim();
-    const content   = post.content.rendered;
-    const featImg   = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "https://kolacommunications.com/KolaFavicon.jpg";
-    const canonical = `${SITE}/blogs/${slug}`;
+    const project   = projects[0];
+    const seo       = (project.aioseo_head_json ?? {}) as Record<string, any>;
+    const title     = project.title.rendered;
+    const content   = project.content.rendered;
+    const featImg   = project._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "https://kolacommunications.com/KolaFavicon.jpg";
+    const canonical = `${SITE}/project/${slug}`;
 
     const metaTitle  = escapeHtml((seo.title as string) ?? title);
-    const metaDesc   = escapeHtml((seo.description as string) ?? excerpt);
+    const metaDesc   = escapeHtml((seo.description as string) ?? "Read details about our project: " + title);
     const ogTitle    = escapeHtml((seo["og:title"] as string) ?? title);
-    const ogDesc     = escapeHtml((seo["og:description"] as string) ?? excerpt);
+    const ogDesc     = escapeHtml((seo["og:description"] as string) ?? metaDesc);
     const robotsMeta = "index, follow";
     const jsonLd     = seo.schema ? JSON.stringify(seo.schema) : null;
 
@@ -93,12 +91,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:title"       content="${ogTitle}"/>
   <meta name="twitter:description" content="${ogDesc}"/>
   <meta name="twitter:image"       content="${featImg}"/>
-  <script>window.__INITIAL_DATA__ = { post: ${safeJsonStringify(post)} };</script>
-  ${jsonLd ? `<script type="application/ld+json" id="kola-blog-jsonld">${jsonLd}</script>` : ""}
+  <script>window.__INITIAL_DATA__ = { project: ${safeJsonStringify(project)} };</script>
+  ${jsonLd ? `<script type="application/ld+json" id="kola-project-jsonld">${jsonLd}</script>` : ""}
     `;
 
     const bodyContent = `
-<div class="blog-post-seo-render" style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif;">
+<div class="project-seo-render" style="padding: 2rem; max-width: 900px; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif;">
   <h1>${title}</h1>
   ${featImg && featImg !== "https://kolacommunications.com/KolaFavicon.jpg" ? `<img src="${featImg}" alt="${title}" style="max-width:100%; height:auto; margin: 1rem 0; border-radius: 8px;" />` : ""}
   <div class="content" style="line-height: 1.8; font-size: 1.1rem; color: #1a1a1a;">${content}</div>
@@ -106,11 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `;
 
     let html = getSPAShell();
-
-    // Replace the title tag with all our SEO tags
     html = html.replace(/<title>[^<]*<\/title>/i, seoTags);
-
-    // Inject content into <div id="root">
     html = html.replace(/<div id="root">\s*<\/div>/i, `<div id="root">${bodyContent}</div>`);
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -118,7 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).send(html);
 
   } catch (err) {
-    console.error("SSR failed, falling back to SPA shell:", err);
+    console.error("Project SSR failed, falling back to SPA shell:", err);
     try {
       const html = getSPAShell();
       res.setHeader("Content-Type", "text/html; charset=utf-8");

@@ -31,11 +31,23 @@
         }
       ]
     },
+    { "source": "/blogs", "destination": "/api/blogs-list-render" },
     { "source": "/blogs/:slug", "destination": "/api/blog-render" },
+    { "source": "/projects", "destination": "/api/projects-list-render" },
+    { "source": "/project/:slug", "destination": "/api/project-render" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
     "api/blog-render.ts": {
+      "includeFiles": "dist/index.html"
+    },
+    "api/blogs-list-render.ts": {
+      "includeFiles": "dist/index.html"
+    },
+    "api/project-render.ts": {
+      "includeFiles": "dist/index.html"
+    },
+    "api/projects-list-render.ts": {
       "includeFiles": "dist/index.html"
     }
   }

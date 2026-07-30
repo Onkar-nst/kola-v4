@@ -630,9 +630,19 @@ const ProjectPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const [project, setProject] = useState<WPProject | null>(null);
+  const [project, setProject] = useState<WPProject | null>(() => {
+    if (typeof window !== "undefined" && (window as any).__INITIAL_DATA__?.project?.slug === slug) {
+      return (window as any).__INITIAL_DATA__.project;
+    }
+    return null;
+  });
   const [otherProjects, setOtherProjects] = useState<NormalizedProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined" && (window as any).__INITIAL_DATA__?.project?.slug === slug) {
+      return false;
+    }
+    return true;
+  });
   const [notFound, setNotFound] = useState(false);
   const [contactFormOpen, setContactFormOpen] = useState(false);
 
@@ -659,6 +669,10 @@ const ProjectPage = () => {
 
   useEffect(() => {
     if (!slug) return;
+    if (project && project.slug === slug) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true); setNotFound(false); setProject(null);
 

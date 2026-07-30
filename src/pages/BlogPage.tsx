@@ -416,10 +416,20 @@ const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProjec
 const BlogPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState<WPPost | null>(null);
+  const [post, setPost] = useState<WPPost | null>(() => {
+    if (typeof window !== "undefined" && (window as any).__INITIAL_DATA__?.post?.slug === slug) {
+      return (window as any).__INITIAL_DATA__.post;
+    }
+    return null;
+  });
   const [related, setRelated] = useState<NormalizedRelated[]>([]);
   const [sidebarProjects, setSidebarProjects] = useState<NormalizedProject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== "undefined" && (window as any).__INITIAL_DATA__?.post?.slug === slug) {
+      return false;
+    }
+    return true;
+  });
   const [notFound, setNotFound] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
@@ -498,6 +508,11 @@ const BlogPage = () => {
   // ── Fetch post ──
   useEffect(() => {
     if (!slug) return;
+    // Skip fetching if post is already preloaded by the server
+    if (post && post.slug === slug) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     setLoading(true); setNotFound(false); setPost(null);
     fetch(`${WP_API_BASE}/posts?slug=${encodeURIComponent(slug)}&_embed=1`)
