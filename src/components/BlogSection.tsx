@@ -217,8 +217,6 @@ const FeaturedCard = memo(({ post }: { post: NormalizedPost }) => {
             <div className="mt-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="text-[11px] text-black/30">{post.formattedDate}</span>
-                <span className="w-1 h-1 rounded-full bg-black/20" />
-                <span className="text-[11px] text-black/30">{post.readTime} min read</span>
               </div>
               {/* Animated arrow */}
               <div className="relative w-4 h-4 overflow-hidden">
@@ -287,8 +285,6 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
             </h3>
             <div className="flex items-center gap-2 mt-3">
               <span className="text-[11px] text-black/30">{post.formattedDate}</span>
-              <span className="w-0.5 h-0.5 rounded-full bg-black/20" />
-              <span className="text-[11px] text-black/30">{post.readTime} min read</span>
             </div>
           </div>
         </motion.div>

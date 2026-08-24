@@ -99,7 +99,9 @@ const getArticleSection = (p: WPProject): string => {
   const schema = p.aioseo_head_json?.schema as AioseoSchema | undefined;
   if (!schema) return "";
   if (Array.isArray(schema["@graph"])) {
-    const article = schema["@graph"].find((n) => n["@type"] === "Article");
+    const article = schema["@graph"].find(
+      (n: any) => n["@type"] === "Article" || n["@type"] === "NewsArticle" || n["@type"] === "WebPage"
+    );
     if (article?.articleSection) return article.articleSection as string;
   }
   if (typeof schema.articleSection === "string") return schema.articleSection;
@@ -110,9 +112,13 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
   const rawSection = getArticleSection(p);
-  const tags: string[] = rawSection
+  const termTags = (p as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t?.name ?? "")).filter(Boolean) ?? [];
+  const acfTags = p.acf?.tags?.map(decodeHtmlEntities) ?? [];
+  const sectionTags = rawSection
     ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
-    : (p.acf?.tags?.map(decodeHtmlEntities) ?? []);
+    : [];
+  const tags: string[] = Array.from(new Set([...sectionTags, ...termTags, ...acfTags])).filter(Boolean);
+
   return {
     id: p.id,
     slug: p.slug,
@@ -132,17 +138,19 @@ const useAllTags = () => {
   const [tags, setTags] = useState<string[]>([]);
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/projects?per_page=100&_fields=id,aioseo_head_json,acf`)
+    fetch(`${WP_API_BASE}/projects?per_page=100&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => {
-        if (cancelled) return;
+        if (cancelled || !Array.isArray(data)) return;
         const tagSet = new Set<string>();
         for (const p of data) {
           const rawSection = getArticleSection(p);
-          const tags = rawSection
+          const termTags = (p as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t?.name ?? "")).filter(Boolean) ?? [];
+          const acfTags = p.acf?.tags?.map(decodeHtmlEntities) ?? [];
+          const sectionTags = rawSection
             ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
-            : (p.acf?.tags?.map(decodeHtmlEntities) ?? []);
-          tags.forEach((t) => tagSet.add(t));
+            : [];
+          [...sectionTags, ...termTags, ...acfTags].forEach((t) => tagSet.add(t));
         }
         setTags(Array.from(tagSet).sort());
       })

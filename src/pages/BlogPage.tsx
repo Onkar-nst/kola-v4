@@ -113,30 +113,60 @@ const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   return "";
 };
 const getSchemaArticleNode = (schema?: AioseoSchema) =>
-  schema?.["@graph"]?.find((n) => n["@type"] === "NewsArticle" || n["@type"] === "Article");
-const getArticleTags = (schema?: AioseoSchema): string[] => {
+  schema?.["@graph"]?.find((n) => n["@type"] === "NewsArticle" || n["@type"] === "Article" || n["@type"] === "WebPage");
+
+const getArticleTags = (schema?: AioseoSchema, post?: WPPost): string[] => {
+  const tagsSet = new Set<string>();
   const node = getSchemaArticleNode(schema);
-  if (!node?.articleSection) return [];
-  return (node.articleSection as string).split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean);
+  if (node?.articleSection) {
+    (node.articleSection as string)
+      .split(",")
+      .map((t) => decodeHtmlEntities(t.trim()))
+      .filter(Boolean)
+      .forEach((t) => tagsSet.add(t));
+  }
+  if (post?._embedded?.["wp:term"]) {
+    post._embedded["wp:term"].forEach((termGroup) => {
+      if (Array.isArray(termGroup)) {
+        termGroup.forEach((term) => {
+          if (term.name) tagsSet.add(decodeHtmlEntities(term.name.trim()));
+        });
+      }
+    });
+  }
+  return Array.from(tagsSet);
 };
+
 const getProjectArticleSection = (p: WPProject): string => {
-  const schema = p.aioseo_head_json?.schema;
-  if (!schema?.["@graph"]) return "";
-  const article = (schema["@graph"] as Array<{ "@type": string; articleSection?: string }>).find((n) => n["@type"] === "Article");
-  return article?.articleSection ?? "";
+  const schema = p.aioseo_head_json?.schema as any;
+  if (!schema) return "";
+  if (Array.isArray(schema["@graph"])) {
+    const article = schema["@graph"].find(
+      (n: any) => n["@type"] === "Article" || n["@type"] === "NewsArticle" || n["@type"] === "WebPage"
+    );
+    if (article?.articleSection) return article.articleSection as string;
+  }
+  if (typeof schema.articleSection === "string") return schema.articleSection;
+  return "";
 };
+
 const normalizeRelated = (p: WPPost): NormalizedRelated => {
   const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
-  const categories = p._embedded?.["wp:term"]?.[0]?.map((t) => decodeHtmlEntities(t.name)).slice(0, 2) ?? [];
-  return { id: p.id, slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, formattedDate: formatDate(p.date), categories };
+  const catTerms = p._embedded?.["wp:term"]?.[0]?.map((t) => decodeHtmlEntities(t.name)) ?? [];
+  const tagTerms = p._embedded?.["wp:term"]?.[1]?.map((t) => decodeHtmlEntities(t.name)) ?? [];
+  const schemaTags = getArticleTags(p.aioseo_head_json?.schema, p);
+  const allTags = Array.from(new Set([...catTerms, ...schemaTags, ...tagTerms])).filter(Boolean).slice(0, 3);
+  return { id: p.id, slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, formattedDate: formatDate(p.date), categories: allTags };
 };
+
 const normalizeProject = (p: WPProject): NormalizedProject => {
   const img = p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? getSchemaImageUrl(p.aioseo_head_json?.schema) ?? "/placeholder.jpg";
   const rawSection = getProjectArticleSection(p);
-  const tags: string[] = rawSection
-    ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean).slice(0, 2)
-    : (p.acf?.tags?.map(decodeHtmlEntities) ?? []).slice(0, 2);
-  return { slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, tags };
+  const termTags = (p as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t.name)) ?? [];
+  const acfTags = p.acf?.tags?.map(decodeHtmlEntities) ?? [];
+  const rawSectionTags = rawSection ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean) : [];
+  const allTags = Array.from(new Set([...rawSectionTags, ...termTags, ...acfTags])).filter(Boolean).slice(0, 3);
+  return { slug: p.slug, title: decodeHtmlEntities(p.title.rendered), img, tags: allTags };
 };
 
 /* ══════════════════════════════════════════
@@ -523,7 +553,7 @@ const BlogPage = () => {
     return () => { cancelled = true; };
   }, [slug]);
 
-  // ── Fetch related articles (same category) ──
+  // ── Fetch related articles (same category, fallback to latest) ──
   useEffect(() => {
     if (!post) return;
     let cancelled = false;
@@ -533,7 +563,27 @@ const BlogPage = () => {
       : `${WP_API_BASE}/posts?per_page=4&_embed=1&exclude=${post.id}`;
     fetch(url)
       .then((r) => r.json() as Promise<WPPost[]>)
-      .then((data) => { if (!cancelled) setRelated(data.slice(0, 3).map(normalizeRelated)); })
+      .then((data) => {
+        if (cancelled) return;
+        if (Array.isArray(data) && data.length >= 3) {
+          setRelated(data.slice(0, 3).map(normalizeRelated));
+        } else if (catId) {
+          fetch(`${WP_API_BASE}/posts?per_page=4&_embed=1&exclude=${post.id}`)
+            .then((r2) => r2.json() as Promise<WPPost[]>)
+            .then((fallbackData) => {
+              if (!cancelled && Array.isArray(fallbackData)) {
+                setRelated(fallbackData.slice(0, 3).map(normalizeRelated));
+              } else if (!cancelled && Array.isArray(data)) {
+                setRelated(data.map(normalizeRelated));
+              }
+            })
+            .catch(() => {
+              if (!cancelled && Array.isArray(data)) setRelated(data.map(normalizeRelated));
+            });
+        } else if (Array.isArray(data)) {
+          setRelated(data.map(normalizeRelated));
+        }
+      })
       .catch(() => {});
     return () => { cancelled = true; };
   }, [post]);
@@ -575,7 +625,7 @@ const BlogPage = () => {
     <div className="min-h-screen bg-white">
       <ReadingProgressBar />
       <CustomCursor />
-      <div className="relative overflow-hidden">
+      <div className="relative">
         <ColumnGuides />
 
         {/* ═══════════════ HERO ═══════════════ */}
@@ -639,33 +689,13 @@ const BlogPage = () => {
 
             {/* META */}
             <FadeUp delay={0.22}>
-              <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pb-6 text-[12px] text-black/35">
+              <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pb-10 text-[12px] text-black/35">
                 <span>{formattedDate}</span>
-                <span className="w-1 h-1 rounded-full bg-black/20 shrink-0" />
-                <span>{readTime} min read</span>
                 {showAuthor && (
                   <><span className="w-1 h-1 rounded-full bg-black/20 shrink-0" /><span>By {authorName}</span></>
                 )}
               </div>
             </FadeUp>
-
-            {/* ARTICLE TAGS */}
-            {articleTags.length > 0 && (
-              <FadeUp delay={0.28}>
-                <div className="flex flex-wrap gap-1.5 pb-10">
-                  {articleTags.map((tag) => (
-                    <Link key={tag}
-                      to={`/blogs?tag=${encodeURIComponent(tag)}`}
-                      style={{ textDecoration: "none" }}>
-                      <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
-                        className="inline-block px-2.5 py-0.5 text-[10.5px] border border-black/[0.08] rounded-full text-black/35 bg-black/[0.015] tracking-wide hover:border-black/20 hover:text-black/50 transition-colors duration-150 cursor-pointer">
-                        {tag}
-                      </motion.span>
-                    </Link>
-                  ))}
-                </div>
-              </FadeUp>
-            )}
           </div>
         </section>
 
@@ -678,7 +708,7 @@ const BlogPage = () => {
               Two-column on desktop: content left, projects sidebar right.
               Single column on mobile: content first, then sidebar below.
             */}
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 lg:gap-16">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] items-start gap-8 lg:gap-16">
 
               {/* ── LEFT: article body ── */}
               <div>
@@ -716,63 +746,66 @@ const BlogPage = () => {
                     dangerouslySetInnerHTML={{ __html: post.content.rendered }}
                   />
                 </FadeUp>
+
+                {/* ── TAGS AT END OF ARTICLE ── */}
+                {articleTags.length > 0 && (
+                  <FadeUp delay={0.1}>
+                    <div className="mt-12 pt-8 border-t border-black/[0.07] mb-10">
+                      <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 font-semibold mb-3.5">
+                        Tags
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {articleTags.map((tag) => (
+                          <Link
+                            key={tag}
+                            to={`/blogs?tag=${encodeURIComponent(tag)}`}
+                            style={{ textDecoration: "none" }}
+                          >
+                            <motion.span
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.96 }}
+                              transition={{ duration: 0.15 }}
+                              className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.1] rounded-full text-black/55 bg-black/[0.02] tracking-wide hover:border-black/25 hover:text-black hover:bg-black/[0.04] transition-colors duration-150 cursor-pointer"
+                            >
+                              #{tag}
+                            </motion.span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </FadeUp>
+                )}
                 <InlineCTA onOpenContact={() => setContactOpen(true)} />
 
-                {/* Related articles */}
+                {/* ── MOBILE: Related Articles Carousel ── */}
                 {related.length > 0 && (
-                  <div className="mt-16 pt-10 border-t border-black/[0.06]">
-                    <FadeUp delay={0.05}>
-                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-7">
-                        Related Articles
-                      </p>
-                    </FadeUp>
-                    {/* Desktop 3-col */}
-                    <div className="hidden md:grid grid-cols-3 gap-4">
+                  <div className="md:hidden mt-16">
+                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
+                      Related Articles
+                    </p>
+                    <DragCarousel>
                       {related.map((p, i) => (
-                        <FadeUp key={p.slug} delay={0.06 + i * 0.07}>
-                          <div onClick={() => navigate(`/blogs/${p.slug}`)} className="group cursor-pointer">
-                            <div className="relative overflow-hidden rounded-[10px] mb-3 h-[120px]">
-                              <img src={p.img} alt={p.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                                loading="lazy" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
-                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
-                                <ArrowUpRight size={10} />
-                              </div>
+                        <motion.div key={p.slug}
+                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          onClick={() => navigate(`/blogs/${p.slug}`)}
+                          style={{ width: "68vw", flexShrink: 0 }}
+                          className="cursor-pointer group">
+                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                            <img src={p.img} alt={p.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                              <ArrowUpRight size={11} />
                             </div>
-                            <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2 mb-1">{p.title}</p>
-                            {p.categories.length > 0 && <p className="text-[11px] text-black/30">{p.categories.slice(0, 1).join(" · ")}</p>}
-                            <p className="text-[11px] text-black/25 mt-0.5">{p.formattedDate}</p>
                           </div>
-                        </FadeUp>
+                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">{p.title}</p>
+                          <p className="text-[11px] text-black/30 mt-0.5">{p.formattedDate}</p>
+                        </motion.div>
                       ))}
-                    </div>
-                    {/* Mobile drag carousel */}
-                    <div className="md:hidden">
-                      <DragCarousel>
-                        {related.map((p, i) => (
-                          <motion.div key={p.slug}
-                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                            onClick={() => navigate(`/blogs/${p.slug}`)}
-                            style={{ width: "68vw", flexShrink: 0 }}
-                            className="cursor-pointer group">
-                            <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
-                              <img src={p.img} alt={p.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                loading="lazy" />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                              <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                                <ArrowUpRight size={11} />
-                              </div>
-                            </div>
-                            <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">{p.title}</p>
-                            <p className="text-[11px] text-black/30 mt-0.5">{p.formattedDate}</p>
-                          </motion.div>
-                        ))}
-                      </DragCarousel>
-                    </div>
+                    </DragCarousel>
                   </div>
                 )}
             
@@ -812,29 +845,81 @@ const BlogPage = () => {
 
               </div>
 
-              {/* ── RIGHT: sticky projects sidebar (desktop only) ── */}
-              {sidebarProjects.length > 0 && (
-                <div className="hidden md:block">
-                  <div className="sticky top-28">
-                    <LineReveal className="mb-5">
-                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
-                        Our Projects
-                      </p>
-                    </LineReveal>
-                    <div className="flex flex-col">
-                      {sidebarProjects.map((project, i) => (
-                        <ProjectSidebarCard key={project.slug} project={project} index={i} />
-                      ))}
+              {/* ── RIGHT: sticky sidebar (desktop only) ── */}
+              {(sidebarProjects.length > 0 || related.length > 0) && (
+                <aside className="hidden md:block sticky top-24 space-y-8 self-start">
+                  {sidebarProjects.length > 0 && (
+                    <div>
+                      <LineReveal className="mb-3">
+                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
+                          Our Projects
+                        </p>
+                      </LineReveal>
+                      <div className="flex flex-col">
+                        {sidebarProjects.slice(0, 2).map((project, i) => (
+                          <ProjectSidebarCard key={project.slug} project={project} index={i} />
+                        ))}
+                      </div>
+                      <motion.button
+                        onClick={() => navigate("/projects")}
+                        whileHover={{ x: 2 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium">
+                        View all projects <ArrowUpRight size={10} />
+                      </motion.button>
                     </div>
-                    <motion.button
-                      onClick={() => navigate("/projects")}
-                      whileHover={{ x: 2 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                      className="mt-5 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1">
-                      View all projects <ArrowUpRight size={10} />
-                    </motion.button>
-                  </div>
-                </div>
+                  )}
+
+                  {related.length > 0 && (
+                    <div className={sidebarProjects.length > 0 ? "pt-6 border-t border-black/[0.06]" : ""}>
+                      <LineReveal className="mb-3">
+                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
+                          Related Articles
+                        </p>
+                      </LineReveal>
+                      <div className="flex flex-col">
+                        {related.slice(0, 2).map((p, i) => (
+                          <motion.div
+                            key={p.slug}
+                            initial={{ opacity: 0, y: 12 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                            onClick={() => navigate(`/blogs/${p.slug}`)}
+                            className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0"
+                          >
+                            <div className="relative overflow-hidden rounded-[10px] mb-2.5 h-[120px]">
+                              <img
+                                src={p.img}
+                                alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
+                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
+                                <ArrowUpRight size={10} />
+                              </div>
+                            </div>
+                            <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2">
+                              {p.title}
+                            </p>
+                            {p.categories.length > 0 && (
+                              <p className="text-[11px] text-black/28 mt-0.5">{p.categories.slice(0, 2).join(" · ")}</p>
+                            )}
+                            <p className="text-[11px] text-black/25 mt-0.5">{p.formattedDate}</p>
+                          </motion.div>
+                        ))}
+                      </div>
+                      <motion.button
+                        onClick={() => navigate("/blogs")}
+                        whileHover={{ x: 2 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium">
+                        View all articles <ArrowUpRight size={10} />
+                      </motion.button>
+                    </div>
+                  )}
+                </aside>
               )}
             </div>
           </div>

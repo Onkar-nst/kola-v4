@@ -455,8 +455,6 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
         </div>
         <div className="px-5 py-3 flex items-center gap-2 border-t border-black/[0.06]">
           <span className="text-[11px] text-black/30">{post.formattedDate}</span>
-          <span className="w-0.5 h-0.5 rounded-full bg-black/20" />
-          <span className="text-[11px] text-black/30">{post.readTime} min read</span>
         </div>
       </a>
     </motion.div>
