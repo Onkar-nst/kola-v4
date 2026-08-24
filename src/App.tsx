@@ -17,6 +17,8 @@ const ProjectDisplay = lazy(() => import("./pages/ProjectDisplay"));
 const BlogDisplay = lazy(() => import("./pages/BlogDisplay"));
 const BlogPage = lazy(() => import("./pages/BlogPage"));
 
+const SlugResolver = lazy(() => import("./pages/SlugResolver"));
+
 import SectionSkeleton from "./components/SectionSkeleton";
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
 
@@ -64,11 +66,14 @@ const App = () => {
               <Suspense fallback={<SectionSkeleton/>}>
                 <Routes>
                   <Route path="/" element={<Index />} />
-                  <Route path="*" element={<NotFound />} />
-                  <Route path="/project/:slug" element={<ProjectPage />} />
                   <Route path="/projects" element={<ProjectDisplay />} />
                   <Route path="/blogs" element={<BlogDisplay />} />
-                  <Route path="/blogs/:slug" element={<BlogPage />} />
+                  <Route path="/category/:slug" element={<BlogDisplay />} />
+                  <Route path="/tag/:slug" element={<BlogDisplay />} />
+                  <Route path="/project/:slug" element={<SlugResolver />} />
+                  <Route path="/blogs/:slug" element={<SlugResolver />} />
+                  <Route path="/:slug" element={<SlugResolver />} />
+                  <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
             </SmoothScroll>

@@ -12,6 +12,7 @@ import CustomCursor from "@/components/CustomCursor";
 import CTAFooter from "@/components/CTAFooter";
 import SectionDivider from "@/components/SectionDivider";
 import ContactForm from "@/components/ContactForm";
+import { setCachedSlugType } from "./SlugResolver";
 
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 
@@ -210,7 +211,7 @@ const useBlogSEO = (post: WPPost | null, img: string, plainDesc: string) => {
     const canonical =
       rawCanonical && !rawCanonical.includes("cms.kolacommunications.com")
         ? rawCanonical
-        : `https://kolacommunications.com/blogs/${post.slug}`;
+        : `https://kolacommunications.com/${post.slug}`;
     // ──────────────────────────────────────────────────────────────────
 
     const prevTitle = document.title;
@@ -253,11 +254,13 @@ const FadeUp = memo(({ children, delay = 0, className = "" }: {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-60px" });
   return (
-    <motion.div ref={ref}
+    <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 22 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={className}>
+      className={className}
+    >
       {children}
     </motion.div>
   );
@@ -434,8 +437,57 @@ const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProjec
         {project.title}
       </p>
       {project.tags.length > 0 && (
-        <p className="text-[11px] text-black/28 mt-0.5">{project.tags.join(" · ")}</p>
+        <div className="flex flex-wrap gap-1.5 mt-1.5">
+          {project.tags.slice(0, 2).map((t) => (
+            <span
+              key={t}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+              }}
+              className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
+            >
+              {t}
+            </span>
+          ))}
+        </div>
       )}
+    </motion.div>
+  );
+});
+
+/* ══════════════════════════════════════════
+   RELATED SIDEBAR CARD (NUMBERED ARTICLE)
+══════════════════════════════════════════ */
+const RelatedSidebarCard = memo(({ post, index }: { post: NormalizedRelated; index: number }) => {
+  const navigate = useNavigate();
+  const num = String(index + 1).padStart(2, "0");
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.06, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      onClick={() => navigate(`/${post.slug}`)}
+      className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0 flex items-start gap-3.5 transition-colors"
+    >
+      <span className="text-[19px] font-semibold tracking-tight text-black/20 group-hover:text-black transition-colors shrink-0 select-none leading-none pt-0.5">
+        {num}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12.5px] font-medium text-black group-hover:text-black/55 transition-colors duration-200 leading-[1.35] line-clamp-2">
+          {post.title}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[11px] text-black/35">{post.formattedDate}</span>
+          {post.categories?.length > 0 && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-black/20" />
+              <span className="text-[11px] text-black/30 truncate max-w-[120px]">{post.categories[0]}</span>
+            </>
+          )}
+        </div>
+      </div>
     </motion.div>
   );
 });
@@ -559,29 +611,29 @@ const BlogPage = () => {
     let cancelled = false;
     const catId = post.categories?.[0];
     const url = catId
-      ? `${WP_API_BASE}/posts?per_page=4&categories=${catId}&_embed=1&exclude=${post.id}`
-      : `${WP_API_BASE}/posts?per_page=4&_embed=1&exclude=${post.id}`;
+      ? `${WP_API_BASE}/posts?per_page=8&categories=${catId}&_embed=1&exclude=${post.id}`
+      : `${WP_API_BASE}/posts?per_page=8&_embed=1&exclude=${post.id}`;
     fetch(url)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => {
         if (cancelled) return;
-        if (Array.isArray(data) && data.length >= 3) {
-          setRelated(data.slice(0, 3).map(normalizeRelated));
+        if (Array.isArray(data) && data.length >= 6) {
+          setRelated(data.slice(0, 6).map(normalizeRelated));
         } else if (catId) {
-          fetch(`${WP_API_BASE}/posts?per_page=4&_embed=1&exclude=${post.id}`)
+          fetch(`${WP_API_BASE}/posts?per_page=8&_embed=1&exclude=${post.id}`)
             .then((r2) => r2.json() as Promise<WPPost[]>)
             .then((fallbackData) => {
               if (!cancelled && Array.isArray(fallbackData)) {
-                setRelated(fallbackData.slice(0, 3).map(normalizeRelated));
+                setRelated(fallbackData.slice(0, 6).map(normalizeRelated));
               } else if (!cancelled && Array.isArray(data)) {
-                setRelated(data.map(normalizeRelated));
+                setRelated(data.slice(0, 6).map(normalizeRelated));
               }
             })
             .catch(() => {
-              if (!cancelled && Array.isArray(data)) setRelated(data.map(normalizeRelated));
+              if (!cancelled && Array.isArray(data)) setRelated(data.slice(0, 6).map(normalizeRelated));
             });
         } else if (Array.isArray(data)) {
-          setRelated(data.map(normalizeRelated));
+          setRelated(data.slice(0, 6).map(normalizeRelated));
         }
       })
       .catch(() => {});
@@ -628,92 +680,81 @@ const BlogPage = () => {
       <div className="relative">
         <ColumnGuides />
 
-        {/* ═══════════════ HERO ═══════════════ */}
-        <section ref={heroRef} className="section-container pt-24 pb-0 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+        {/* ═══════════════ MAIN 2-COLUMN SECTION ═══════════════ */}
+        <section ref={heroRef} className="section-container pt-24 pb-28 relative z-10">
+          <div className="max-w-[1140px] mx-auto px-4 md:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_290px] items-start gap-8 lg:gap-14">
 
-            {/* BACK */}
-            <FadeUp delay={0}>
-              <motion.button onClick={() => navigate(-1)} initial="rest" whileHover="hover" animate="rest"
-                className="mb-10 flex items-center gap-2 text-sm text-black/35 hover:text-black transition-colors">
-                <span className="relative w-4 h-4 overflow-hidden">
-                  <motion.span variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: -16, y: 16, opacity: 0 } }} className="absolute"><ArrowLeft size={14} /></motion.span>
-                  <motion.span variants={{ rest: { x: 16, y: -16, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }} className="absolute"><ArrowLeft size={14} /></motion.span>
-                </span>
-                Back
-              </motion.button>
-            </FadeUp>
+              {/* ── LEFT COLUMN: ARTICLE CONTENT ── */}
+              <div className="min-w-0">
 
-            {/* DESKTOP hero */}
-            <motion.div className="hidden md:block overflow-hidden rounded-[20px] mb-10 w-full"
-              initial={{ opacity: 0, y: 32 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}>
-              <motion.img src={featuredImg} alt={altText}
-                style={{ y: imgY, scale: imgScale }}
-                className="w-full h-[500px] lg:h-[540px] object-cover" loading="eager" />
-            </motion.div>
+                {/* BACK BUTTON */}
+                <FadeUp delay={0}>
+                  <motion.button onClick={() => navigate(-1)} initial="rest" whileHover="hover" animate="rest"
+                    className="mb-8 flex items-center gap-2 text-sm text-black/35 hover:text-black transition-colors">
+                    <span className="relative w-4 h-4 overflow-hidden">
+                      <motion.span variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: -16, y: 16, opacity: 0 } }} className="absolute"><ArrowLeft size={14} /></motion.span>
+                      <motion.span variants={{ rest: { x: 16, y: -16, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }} className="absolute"><ArrowLeft size={14} /></motion.span>
+                    </span>
+                    Back
+                  </motion.button>
+                </FadeUp>
 
-            {/* MOBILE hero */}
-            <motion.div className="md:hidden overflow-hidden rounded-[18px] mb-8"
-              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
-              <img src={featuredImg} alt={altText} className="w-full h-[240px] object-cover" loading="eager" />
-            </motion.div>
+                {/* TITLE */}
+                <motion.div className="mb-4 w-full"
+                  initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}>
+                  <h1 className="text-[clamp(1.75rem,3.8vw,2.8rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-black break-words hyphens-auto">
+                    {displayTitle}
+                  </h1>
+                </motion.div>
 
-            {/* CATEGORIES */}
-            {categories.length > 0 && (
-              <FadeUp delay={0.1}>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {categories.map((cat) => (
-                    <Link key={cat.id}
-                      to={`/blogs?category=${cat.id}&categoryName=${encodeURIComponent(cat.name)}`}
-                      style={{ textDecoration: "none" }}>
-                      <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
-                        className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 transition-colors duration-150 cursor-pointer">
-                        {cat.name}
-                      </motion.span>
-                    </Link>
-                  ))}
-                </div>
-              </FadeUp>
-            )}
-
-            {/* TITLE */}
-            <motion.div className="mb-5 w-full"
-              initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}>
-              <h1 className="text-[clamp(1.75rem,4vw,3rem)] font-semibold leading-[1.12] tracking-[-0.03em] text-black break-words hyphens-auto max-w-[900px]">
-                {displayTitle}
-              </h1>
-            </motion.div>
-
-            {/* META */}
-            <FadeUp delay={0.22}>
-              <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pb-10 text-[12px] text-black/35">
-                <span>{formattedDate}</span>
-                {showAuthor && (
-                  <><span className="w-1 h-1 rounded-full bg-black/20 shrink-0" /><span>By {authorName}</span></>
+                {/* CATEGORIES */}
+                {categories.length > 0 && (
+                  <FadeUp delay={0.12}>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {categories.map((cat) => (
+                        <Link key={cat.id}
+                          to={`/category/${cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                          style={{ textDecoration: "none" }}>
+                          <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
+                            className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 transition-colors duration-150 cursor-pointer">
+                            {cat.name}
+                          </motion.span>
+                        </Link>
+                      ))}
+                    </div>
+                  </FadeUp>
                 )}
-              </div>
-            </FadeUp>
-          </div>
-        </section>
 
-        <SectionDivider />
+                {/* META */}
+                <FadeUp delay={0.16}>
+                  <div className="flex items-center flex-wrap gap-x-3 gap-y-1 pb-6 text-[12px] text-black/35">
+                    <span>{formattedDate}</span>
+                    {showAuthor && (
+                      <><span className="w-1 h-1 rounded-full bg-black/20 shrink-0" /><span>By {authorName}</span></>
+                    )}
+                  </div>
+                </FadeUp>
 
-        {/* ═══════════════ CONTENT + SIDEBAR ═══════════════ */}
-        <section className="section-container pt-12 pb-28 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
-            {/*
-              Two-column on desktop: content left, projects sidebar right.
-              Single column on mobile: content first, then sidebar below.
-            */}
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] items-start gap-8 lg:gap-16">
+                {/* DESKTOP HERO IMAGE */}
+                <motion.div className="hidden md:block overflow-hidden rounded-2xl mb-10 w-full border border-black/[0.08]"
+                  initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}>
+                  <motion.img src={featuredImg} alt={altText}
+                    style={{ y: imgY, scale: imgScale }}
+                    className="w-full h-[400px] lg:h-[460px] object-cover" loading="eager" />
+                </motion.div>
 
-              {/* ── LEFT: article body ── */}
-              <div>
+                {/* MOBILE HERO IMAGE */}
+                <motion.div className="md:hidden overflow-hidden rounded-[18px] mb-8"
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
+                  <img src={featuredImg} alt={altText} className="w-full h-[240px] object-cover" loading="eager" />
+                </motion.div>
+
+                {/* ARTICLE BODY */}
                 <FadeUp delay={0.05}>
-                  {/* ↓ contentRef attached here for SmartFrame script injection */}
                   <div
                     ref={contentRef}
                     className="
@@ -747,7 +788,7 @@ const BlogPage = () => {
                   />
                 </FadeUp>
 
-                {/* ── TAGS AT END OF ARTICLE ── */}
+                {/* TAGS AT END OF ARTICLE */}
                 {articleTags.length > 0 && (
                   <FadeUp delay={0.1}>
                     <div className="mt-12 pt-8 border-t border-black/[0.07] mb-10">
@@ -758,7 +799,7 @@ const BlogPage = () => {
                         {articleTags.map((tag) => (
                           <Link
                             key={tag}
-                            to={`/blogs?tag=${encodeURIComponent(tag)}`}
+                            to={`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`}
                             style={{ textDecoration: "none" }}
                           >
                             <motion.span
@@ -775,11 +816,59 @@ const BlogPage = () => {
                     </div>
                   </FadeUp>
                 )}
+
                 <InlineCTA onOpenContact={() => setContactOpen(true)} />
 
-                {/* ── MOBILE: Related Articles Carousel ── */}
+                {/* ── MOBILE: Our Projects Carousel FIRST ── */}
+                {sidebarProjects.length > 0 && (
+                  <div className="md:hidden mt-14">
+                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
+                      Our Projects
+                    </p>
+                    <DragCarousel>
+                      {sidebarProjects.map((p, i) => (
+                        <motion.div key={p.slug}
+                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          onClick={() => navigate(`/${p.slug}`)}
+                          style={{ width: "62vw", flexShrink: 0 }}
+                          className="cursor-pointer group">
+                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                            <img src={p.img} alt={p.title}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                              loading="lazy" />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                              <ArrowUpRight size={11} />
+                            </div>
+                          </div>
+                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors">{p.title}</p>
+                          {p.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-1.5">
+                              {p.tags.slice(0, 2).map((t) => (
+                                <span
+                                  key={t}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                  }}
+                                  className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
+                    </DragCarousel>
+                  </div>
+                )}
+
+                {/* ── MOBILE: Related Articles Carousel SECOND ── */}
                 {related.length > 0 && (
-                  <div className="md:hidden mt-16">
+                  <div className="md:hidden mt-14">
                     <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
                       Related Articles
                     </p>
@@ -789,7 +878,7 @@ const BlogPage = () => {
                           initial={{ opacity: 0, y: 18, scale: 0.96 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                          onClick={() => navigate(`/blogs/${p.slug}`)}
+                          onClick={() => navigate(`/${p.slug}`)}
                           style={{ width: "68vw", flexShrink: 0 }}
                           className="cursor-pointer group">
                           <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
@@ -808,46 +897,13 @@ const BlogPage = () => {
                     </DragCarousel>
                   </div>
                 )}
-            
-                {/* Mobile projects carousel */}
-                {sidebarProjects.length > 0 && (
-                  <div className="md:hidden mt-16">
-                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
-                      Our Projects
-                    </p>
-                    <DragCarousel>
-                      {sidebarProjects.map((p, i) => (
-                        <motion.div key={p.slug}
-                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                          onClick={() => navigate(`/project/${p.slug}`)}
-                          style={{ width: "62vw", flexShrink: 0 }}
-                          className="cursor-pointer group">
-                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
-                            <img src={p.img} alt={p.title}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                              <ArrowUpRight size={11} />
-                            </div>
-                          </div>
-                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors">{p.title}</p>
-                          {p.tags.length > 0 && <p className="text-[11px] text-black/30 mt-0.5">{p.tags.join(" · ")}</p>}
-                        </motion.div>
-                      ))}
-                    </DragCarousel>
-                  </div>
-                )}
-
-                {/* CTA */}
 
               </div>
 
-              {/* ── RIGHT: sticky sidebar (desktop only) ── */}
+              {/* ── RIGHT COLUMN: STICKY SIDEBAR (FROM TOP OF PAGE) ── */}
               {(sidebarProjects.length > 0 || related.length > 0) && (
-                <aside className="hidden md:block sticky top-24 space-y-8 self-start">
+                <aside className="hidden md:block sticky top-24 space-y-8 self-start pt-2">
+                  {/* 1. PROJECTS FIRST (TOP) - SHOWING 3 */}
                   {sidebarProjects.length > 0 && (
                     <div>
                       <LineReveal className="mb-3">
@@ -856,71 +912,39 @@ const BlogPage = () => {
                         </p>
                       </LineReveal>
                       <div className="flex flex-col">
-                        {sidebarProjects.slice(0, 2).map((project, i) => (
+                        {sidebarProjects.slice(0, 3).map((project, i) => (
                           <ProjectSidebarCard key={project.slug} project={project} index={i} />
                         ))}
                       </div>
-                      <motion.button
-                        onClick={() => navigate("/projects")}
-                        whileHover={{ x: 2 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium">
-                        View all projects <ArrowUpRight size={10} />
-                      </motion.button>
                     </div>
                   )}
 
+                  {/* 2. RELATED ARTICLES SECOND - SHOWING 6 WITH BORDER */}
                   {related.length > 0 && (
-                    <div className={sidebarProjects.length > 0 ? "pt-6 border-t border-black/[0.06]" : ""}>
+                    <div className="border border-black/[0.08] rounded-2xl p-5 bg-black/[0.015]">
                       <LineReveal className="mb-3">
-                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
+                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/40 font-semibold">
                           Related Articles
                         </p>
                       </LineReveal>
                       <div className="flex flex-col">
-                        {related.slice(0, 2).map((p, i) => (
-                          <motion.div
-                            key={p.slug}
-                            initial={{ opacity: 0, y: 12 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                            onClick={() => navigate(`/blogs/${p.slug}`)}
-                            className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0"
-                          >
-                            <div className="relative overflow-hidden rounded-[10px] mb-2.5 h-[120px]">
-                              <img
-                                src={p.img}
-                                alt={p.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-                                loading="lazy"
-                              />
-                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
-                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
-                                <ArrowUpRight size={10} />
-                              </div>
-                            </div>
-                            <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2">
-                              {p.title}
-                            </p>
-                            {p.categories.length > 0 && (
-                              <p className="text-[11px] text-black/28 mt-0.5">{p.categories.slice(0, 2).join(" · ")}</p>
-                            )}
-                            <p className="text-[11px] text-black/25 mt-0.5">{p.formattedDate}</p>
-                          </motion.div>
+                        {related.slice(0, 6).map((p, i) => (
+                          <RelatedSidebarCard key={p.slug} post={p} index={i} />
                         ))}
                       </div>
                       <motion.button
                         onClick={() => navigate("/blogs")}
                         whileHover={{ x: 2 }}
                         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium">
-                        View all articles <ArrowUpRight size={10} />
+                        className="mt-4 text-[11.5px] text-black/35 hover:text-black transition-colors flex items-center justify-between font-medium pt-3 border-t border-black/[0.06] w-full">
+                        <span>View all articles</span>
+                        <ArrowUpRight size={11} />
                       </motion.button>
                     </div>
                   )}
                 </aside>
               )}
+
             </div>
           </div>
         </section>

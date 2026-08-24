@@ -16,7 +16,6 @@ const features = [
   "Flexible engagement terms",
   "Dedicated account manager",
   "Monthly performance reports",
-  "Monthly performance reports",
   "Unlimited strategy requests",
   "Priority support",
 ];

@@ -16,6 +16,7 @@ import SectionDivider from "@/components/SectionDivider";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import Loading from "@/components/Projectpageloader";
 import ContactForm from "@/components/ContactForm";
+import { setCachedSlugType } from "./SlugResolver";
 
 /* ══════════════════════════════════════════
    CONSTANTS
@@ -142,6 +143,9 @@ const getSchemaImageUrl = (seo?: AioseoHeadJson): string => {
 };
 
 const normalizeOther = (p: WPProject): NormalizedProject => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "project");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(p.aioseo_head_json) ??
@@ -173,6 +177,9 @@ const formatDate = (iso: string): string => {
 };
 
 const normalizeBlog = (p: any): NormalizedBlog => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "blog");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(p.aioseo_head_json) ??
@@ -312,7 +319,10 @@ const useProjectSEO = (project: WPProject | null, img: string, plainDesc: string
     const seo = project.aioseo_head_json;
     const metaTitle = seo?.title ?? decodeHtmlEntities(project.title.rendered);
     const metaDesc = seo?.description ?? plainDesc;
-    const canonical = seo?.canonical_url ?? "";
+    const canonical =
+      seo?.canonical_url && !seo.canonical_url.includes("cms.kolacommunications.com")
+        ? seo.canonical_url
+        : `https://kolacommunications.com/${project.slug}`;
     const ogImage = getSchemaImageUrl(seo) || img;
     const prevTitle = document.title;
     document.title = metaTitle;
@@ -665,38 +675,37 @@ const ContentSectionBlock = memo(({
 });
 
 /* ══════════════════════════════════════════
-   BLOG SIDEBAR CARD
+   BLOG SIDEBAR CARD (NUMBERED ARTICLE)
 ══════════════════════════════════════════ */
 const BlogSidebarCard = memo(({ post, index }: { post: NormalizedBlog; index: number }) => {
   const navigate = useNavigate();
+  const num = String(index + 1).padStart(2, "0");
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      onClick={() => navigate(`/blogs/${post.slug}`)}
-      className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0"
+      transition={{ delay: index * 0.06, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+      onClick={() => navigate(`/${post.slug}`)}
+      className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0 flex items-start gap-3.5 transition-colors"
     >
-      <div className="relative overflow-hidden rounded-[10px] mb-2.5 h-[120px]">
-        <img
-          src={post.img}
-          alt={post.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/8 transition-colors duration-300 rounded-[10px]" />
-        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 scale-75 group-hover:scale-100">
-          <ArrowUpRight size={10} />
+      <span className="text-[19px] font-semibold tracking-tight text-black/20 group-hover:text-black transition-colors shrink-0 select-none leading-none pt-0.5">
+        {num}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[12.5px] font-medium text-black group-hover:text-black/55 transition-colors duration-200 leading-[1.35] line-clamp-2">
+          {post.title}
+        </p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className="text-[11px] text-black/35">{post.formattedDate}</span>
+          {post.categories?.length > 0 && (
+            <>
+              <span className="w-1 h-1 rounded-full bg-black/20" />
+              <span className="text-[11px] text-black/30 truncate max-w-[120px]">{post.categories[0]}</span>
+            </>
+          )}
         </div>
       </div>
-      <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug line-clamp-2">
-        {post.title}
-      </p>
-      {post.categories.length > 0 && (
-        <p className="text-[11px] text-black/28 mt-0.5">{post.categories.slice(0, 1).join(" · ")}</p>
-      )}
-      <p className="text-[11px] text-black/25 mt-0.5">{post.formattedDate}</p>
     </motion.div>
   );
 });
@@ -769,10 +778,10 @@ const ProjectPage = () => {
     if (!slug) return;
     let cancelled = false;
 
-    fetch(`${WP_API_BASE}/projects?per_page=4&_embed=1`)
+    fetch(`${WP_API_BASE}/projects?per_page=6&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => {
-        if (!cancelled)
+        if (!cancelled && Array.isArray(data))
           setOtherProjects(
             data.filter((p) => p.slug !== slug).slice(0, 3).map(normalizeOther)
           );
@@ -784,11 +793,11 @@ const ProjectPage = () => {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=1`)
+    fetch(`${WP_API_BASE}/posts?per_page=8&_embed=1`)
       .then((r) => r.json() as Promise<any[]>)
       .then((data) => {
         if (!cancelled && Array.isArray(data)) {
-          setLatestBlogs(data.map(normalizeBlog));
+          setLatestBlogs(data.map(normalizeBlog).slice(0, 6));
         }
       })
       .catch(() => {});
@@ -846,284 +855,272 @@ const ProjectPage = () => {
       <div className="relative">
         <ColumnGuides />
 
-        {/* ═══════════════ HERO ═══════════════ */}
-        <section ref={heroRef} className="section-container pt-24 pb-0 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+        {/* ═══════════════ MAIN 2-COLUMN SECTION ═══════════════ */}
+        <section ref={heroRef} className="section-container pt-24 pb-28 relative z-10">
+          <div className="max-w-[1140px] mx-auto px-4 md:px-8">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_290px] items-start gap-8 lg:gap-14">
 
-            {/* BACK */}
-            <FadeUp delay={0}>
-              <motion.button onClick={() => navigate(-1)}
-                initial="rest" whileHover="hover" animate="rest"
-                className="mb-10 flex items-center gap-2 text-sm text-black/35 hover:text-black transition-colors">
-                <span className="relative w-4 h-4 overflow-hidden">
-                  <motion.span
-                    variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: -16, y: 16, opacity: 0 } }}
-                    className="absolute">
-                    <ArrowLeft size={14} />
-                  </motion.span>
-                  <motion.span
-                    variants={{ rest: { x: 16, y: -16, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }}
-                    className="absolute">
-                    <ArrowLeft size={14} />
-                  </motion.span>
-                </span>
-                Back
-              </motion.button>
-            </FadeUp>
+              {/* ── LEFT COLUMN ── */}
+              <div className="min-w-0">
 
-            {/* DESKTOP: full-width hero image */}
-            <motion.div
-              className="hidden md:block overflow-hidden mb-5 w-full rounded-lg"
-              initial={{ opacity: 0, y: 32 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <motion.img src={featuredImg} alt={altText}
-                style={{ y: imgY, scale: imgScale }}
-                className="w-full h-[500px] lg:h-[540px] object-contain"
-                loading="eager" />
-            </motion.div>
+                {/* BACK */}
+                <FadeUp delay={0}>
+                  <motion.button onClick={() => navigate(-1)}
+                    initial="rest" whileHover="hover" animate="rest"
+                    className="mb-8 flex items-center gap-2 text-sm text-black/35 hover:text-black transition-colors">
+                    <span className="relative w-4 h-4 overflow-hidden">
+                      <motion.span
+                        variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: -16, y: 16, opacity: 0 } }}
+                        className="absolute">
+                        <ArrowLeft size={14} />
+                      </motion.span>
+                      <motion.span
+                        variants={{ rest: { x: 16, y: -16, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }}
+                        className="absolute">
+                        <ArrowLeft size={14} />
+                      </motion.span>
+                    </span>
+                    Back
+                  </motion.button>
+                </FadeUp>
 
-            {/* MOBILE: drag carousel */}
-            <div className="md:hidden mb-4">
-              <DragCarousel>
-                {allImages.map((src, i) => (
-                  <motion.div key={i}
-                    initial={{ opacity: 0, y: 18, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ width: "82vw", flexShrink: 0 }}
-                    className="overflow-hidden rounded-[18px]">
-                    <img src={src} alt={`${displayTitle} ${i + 1}`}
-                      className="w-full h-[240px] object-cover"
-                      loading={i === 0 ? "eager" : "lazy"} />
-                  </motion.div>
-                ))}
-              </DragCarousel>
-            </div>
-
-            {/* TITLE */}
-            <div className="mb-4">
-              <AnimatedHeading
-                lines={["", displayTitle]}
-                className="md:hidden text-[clamp(2rem,8vw,3rem)] leading-[1.05] tracking-[-0.03em] font-semibold"
-              />
-              <AnimatedHeading
-                lines={["", displayTitle]}
-                className="hidden md:block text-[clamp(2.5rem,4.5vw,3.5rem)] leading-[1.05] tracking-[-0.03em] font-semibold"
-              />
-            </div>
-
-            {/* CATEGORIES (BELOW TITLE) */}
-            {tags.length > 0 && (
-              <FadeUp delay={0.1}>
-                <div className="flex flex-wrap gap-2 pb-10">
-                  {tags.slice(0, 3).map((tag) => (
-                    <motion.button
-                      key={tag}
-                      onClick={() => navigate(`/projects?tag=${encodeURIComponent(tag)}`)}
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 hover:bg-black/[0.03] transition-colors duration-150 cursor-pointer"
-                    >
-                      {tag}
-                    </motion.button>
-                  ))}
+                {/* TITLE */}
+                <div className="mb-4">
+                  <AnimatedHeading
+                    lines={["", displayTitle]}
+                    className="md:hidden text-[clamp(2rem,8vw,2.8rem)] leading-[1.05] tracking-[-0.03em] font-semibold"
+                  />
+                  <AnimatedHeading
+                    lines={["", displayTitle]}
+                    className="hidden md:block text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.03em] font-semibold"
+                  />
                 </div>
-              </FadeUp>
-            )}
-          </div>
-        </section>
 
-        <SectionDivider />
-
-        {/* ═══════════════ CONTENT ═══════════════ */}
-        <section className="section-container pt-14 pb-28 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] items-start gap-8 lg:gap-16">
-
-              {/* ── LEFT ── */}
-              <div>
-                {sections.length > 0 ? (
-                  sections.map((section, idx) => (
-                    <ContentSectionBlock
-                      key={`${section.heading}-${idx}`}
-                      section={section}
-                      delay={0.04 + idx * 0.06}
-                      isFirst={idx === 0}
-                      liveUrl={liveUrl}
-                    />
-                  ))
-                ) : (
-                  <FadeUp delay={0.05}>
-                    <div
-                      className="text-[14.5px] text-black/55 leading-[1.9] [&>p]:mb-5 [&>p:last-child]:mb-0"
-                      dangerouslySetInnerHTML={{ __html: cleanedContent }}
-                    />
-                  </FadeUp>
-                )}
-
-                {!hasFaqSection && liveUrl && (
-                  <ViewLiveButton href={liveUrl} />
-                )}
-
-                {/* ── TAGS AT END OF PROJECT ── */}
+                {/* CATEGORIES / TAGS (BELOW TITLE) */}
                 {tags.length > 0 && (
-                  <FadeUp delay={0.1}>
-                    <div className="mt-12 pt-8 border-t border-black/[0.07] mb-10">
-                      <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 font-semibold mb-3.5">
-                        Tags
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {tags.map((tag) => (
-                          <motion.button
-                            key={tag}
-                            onClick={() =>
-                              navigate(`/projects?tag=${encodeURIComponent(tag)}`)
-                            }
-                            whileHover={{ scale: 1.04 }}
-                            whileTap={{ scale: 0.96 }}
-                            transition={{ duration: 0.15 }}
-                            className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.1] rounded-full text-black/55 bg-black/[0.02] tracking-wide hover:border-black/25 hover:text-black hover:bg-black/[0.04] transition-colors duration-150 cursor-pointer"
-                          >
-                            #{tag}
-                          </motion.button>
-                        ))}
-                      </div>
+                  <FadeUp delay={0.08}>
+                    <div className="flex flex-wrap gap-2 pb-6">
+                      {tags.slice(0, 3).map((tag) => (
+                        <motion.button
+                          key={tag}
+                          onClick={() => navigate(`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`)}
+                          whileHover={{ scale: 1.04 }}
+                          whileTap={{ scale: 0.96 }}
+                          transition={{ duration: 0.15 }}
+                          className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 hover:bg-black/[0.03] transition-colors duration-150 cursor-pointer"
+                        >
+                          {tag}
+                        </motion.button>
+                      ))}
                     </div>
                   </FadeUp>
                 )}
 
-                <div className="hidden md:block">
-                  <InlineProjectCTA onOpenContact={() => setContactFormOpen(true)} />
+                {/* DESKTOP HERO IMAGE */}
+                <motion.div
+                  className="hidden md:block overflow-hidden mb-8 w-full rounded-2xl border border-black/[0.08]"
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <motion.img src={featuredImg} alt={altText}
+                    style={{ y: imgY, scale: imgScale }}
+                    className="w-full h-[400px] lg:h-[460px] object-cover"
+                    loading="eager" />
+                </motion.div>
+
+                {/* MOBILE CAROUSEL */}
+                <div className="md:hidden mb-6">
+                  <DragCarousel>
+                    {allImages.map((src, i) => (
+                      <motion.div key={i}
+                        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                        style={{ width: "82vw", flexShrink: 0 }}
+                        className="overflow-hidden rounded-[18px]">
+                        <img src={src} alt={`${displayTitle} ${i + 1}`}
+                          className="w-full h-[240px] object-cover"
+                          loading={i === 0 ? "eager" : "lazy"} />
+                      </motion.div>
+                    ))}
+                  </DragCarousel>
                 </div>
 
-                {/* ── MOBILE: Latest Articles Carousel ── */}
-                {latestBlogs.length > 0 && (
-                  <div className="md:hidden mt-16">
-                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
-                      Latest Articles
-                    </p>
-                    <DragCarousel>
-                      {latestBlogs.map((p, i) => (
-                        <motion.div
-                          key={p.slug}
-                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{
-                            delay: i * 0.08,
-                            duration: 0.5,
-                            ease: [0.16, 1, 0.3, 1],
-                          }}
-                          onClick={() => navigate(`/blogs/${p.slug}`)}
-                          style={{ width: "68vw", flexShrink: 0 }}
-                          className="cursor-pointer group"
-                        >
-                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
-                            <img
-                              src={p.img}
-                              alt={p.title}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy"
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                              <ArrowUpRight size={11} />
-                            </div>
-                          </div>
-                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">
-                            {p.title}
-                          </p>
-                          <p className="text-[11px] text-black/30 mt-0.5">
-                            {p.formattedDate}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </DragCarousel>
-                  </div>
-                )}
+                {/* CONTENT SECTIONS */}
+                <div className="pt-2">
+                  {sections.length > 0 ? (
+                    sections.map((section, idx) => (
+                      <ContentSectionBlock
+                        key={`${section.heading}-${idx}`}
+                        section={section}
+                        delay={0.04 + idx * 0.06}
+                        isFirst={idx === 0}
+                        liveUrl={liveUrl}
+                      />
+                    ))
+                  ) : (
+                    <FadeUp delay={0.05}>
+                      <div
+                        className="text-[14.5px] text-black/55 leading-[1.9] [&>p]:mb-5 [&>p:last-child]:mb-0"
+                        dangerouslySetInnerHTML={{ __html: cleanedContent }}
+                      />
+                    </FadeUp>
+                  )}
 
-                {/* MOBILE: other projects carousel */}
-                {otherProjects.length > 0 && (
-                  <div className="md:hidden mt-16">
-                    <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
-                      Other Projects
-                    </p>
-                    <DragCarousel>
-                      {otherProjects.map((p, i) => (
-                        <motion.div key={p.slug}
-                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                          onClick={() => navigate(`/project/${p.slug}`)}
-                          style={{ width: "62vw", flexShrink: 0 }}
-                          className="cursor-pointer group">
-                          <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
-                            <img src={p.img} alt={p.title}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              loading="lazy" />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-                            <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                              <ArrowUpRight size={11} />
-                            </div>
-                          </div>
-                          <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors">{p.title}</p>
-                          {p.tags?.length > 0 && (
-                            <p className="text-[11px] text-black/30 mt-0.5">{p.tags.slice(0, 2).join(" · ")}</p>
-                          )}
-                        </motion.div>
-                      ))}
-                    </DragCarousel>
-                  </div>
-                )}
+                  {!hasFaqSection && liveUrl && (
+                    <ViewLiveButton href={liveUrl} />
+                  )}
 
-                <div className="md:hidden">
-                  <InlineProjectCTA onOpenContact={() => setContactFormOpen(true)} />
-                </div>
-              </div>
-
-              {/* ── RIGHT: sticky sidebar ── */}
-              {(latestBlogs.length > 0 || otherProjects.length > 0) && (
-                <aside className="hidden md:block sticky top-24 space-y-8 self-start">
-                  {latestBlogs.length > 0 && (
-                    <div>
-                      <LineReveal className="mb-3">
-                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
-                          Latest Articles
+                  {/* TAGS AT END */}
+                  {tags.length > 0 && (
+                    <FadeUp delay={0.1}>
+                      <div className="mt-12 pt-8 border-t border-black/[0.07] mb-10">
+                        <p className="text-[11px] uppercase tracking-[0.18em] text-black/40 font-semibold mb-3.5">
+                          Tags
                         </p>
-                      </LineReveal>
-                      <div className="flex flex-col">
-                        {latestBlogs.slice(0, 2).map((post, i) => (
-                          <BlogSidebarCard key={post.slug} post={post} index={i} />
-                        ))}
+                        <div className="flex flex-wrap gap-2">
+                          {tags.map((tag) => (
+                            <motion.button
+                              key={tag}
+                              onClick={() =>
+                                navigate(`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`)
+                              }
+                              whileHover={{ scale: 1.04 }}
+                              whileTap={{ scale: 0.96 }}
+                              transition={{ duration: 0.15 }}
+                              className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.1] rounded-full text-black/55 bg-black/[0.02] tracking-wide hover:border-black/25 hover:text-black hover:bg-black/[0.04] transition-colors duration-150 cursor-pointer"
+                            >
+                              #{tag}
+                            </motion.button>
+                          ))}
+                        </div>
                       </div>
-                      <motion.button
-                        onClick={() => navigate("/blogs")}
-                        whileHover={{ x: 2 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium"
-                      >
-                        View all articles <ArrowUpRight size={10} />
-                      </motion.button>
+                    </FadeUp>
+                  )}
+
+                  <div className="hidden md:block">
+                    <InlineProjectCTA onOpenContact={() => setContactFormOpen(true)} />
+                  </div>
+
+                  {/* ── MOBILE: other projects carousel FIRST ── */}
+                  {otherProjects.length > 0 && (
+                    <div className="md:hidden mt-14">
+                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
+                        Other Projects
+                      </p>
+                      <DragCarousel>
+                        {otherProjects.map((p, i) => (
+                          <motion.div key={p.slug}
+                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                            onClick={() => navigate(`/${p.slug}`)}
+                            style={{ width: "62vw", flexShrink: 0 }}
+                            className="cursor-pointer group">
+                            <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                              <img src={p.img} alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy" />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                              <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                                <ArrowUpRight size={11} />
+                              </div>
+                            </div>
+                            <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors">{p.title}</p>
+                            {p.tags?.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                {p.tags.slice(0, 2).map((t) => (
+                                  <span
+                                    key={t}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                    }}
+                                    className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </DragCarousel>
                     </div>
                   )}
 
+                  {/* ── MOBILE: Latest Articles Carousel SECOND ── */}
+                  {latestBlogs.length > 0 && (
+                    <div className="md:hidden mt-14">
+                      <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold mb-5">
+                        Latest Articles
+                      </p>
+                      <DragCarousel>
+                        {latestBlogs.map((p, i) => (
+                          <motion.div
+                            key={p.slug}
+                            initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{
+                              delay: i * 0.08,
+                              duration: 0.5,
+                              ease: [0.16, 1, 0.3, 1],
+                            }}
+                            onClick={() => navigate(`/${p.slug}`)}
+                            style={{ width: "68vw", flexShrink: 0 }}
+                            className="cursor-pointer group"
+                          >
+                            <div className="relative overflow-hidden rounded-2xl mb-3 h-[130px]">
+                              <img
+                                src={p.img}
+                                alt={p.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                              <div className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                                <ArrowUpRight size={11} />
+                              </div>
+                            </div>
+                            <p className="text-[13px] font-medium text-black leading-snug group-hover:text-black/50 transition-colors line-clamp-2">
+                              {p.title}
+                            </p>
+                            <p className="text-[11px] text-black/30 mt-0.5">
+                              {p.formattedDate}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </DragCarousel>
+                    </div>
+                  )}
+
+                  <div className="md:hidden mt-10">
+                    <InlineProjectCTA onOpenContact={() => setContactFormOpen(true)} />
+                  </div>
+                </div>
+
+              </div>
+
+              {/* ── RIGHT COLUMN: STICKY SIDEBAR (FROM TOP OF PAGE) ── */}
+              {(otherProjects.length > 0 || latestBlogs.length > 0) && (
+                <aside className="hidden md:block sticky top-24 space-y-8 self-start pt-2">
+                  {/* 1. OTHER PROJECTS FIRST (TOP) - SHOWING 3 */}
                   {otherProjects.length > 0 && (
-                    <div className={latestBlogs.length > 0 ? "pt-6 border-t border-black/[0.06]" : ""}>
+                    <div>
                       <LineReveal className="mb-3">
                         <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/28 font-semibold">
                           Other Projects
                         </p>
                       </LineReveal>
                       <div className="flex flex-col">
-                        {otherProjects.slice(0, 2).map((p, i) => (
+                        {otherProjects.slice(0, 3).map((p, i) => (
                           <motion.div key={p.slug}
                             initial={{ opacity: 0, y: 12 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                            onClick={() => navigate(`/project/${p.slug}`)}
+                            onClick={() => navigate(`/${p.slug}`)}
                             className="group cursor-pointer py-3 border-b border-black/[0.06] last:border-b-0">
                             <div className="relative overflow-hidden rounded-[10px] mb-2.5 h-[120px]">
                               <img src={p.img} alt={p.title}
@@ -1136,19 +1133,48 @@ const ProjectPage = () => {
                             </div>
                             <p className="text-[12.5px] font-medium text-black group-hover:text-black/45 transition-colors duration-200 leading-snug">{p.title}</p>
                             {p.tags?.length > 0 && (
-                              <p className="text-[11px] text-black/28 mt-0.5">{p.tags.slice(0, 2).join(" · ")}</p>
+                              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                                {p.tags.slice(0, 2).map((t) => (
+                                  <span
+                                    key={t}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                    }}
+                                    className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </div>
                             )}
                           </motion.div>
                         ))}
                       </div>
+                    </div>
+                  )}
 
+                  {/* 2. LATEST ARTICLES SECOND - SHOWING 6 WITH BORDER */}
+                  {latestBlogs.length > 0 && (
+                    <div className="border border-black/[0.08] rounded-2xl p-5 bg-black/[0.015]">
+                      <LineReveal className="mb-3">
+                        <p className="text-[10.5px] uppercase tracking-[0.2em] text-black/40 font-semibold">
+                          Latest Articles
+                        </p>
+                      </LineReveal>
+                      <div className="flex flex-col">
+                        {latestBlogs.slice(0, 6).map((post, i) => (
+                          <BlogSidebarCard key={post.slug} post={post} index={i} />
+                        ))}
+                      </div>
                       <motion.button
-                        onClick={() => navigate("/projects")}
+                        onClick={() => navigate("/blogs")}
                         whileHover={{ x: 2 }}
                         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                        className="mt-4 text-[11px] text-black/28 hover:text-black/55 transition-colors flex items-center gap-1 font-medium"
+                        className="mt-4 text-[11.5px] text-black/35 hover:text-black transition-colors flex items-center justify-between font-medium pt-3 border-t border-black/[0.06] w-full"
                       >
-                        View all projects <ArrowUpRight size={10} />
+                        <span>View all articles</span>
+                        <ArrowUpRight size={11} />
                       </motion.button>
                     </div>
                   )}

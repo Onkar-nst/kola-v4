@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   ArrowUpRight,
@@ -14,6 +14,7 @@ import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
 import CTAFooter from "@/components/CTAFooter";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import { setCachedSlugType } from "./SlugResolver";
 
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 const PER_PAGE = 6;
@@ -149,6 +150,9 @@ const getArticleTagsFromSchema = (schema?: AioseoSchema): string[] => {
 };
 
 const normalizePost = (p: WPPost): NormalizedPost => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "blog");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(p.aioseo_head_json?.schema) ??
@@ -393,8 +397,7 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
       onMouseLeave={() => setHovered(false)}
     >
       {/* Header — fixed min-height so all cards in a row align */}
-      <a href={`/blogs/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}
-        onClick={(e) => { e.preventDefault(); window.location.href = `/blogs/${post.slug}`; }}>
+      <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
         <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3"
           style={{ minHeight: "80px" }}>
           <div className="min-w-0 flex-1">
@@ -437,11 +440,10 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
             </motion.span>
           </div>
         </div>
-      </a>
+      </Link>
 
       {/* Image + meta */}
-      <a href={`/blogs/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col"
-        onClick={(e) => { e.preventDefault(); window.location.href = `/blogs/${post.slug}`; }}>
+      <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
         <div className="relative aspect-[16/9] overflow-hidden flex-1">
           <motion.img src={post.img} alt={post.imgAlt}
             className="absolute inset-0 w-full h-full object-cover"
@@ -456,7 +458,7 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
         <div className="px-5 py-3 flex items-center gap-2 border-t border-black/[0.06]">
           <span className="text-[11px] text-black/30">{post.formattedDate}</span>
         </div>
-      </a>
+      </Link>
     </motion.div>
   );
 });
@@ -764,92 +766,135 @@ const EmptyState = memo(({ label, onClear }: { label: string; onClear: () => voi
 ══════════════════════════════════════════ */
 
 const BlogDisplay = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { slug: routeSlug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // URL params
+  const isCategoryRoute = location.pathname.startsWith("/category");
+  const isTagRoute = location.pathname.startsWith("/tag");
+
   const categoryParam = searchParams.get("category");
   const categoryNameParam = searchParams.get("categoryName");
   const tagParam = searchParams.get("tag");
   const pageParam = Math.max(1, Number(searchParams.get("page") ?? 1));
 
-  // Filter mode — defaults to "tag" if tag param present, else "category"
-  const [filterMode, setFilterMode] = useState<FilterMode>(tagParam ? "tag" : "category");
+  const [filterMode, setFilterMode] = useState<FilterMode>(
+    isTagRoute || tagParam ? "tag" : "category"
+  );
 
-  // Category state
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(categoryParam ? Number(categoryParam) : null);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
+    categoryParam ? Number(categoryParam) : null
+  );
   const [activeCategoryName, setActiveCategoryName] = useState<string | null>(categoryNameParam);
-
-  // Tag state
-  const [activeTag, setActiveTag] = useState<string | null>(tagParam);
+  const [activeTag, setActiveTag] = useState<string | null>(
+    isTagRoute && routeSlug ? decodeURIComponent(routeSlug).replace(/-/g, " ") : tagParam
+  );
 
   const [page, setPage] = useState(pageParam);
-
-  // Sync from URL on navigation
-  useEffect(() => {
-    setActiveCategoryId(categoryParam ? Number(categoryParam) : null);
-    setActiveCategoryName(categoryNameParam);
-    setActiveTag(tagParam);
-    setPage(Math.max(1, pageParam));
-    if (tagParam) setFilterMode("tag");
-    else if (categoryParam) setFilterMode("category");
-  }, [categoryParam, categoryNameParam, tagParam, pageParam]);
 
   const categories = useCategories();
   const allTags = useAllArticleTags();
 
-  // Active tag filter only applies when in tag mode; category filter always applies
+  useEffect(() => {
+    if (isCategoryRoute && routeSlug) {
+      setFilterMode("category");
+      const found = categories.find((c) => c.slug.toLowerCase() === routeSlug.toLowerCase());
+      if (found) {
+        setActiveCategoryId(found.id);
+        setActiveCategoryName(found.name);
+      } else {
+        fetch(`${WP_API_BASE}/categories?slug=${encodeURIComponent(routeSlug)}`)
+          .then((r) => r.json() as Promise<WPCategory[]>)
+          .then((data) => {
+            if (data && data.length > 0) {
+              setActiveCategoryId(data[0].id);
+              setActiveCategoryName(decodeHtmlEntities(data[0].name));
+            }
+          })
+          .catch(() => {});
+      }
+      setActiveTag(null);
+    } else if (isTagRoute && routeSlug) {
+      setFilterMode("tag");
+      const decoded = decodeURIComponent(routeSlug).replace(/-/g, " ");
+      const matchingTag = allTags.find(
+        (t) => t.toLowerCase() === decoded.toLowerCase() ||
+               t.toLowerCase().replace(/[^a-z0-9]+/g, "-") === routeSlug.toLowerCase()
+      );
+      setActiveTag(matchingTag || decoded);
+      setActiveCategoryId(null);
+      setActiveCategoryName(null);
+    } else {
+      if (categoryParam) {
+        setActiveCategoryId(Number(categoryParam));
+        setActiveCategoryName(categoryNameParam);
+        setFilterMode("category");
+      } else if (tagParam) {
+        setActiveTag(tagParam);
+        setFilterMode("tag");
+      } else {
+        setActiveCategoryId(null);
+        setActiveCategoryName(null);
+        setActiveTag(null);
+      }
+    }
+    setPage(pageParam);
+  }, [isCategoryRoute, isTagRoute, routeSlug, categories, allTags, categoryParam, categoryNameParam, tagParam, pageParam]);
+
   const effectiveTag = filterMode === "tag" ? activeTag : null;
   const effectiveCategoryId = filterMode === "category" ? activeCategoryId : null;
 
   const { posts, loading, totalPages, totalItems } = usePosts(page, effectiveCategoryId, effectiveTag);
-
-  const updateUrl = useCallback((
-    catId: number | null, catName: string | null,
-    tag: string | null, p: number
-  ) => {
-    const params: Record<string, string> = {};
-    if (catId) params.category = String(catId);
-    if (catName) params.categoryName = catName;
-    if (tag) params.tag = tag;
-    if (p > 1) params.page = String(p);
-    setSearchParams(params, { replace: true });
-  }, [setSearchParams]);
 
   const scrollToTop = useCallback(() => {
     setTimeout(() => document.getElementById("blog-display")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   }, []);
 
   const handleCategorySelect = useCallback((id: number | null, name: string | null) => {
-    setActiveCategoryId(id); setActiveCategoryName(name); setPage(1);
-    updateUrl(id, name, null, 1); scrollToTop();
-  }, [updateUrl, scrollToTop]);
+    if (id) {
+      const cat = categories.find((c) => c.id === id);
+      const catSlug = cat ? cat.slug : (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : String(id));
+      setActiveCategoryId(id);
+      setActiveCategoryName(name);
+      setPage(1);
+      navigate(`/category/${catSlug}`);
+    } else {
+      setActiveCategoryId(null);
+      setActiveCategoryName(null);
+      setPage(1);
+      navigate("/blogs");
+    }
+    scrollToTop();
+  }, [categories, navigate, scrollToTop]);
 
   const handleTagSelect = useCallback((tag: string | null) => {
-    setActiveTag(tag); setPage(1);
-    updateUrl(null, null, tag, 1); scrollToTop();
-  }, [updateUrl, scrollToTop]);
+    if (tag) {
+      setActiveTag(tag);
+      setPage(1);
+      const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      navigate(`/tag/${encodeURIComponent(tagSlug)}`);
+    } else {
+      setActiveTag(null);
+      setPage(1);
+      navigate("/blogs");
+    }
+    scrollToTop();
+  }, [navigate, scrollToTop]);
 
   const handleFilterModeSwitch = useCallback((m: FilterMode) => {
     setFilterMode(m);
-    // Clear the other filter when switching modes
-    if (m === "tag") { setActiveCategoryId(null); setActiveCategoryName(null); }
-    else { setActiveTag(null); }
     setPage(1);
-    setSearchParams({}, { replace: true });
+    navigate("/blogs");
     scrollToTop();
-  }, [setSearchParams, scrollToTop]);
+  }, [navigate, scrollToTop]);
 
   const handlePageChange = useCallback((p: number) => {
     setPage(p);
-    updateUrl(
-      filterMode === "category" ? activeCategoryId : null,
-      filterMode === "category" ? activeCategoryName : null,
-      filterMode === "tag" ? activeTag : null,
-      p
-    );
+    const search = p > 1 ? `?page=${p}` : "";
+    navigate(`${location.pathname}${search}`, { replace: true });
     scrollToTop();
-  }, [filterMode, activeCategoryId, activeCategoryName, activeTag, updateUrl, scrollToTop]);
+  }, [location.pathname, navigate, scrollToTop]);
 
   const activeFilterLabel =
     filterMode === "tag" ? activeTag :

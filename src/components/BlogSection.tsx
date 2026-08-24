@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, memo } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import { setCachedSlugType } from "@/pages/SlugResolver";
 
 /* ══════════════════════════════════════════
    CONSTANTS
@@ -88,7 +89,7 @@ const estimateReadTime = (excerpt: string, content?: string): number => {
   const source = content ? stripHtml(content) : stripHtml(excerpt);
   const wordCount = content
     ? source.split(/\s+/).length
-    : Math.round(source.split(/\s+/).length * 8); // excerpt heuristic
+    : Math.round(source.split(/\s+/).length * 8);
   return Math.max(1, Math.round(wordCount / 200));
 };
 
@@ -107,6 +108,9 @@ const getSchemaImageUrl = (schema?: AioseoSchema): string => {
 };
 
 const normalizePost = (p: WPPost): NormalizedPost => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "blog");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
     getSchemaImageUrl(p.aioseo_head_json?.schema) ??
@@ -115,7 +119,6 @@ const normalizePost = (p: WPPost): NormalizedPost => {
     p._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ??
     decodeHtmlEntities(p.title.rendered);
 
-  // Categories from _embedded wp:term[0]
   const categories: string[] =
     p._embedded?.["wp:term"]?.[0]
       ?.map((t) => decodeHtmlEntities(t.name))
@@ -160,104 +163,22 @@ const FadeUp = memo(({
 });
 
 /* ══════════════════════════════════════════
-   FEATURED POST CARD
-══════════════════════════════════════════ */
-
-const FeaturedCard = memo(({ post }: { post: NormalizedPost }) => {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }}>
-      <FadeUp delay={0.05}>
-        <motion.div
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          className="group grid md:grid-cols-[1.2fr_1fr] overflow-hidden border border-black/10 bg-white"
-        >
-          {/* Image */}
-          <div className="relative overflow-hidden aspect-[4/3] md:aspect-auto md:h-full min-h-[240px]">
-            <motion.img
-              src={post.img}
-              alt={post.imgAlt}
-              className="w-full h-full object-cover"
-              animate={{ scale: hovered ? 1.04 : 1 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          </div>
-
-          {/* Content */}
-          <div className="p-7 md:p-10 flex flex-col justify-between">
-            <div>
-              {/* Categories */}
-              {post.categories.length > 0 && (
-                <div className="flex gap-2 flex-wrap mb-4">
-                  {post.categories.map((cat) => (
-                    <span key={cat}
-                      className="text-[10.5px] px-2.5 py-1 border border-black/10 text-black/45 tracking-wide">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Title */}
-              <h3 className={`text-[22px] md:text-[26px] font-semibold leading-[1.18] tracking-[-0.025em] mb-4 transition-colors duration-200 ${hovered ? "text-black/70" : "text-black"}`}>
-                {post.title}
-              </h3>
-
-              {/* Excerpt */}
-              <p className="text-[13.5px] text-black/50 leading-[1.75] line-clamp-3">
-                {post.excerpt}
-              </p>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-black/30">{post.formattedDate}</span>
-              </div>
-              {/* Animated arrow */}
-              <div className="relative w-4 h-4 overflow-hidden">
-                <motion.span
-                  animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
-                  transition={{ duration: 0.18 }}
-                  className="absolute">
-                  <ArrowUpRight size={16} className="text-black/40" />
-                </motion.span>
-                <motion.span
-                  animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="absolute">
-                  <ArrowUpRight size={16} className="text-black" />
-                </motion.span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </FadeUp>
-    </Link>
-  );
-});
-
-/* ══════════════════════════════════════════
-   SMALL BLOG CARD
+   BLOG CARD (ROW OF 3)
 ══════════════════════════════════════════ */
 
 const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link to={`/blogs/${post.slug}`} style={{ textDecoration: "none" }}>
-      <FadeUp delay={0.08 + index * 0.06}>
+    <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} className="h-full block">
+      <FadeUp delay={0.08 + index * 0.08} className="h-full">
         <motion.div
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          className="group overflow-hidden border border-black/10 bg-white h-full flex flex-col"
+          className="group overflow-hidden rounded-2xl border border-black/10 bg-white h-full flex flex-col transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:border-black/20"
         >
           {/* Image */}
-          <div className="relative overflow-hidden aspect-[16/9]">
+          <div className="relative overflow-hidden aspect-[16/10] bg-black/[0.03]">
             <motion.img
               src={post.img}
               alt={post.imgAlt}
@@ -266,25 +187,36 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               loading="lazy"
             />
+            <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100 shadow-sm">
+              <ArrowUpRight size={13} className="text-black" />
+            </div>
           </div>
 
           {/* Content */}
-          <div className="p-5 flex flex-col flex-1">
-            {post.categories.length > 0 && (
-              <div className="flex gap-1.5 flex-wrap mb-3">
-                {post.categories.slice(0, 1).map((cat) => (
-                  <span key={cat}
-                    className="text-[10px] px-2 py-0.5 border border-black/10 text-black/40 tracking-wide">
-                    {cat}
-                  </span>
-                ))}
-              </div>
-            )}
-            <h3 className={`text-[15px] font-semibold leading-snug tracking-[-0.015em] mb-2 flex-1 transition-colors duration-200 ${hovered ? "text-black/60" : "text-black"}`}>
-              {post.title}
-            </h3>
-            <div className="flex items-center gap-2 mt-3">
-              <span className="text-[11px] text-black/30">{post.formattedDate}</span>
+          <div className="p-6 flex flex-col flex-1 justify-between">
+            <div>
+              {post.categories.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap mb-3">
+                  {post.categories.slice(0, 1).map((cat) => (
+                    <span key={cat}
+                      className="text-[10.5px] px-2.5 py-0.5 rounded-full border border-black/10 text-black/45 tracking-wide bg-black/[0.02]">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <h3 className={`text-[17px] font-semibold leading-snug tracking-[-0.02em] mb-2.5 transition-colors duration-200 line-clamp-2 ${hovered ? "text-black/65" : "text-black"}`}>
+                {post.title}
+              </h3>
+              {post.excerpt && (
+                <p className="text-[13px] text-black/50 leading-relaxed line-clamp-2 mb-4">
+                  {post.excerpt}
+                </p>
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-black/[0.06] text-[11.5px] text-black/35 mt-auto">
+              <span>{post.formattedDate}</span>
             </div>
           </div>
         </motion.div>
@@ -297,69 +229,17 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
    SKELETON CARDS
 ══════════════════════════════════════════ */
 
-const FeaturedSkeleton = () => (
-  <div className="grid md:grid-cols-[1.2fr_1fr] overflow-hidden border border-black/10 animate-pulse">
-    <div className="aspect-[4/3] md:min-h-[320px] bg-black/[0.05]" />
-    <div className="p-7 md:p-10 flex flex-col gap-4">
-      <div className="flex gap-2">
-        <div className="h-5 w-20 bg-black/[0.05] rounded-sm" />
-        <div className="h-5 w-24 bg-black/[0.04] rounded-sm" />
-      </div>
-      <div className="h-7 w-3/4 bg-black/[0.06] rounded-sm" />
-      <div className="h-7 w-1/2 bg-black/[0.05] rounded-sm" />
-      <div className="space-y-2 mt-2">
-        <div className="h-3.5 w-full bg-black/[0.04] rounded-sm" />
-        <div className="h-3.5 w-[90%] bg-black/[0.03] rounded-sm" />
-        <div className="h-3.5 w-[75%] bg-black/[0.03] rounded-sm" />
-      </div>
-    </div>
-  </div>
-);
-
 const CardSkeleton = () => (
-  <div className="border border-black/10 overflow-hidden animate-pulse">
-    <div className="aspect-[16/9] bg-black/[0.05]" />
-    <div className="p-5 space-y-2.5">
-      <div className="h-4 w-16 bg-black/[0.04] rounded-sm" />
-      <div className="h-4 w-full bg-black/[0.06] rounded-sm" />
+  <div className="border border-black/10 rounded-2xl overflow-hidden animate-pulse bg-white">
+    <div className="aspect-[16/10] bg-black/[0.05]" />
+    <div className="p-6 space-y-3">
+      <div className="h-4 w-16 bg-black/[0.04] rounded-full" />
+      <div className="h-5 w-full bg-black/[0.06] rounded-sm" />
       <div className="h-4 w-3/4 bg-black/[0.05] rounded-sm" />
-      <div className="h-3 w-24 bg-black/[0.03] rounded-sm mt-3" />
+      <div className="h-3.5 w-1/2 bg-black/[0.03] rounded-sm mt-3" />
     </div>
   </div>
 );
-
-/* ══════════════════════════════════════════
-   VIEW ALL BUTTON
-══════════════════════════════════════════ */
-
-const ViewAllButton = () => {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <Link to="/blogs" style={{ textDecoration: "none" }}>
-      <motion.div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className="inline-flex items-center gap-2 text-[13px] font-medium text-black/45 hover:text-black transition-colors duration-200"
-      >
-        <span>View all articles</span>
-        <span className="relative w-[13px] h-[13px] overflow-hidden">
-          <motion.span
-            animate={hovered ? { x: 13, y: -13, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
-            transition={{ duration: 0.18 }}
-            className="absolute inset-0 flex items-center justify-center">
-            <ArrowUpRight size={13} strokeWidth={1.6} />
-          </motion.span>
-          <motion.span
-            animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -13, y: 13, opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="absolute inset-0 flex items-center justify-center">
-            <ArrowUpRight size={13} strokeWidth={1.6} />
-          </motion.span>
-        </span>
-      </motion.div>
-    </Link>
-  );
-};
 
 /* ══════════════════════════════════════════
    MAIN EXPORT
@@ -371,51 +251,56 @@ const BlogSection = () => {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/posts?per_page=5&_embed=1&orderby=date&order=desc&_fields=id,slug,title,excerpt,content,date,featured_media,aioseo_head_json,_embedded`)
+    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=1&orderby=date&order=desc&_fields=id,slug,title,excerpt,content,date,featured_media,aioseo_head_json,_embedded`)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => {
-        if (!cancelled) setPosts(data.map(normalizePost));
+        if (!cancelled && Array.isArray(data)) setPosts(data.map(normalizePost));
       })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
-  const [featured, ...rest] = posts;
-
   return (
-    <section className="py-12 section-container">
-      <div className="max-w-[1100px] mx-auto p-4 md:p-10">
+    <section className="py-16 md:py-24 section-container">
+      <div className="max-w-[1140px] mx-auto p-4 md:p-8">
 
         {/* Header */}
-        <div className="flex items-end justify-between mb-12 md:mb-14">
-          <AnimatedHeading
-            lines={["From our blog,", "design insights."]}
-            className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] font-semibold"
-          />
-          <div className="hidden md:block pb-1">
-            <ViewAllButton />
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-black/35 font-semibold mb-3">
+              Journal & Insights
+            </p>
+            <AnimatedHeading
+              lines={["From our blog,", "design insights."]}
+              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] font-semibold"
+            />
           </div>
         </div>
 
-        {/* Featured post */}
-        <div className="mb-5">
-          {loading ? <FeaturedSkeleton /> : featured ? <FeaturedCard post={featured} /> : null}
-        </div>
-
-        {/* Grid — 2 cols */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        {/* Grid — Single row of 3 cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14 items-stretch">
           {loading
-            ? [0, 1].map((i) => <CardSkeleton key={i} />)
-            : rest.slice(0, 4).map((post, i) => (
+            ? [0, 1, 2].map((i) => <CardSkeleton key={i} />)
+            : posts.slice(0, 3).map((post, i) => (
                 <BlogCard key={post.slug} post={post} index={i} />
               ))}
         </div>
 
-        {/* Mobile view all */}
-        <div className="md:hidden flex justify-center">
-          <ViewAllButton />
-        </div>
+        {/* Big View All Blogs Button */}
+        <FadeUp delay={0.2} className="flex justify-center">
+          <Link to="/blogs" style={{ textDecoration: "none" }}>
+            <motion.button
+              whileHover={{ scale: 1.025, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.18 }}
+              className="inline-flex items-center gap-3 px-9 py-4 bg-black text-white text-[14px] font-medium rounded-full hover:bg-black/85 shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all cursor-pointer"
+            >
+              <span>View all blogs</span>
+              <ArrowUpRight size={16} />
+            </motion.button>
+          </Link>
+        </FadeUp>
 
       </div>
     </section>

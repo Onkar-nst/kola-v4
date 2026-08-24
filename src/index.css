@@ -52,6 +52,14 @@
   * {
     @apply border-border;
   }
+  ::selection {
+    background-color: #000000;
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background-color: #000000;
+    color: #ffffff;
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

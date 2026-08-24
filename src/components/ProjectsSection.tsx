@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { setCachedSlugType } from "@/pages/SlugResolver";
 
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 const PER_PAGE = 6;
@@ -73,6 +74,9 @@ const getArticleSection = (p: WPProject): string => {
 
 /* ─── Normalize WP response ─── */
 const normalize = (p: WPProject): NormalizedProject => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "project");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
 
@@ -142,7 +146,7 @@ const ProjectCard = ({
   const [hovered, setHovered] = useState(false);
 
   return (
-    <Link to={`/project/${project.slug}`} style={{ textDecoration: "none" }}>
+    <Link to={`/${project.slug}`} style={{ textDecoration: "none" }}>
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

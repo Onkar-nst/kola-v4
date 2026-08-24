@@ -6,7 +6,7 @@ import {
   memo,
 } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { useSearchParams, useNavigate, Link, useParams, useLocation } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   ArrowUpRight,
@@ -21,6 +21,7 @@ import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
 import CTAFooter from "@/components/CTAFooter";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import { setCachedSlugType } from "./SlugResolver";
 
 /* ══════════════════════════════════════════
    CONSTANTS
@@ -109,6 +110,9 @@ const getArticleSection = (p: WPProject): string => {
 };
 
 const normalizeProject = (p: WPProject): NormalizedProject => {
+  if (p.slug) {
+    setCachedSlugType(p.slug, "project");
+  }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
   const rawSection = getArticleSection(p);
@@ -332,7 +336,7 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
     >
 
       {/* HEADER */}
-      <Link to={`/project/${project.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
+      <Link to={`/${project.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
         <div className="flex justify-between items-start px-5 py-4  gap-3">
 
           {/* LEFT */}
@@ -387,7 +391,7 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
 
       {/* IMAGE */}
       <Link
-        to={`/project/${project.slug}`}
+        to={`/${project.slug}`}
         style={{ textDecoration: "none" }}
         className="mt-auto block"
       >
@@ -756,21 +760,43 @@ const EmptyState = memo(({ activeTag, onClear }: { activeTag: string; onClear: (
 ══════════════════════════════════════════ */
 
 const ProjectDisplay = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { slug: routeSlug } = useParams<{ slug: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
+  const isTagRoute = location.pathname.startsWith("/tag") || location.pathname.startsWith("/tags");
+  const isCategoryRoute = location.pathname.startsWith("/category") || location.pathname.startsWith("/categories");
   const tagParam = searchParams.get("tag");
   const pageParam = Number(searchParams.get("page") ?? 1);
 
-  const [activeTag, setActiveTag] = useState<string | null>(tagParam);
+  const [activeTag, setActiveTag] = useState<string | null>(() => {
+    if ((isTagRoute || isCategoryRoute) && routeSlug) {
+      return decodeURIComponent(routeSlug).replace(/-/g, " ");
+    }
+    return tagParam;
+  });
   const [page, setPage] = useState<number>(Math.max(1, pageParam));
 
-  useEffect(() => {
-    setActiveTag(tagParam);
-    setPage(Math.max(1, pageParam));
-  }, [tagParam, pageParam]);
-
   const allTags = useAllTags();
+
+  useEffect(() => {
+    if ((isTagRoute || isCategoryRoute) && routeSlug) {
+      const decoded = decodeURIComponent(routeSlug).replace(/-/g, " ");
+      const matchingTag = allTags.find(
+        (t) =>
+          t.toLowerCase() === decoded.toLowerCase() ||
+          t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === routeSlug.toLowerCase()
+      );
+      setActiveTag(matchingTag || decoded);
+    } else if (tagParam) {
+      setActiveTag(tagParam);
+    } else {
+      setActiveTag(null);
+    }
+    setPage(Math.max(1, pageParam));
+  }, [isTagRoute, isCategoryRoute, routeSlug, allTags, tagParam, pageParam]);
+
   const { projects, loading, totalPages, totalItems } = useProjects(page, activeTag);
 
   const scrollToTop = useCallback(() => {
@@ -782,33 +808,29 @@ const ProjectDisplay = () => {
     }, 60);
   }, []);
 
-  const updateUrl = useCallback(
-    (newTag: string | null, newPage: number) => {
-      const params: Record<string, string> = {};
-      if (newTag) params.tag = newTag;
-      if (newPage > 1) params.page = String(newPage);
-      setSearchParams(params, { replace: true });
-    },
-    [setSearchParams]
-  );
-
   const handleTagSelect = useCallback(
     (tag: string | null) => {
       setActiveTag(tag);
       setPage(1);
-      updateUrl(tag, 1);
+      if (tag) {
+        const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        navigate(`/tag/${encodeURIComponent(tagSlug)}`);
+      } else {
+        navigate("/projects");
+      }
       scrollToTop();
     },
-    [updateUrl, scrollToTop]
+    [navigate, scrollToTop]
   );
 
   const handlePageChange = useCallback(
     (newPage: number) => {
       setPage(newPage);
-      updateUrl(activeTag, newPage);
+      const search = newPage > 1 ? `?page=${newPage}` : "";
+      navigate(`${location.pathname}${search}`, { replace: true });
       scrollToTop();
     },
-    [activeTag, updateUrl, scrollToTop]
+    [location.pathname, navigate, scrollToTop]
   );
 
   const gridKey = `${activeTag ?? "all"}-${page}`;
