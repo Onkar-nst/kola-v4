@@ -102,14 +102,13 @@ const Index = () => {
           <SectionDivider />
           <ServicesSection />
           <SectionDivider />
-          <TestimonialBanner />
           <ProjectsSection />
           <SectionDivider />
           <PricingSection />
           <SectionDivider />
           <BlogSection />
           <FAQSection />
-          <TestimonialsSection />
+          <TestimonialBanner />
         </Suspense>
       </div>
 

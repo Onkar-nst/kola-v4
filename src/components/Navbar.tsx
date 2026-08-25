@@ -11,8 +11,8 @@ const avatarImg =
 // const logo = "https://kolacommunications.com/favicon.png";
 
 const navLinks = [
-  { label: "Services", to: "/#services", type: "hash" },
-  // { label: "Our Work", to: "/#ourwork", type: "hash" },
+  { label: "About", to: "/about", type: "link" },
+  { label: "Services", to: "/services", type: "link" },
   { label: "Our Work", to: "/projects", type: "link" },
   { label: "Blogs", to: "/blogs", type: "link" },
 ];
@@ -23,7 +23,6 @@ const Navbar = () => {
 
   return (
     <>
-
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
 
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[calc(100%-48px)] md:w-auto">
@@ -76,7 +75,7 @@ const Navbar = () => {
           >
             <button
               onClick={() => setContactOpen(true)}
-              className="rounded-full -mr-14 bg-black text-white px-5 py-2 text-sm font-medium whitespace-nowrap"
+              className="rounded-full -mr-14 bg-black text-white px-5 py-2 text-sm font-medium whitespace-nowrap hover:opacity-90 transition"
             >
               Contact
             </button>

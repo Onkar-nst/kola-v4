@@ -11,6 +11,9 @@ import { HelmetProvider } from "react-helmet-async";
 
 
 const Index = lazy(() => import("./pages/Index"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const ContactPage = lazy(() => import("./pages/ContactPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ProjectPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDisplay = lazy(() => import("./pages/ProjectDisplay"));
@@ -66,6 +69,11 @@ const App = () => {
               <Suspense fallback={<SectionSkeleton/>}>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/about-us" element={<AboutPage />} />
+                  <Route path="/services" element={<ServicesPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/contact-us" element={<ContactPage />} />
                   <Route path="/projects" element={<ProjectDisplay />} />
                   <Route path="/blogs" element={<BlogDisplay />} />
                   <Route path="/category/:slug" element={<BlogDisplay />} />

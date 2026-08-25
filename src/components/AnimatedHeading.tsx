@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { memo, useMemo } from "react";
 
 /**
@@ -35,7 +35,7 @@ const AnimatedHeading = ({
     [stagger]
   );
 
-  const word = useMemo(
+  const word: Variants = useMemo(
     () => ({
       hidden: {
         opacity: 0,
@@ -50,7 +50,7 @@ const AnimatedHeading = ({
         filter: "blur(0px)",
         transition: {
           duration,
-          ease: [0.22, 1, 0.36, 1],
+          ease: [0.22, 1, 0.36, 1] as const,
         },
       },
     }),

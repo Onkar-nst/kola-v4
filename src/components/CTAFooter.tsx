@@ -79,7 +79,7 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Services</p>
           <div className="flex flex-col gap-2.5">
             {services.map((s) => (
-              <a key={s} href="/#services" className="text-[13px] text-white/55 hover:text-white transition">
+              <a key={s} href="/services" className="text-[13px] text-white/55 hover:text-white transition">
                 {s}
               </a>
             ))}
@@ -91,7 +91,8 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Company</p>
           <div className="flex flex-col gap-2.5">
             {[
-              { label: "About Us", href: "/#about" },
+              { label: "About Us", href: "/about" },
+              { label: "Contact Us", href: "/contact" },
               { label: "Blog", href: "/blogs" },
               { label: "Our work", href: "/projects" },
             ].map(({ label, href }) => (
