@@ -8,9 +8,6 @@ import {
   CheckCircle2,
   Plus,
   Minus,
-  Layers,
-  Zap,
-  Globe2,
   Code2,
   Search,
   Target,
@@ -263,12 +260,12 @@ const ServicesPage = () => {
            ══════════════════════════════════════════ */}
         <section className="pt-36 pb-16 md:pt-44 md:pb-24 section-container px-6 md:px-10">
           <div className="max-w-[1080px] mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-muted/60 backdrop-blur-md text-xs font-medium mb-8">
+            {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-muted/60 backdrop-blur-md text-xs font-medium mb-8">
               <Sparkles size={13} className="text-primary" />
               <span>Full-Spectrum Digital Services</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-muted-foreground">Built for Growth</span>
-            </div>
+            </div> */}
 
             <AnimatedHeading
               lines={["Services that supercharge", "your business growth."]}
@@ -292,7 +289,7 @@ const ServicesPage = () => {
               "
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 items-start pt-4 border-t border-border">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 items-start pt-4 ">
               <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
                 From high-performance web engineering and search supremacy (SEO & AEO) to high-converting lead pipelines and bespoke AI tools—everything we engineer is designed to deliver measurable commercial returns.
               </p>

@@ -1,6 +1,12 @@
 import { useAnimationFrame } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
-import avatarImg from "@/assets/avatar.jpg";
+const clientAvatars = [
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
+];
 import { supabase } from "@/lib/supabase";
 
 const SPEED = 100;
@@ -64,13 +70,12 @@ const ClientLogos = () => {
           {/* LEFT */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex -space-x-2">
-              {[1, 2, 3, 4, 5].map((i) => (
+              {clientAvatars.map((src, i) => (
                 <img
                   key={i}
-                  src={avatarImg}
-                  alt="Happy client"
+                  src={src}
+                  alt={`Happy client ${i + 1}`}
                   className="w-8 h-8 rounded-full border-2 border-background object-cover"
-                  style={{ filter: `hue-rotate(${i * 60}deg)` }}
                 />
               ))}
             </div>
