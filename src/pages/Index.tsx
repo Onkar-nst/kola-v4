@@ -92,11 +92,14 @@ const Index = () => {
 
       <CustomCursor />
 
+      <Suspense fallback={<SectionLoader />}>
+        <HeroSection />
+      </Suspense>
+
       <div className="relative overflow-hidden">
         <ColumnGuides />
 
         <Suspense fallback={<SectionLoader />}>
-          <HeroSection />
           <ClientLogos />
           <AboutSection />
           <SectionDivider />
