@@ -449,60 +449,66 @@ const ProjectCardSubgrid = memo(({ project, index, onCategoryClick, onTagClick }
       onMouseLeave={() => setHovered(false)}
     >
       {/* HEADER */}
-      <Link to={`/${project.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
-        <div className="flex justify-between items-start px-5 py-4 gap-3">
-          {/* LEFT */}
-          <div className="min-w-0 flex-1 flex flex-col">
-            {/* TITLE */}
-            <span className="text-[15px] text-black font-medium leading-snug block">
-              {project.title}
-            </span>
+      <div className="flex justify-between items-start px-5 py-4 gap-3">
+        {/* LEFT */}
+        <div className="min-w-0 flex-1 flex flex-col">
+          {/* TITLE */}
+          <Link
+            to={`/${project.slug}`}
+            className="text-[15px] text-black font-medium leading-snug block hover:text-black/70 transition-colors"
+          >
+            {project.title}
+          </Link>
 
-            {/* CATEGORY BADGES */}
-            {project.categories.length > 0 && (
-              <div className="flex gap-1.5 mt-2 flex-wrap">
-                {project.categories.map((cat) => (
-                  <button
-                    key={`${cat.taxonomy || "cat"}-${cat.slug}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onCategoryClick(cat.slug);
-                    }}
-                    className="text-xs px-2.5 py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-xl cursor-pointer"
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ARROW */}
-          <div className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5">
-            <motion.span
-              animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
-              transition={{ duration: 0.18 }}
-              className="absolute"
-            >
-              <ArrowUpRight size={16} className="text-black/50" />
-            </motion.span>
-            <motion.span
-              animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="absolute"
-            >
-              <ArrowUpRight size={16} className="text-black" />
-            </motion.span>
-          </div>
+          {/* CATEGORY BADGES */}
+          {project.categories.length > 0 && (
+            <div className="flex gap-1.5 mt-2 flex-wrap">
+              {project.categories.map((cat) => (
+                <button
+                  key={`${cat.taxonomy || "cat"}-${cat.slug}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onCategoryClick(cat.slug);
+                  }}
+                  className="text-xs px-2.5 py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-xl cursor-pointer"
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </Link>
+
+        {/* ARROW */}
+        <Link
+          to={`/${project.slug}`}
+          className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5"
+          tabIndex={-1}
+        >
+          <motion.span
+            animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
+            transition={{ duration: 0.18 }}
+            className="absolute"
+          >
+            <ArrowUpRight size={16} className="text-black/50" />
+          </motion.span>
+          <motion.span
+            animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute"
+          >
+            <ArrowUpRight size={16} className="text-black" />
+          </motion.span>
+        </Link>
+      </div>
 
       {/* IMAGE */}
       <Link
         to={`/${project.slug}`}
         style={{ textDecoration: "none" }}
-        className="mt-auto block"
+        className="mt-auto block flex-1"
       >
         <div className="relative w-full h-[220px] overflow-hidden">
           <motion.img

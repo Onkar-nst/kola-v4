@@ -441,59 +441,66 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
       onMouseLeave={() => setHovered(false)}
     >
       {/* Header */}
-      <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
-        <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3"
-          style={{ minHeight: "80px" }}>
-          <div className="min-w-0 flex-1">
-            <span className="text-[14.5px] text-black font-medium leading-snug block mb-2">
-              {post.title}
-            </span>
-            {/* Category + tag pills */}
-            {post.allTerms.length > 0 && (
-              <div
-                className="flex gap-1.5 overflow-x-auto"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}
-              >
-                {post.categories.map((cat) => (
-                  <button
-                    key={`cat-${cat.slug || cat.name}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onCategoryClick(cat);
-                    }}
-                    className="text-[10px] px-2.5 py-0.5 text-black/55 border border-black/15 whitespace-nowrap hover:border-black/40 hover:text-black transition-colors duration-150 shrink-0 cursor-pointer rounded-xl"
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-                {post.tags.slice(0, 3).map((tag) => (
-                  <button
-                    key={`tag-${tag.slug || tag.name}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onTagClick(tag);
-                    }}
-                    className="text-[10px] px-2.5 py-0.5 text-black/40 border border-black/[0.08] whitespace-nowrap hover:border-black/30 hover:text-black/70 transition-colors duration-150 shrink-0 cursor-pointer bg-black/[0.02] rounded-xl"
-                  >
-                    {tag.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5">
-            <motion.span animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }} transition={{ duration: 0.18 }} className="absolute">
-              <ArrowUpRight size={16} className="text-black/50" />
-            </motion.span>
-            <motion.span animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }} transition={{ duration: 0.18 }} className="absolute">
-              <ArrowUpRight size={16} className="text-black" />
-            </motion.span>
-          </div>
+      <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3"
+        style={{ minHeight: "80px" }}>
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/${post.slug}`}
+            className="text-[14.5px] text-black font-medium leading-snug block mb-2 hover:text-black/70 transition-colors"
+          >
+            {post.title}
+          </Link>
+          {/* Category + tag pills */}
+          {post.allTerms.length > 0 && (
+            <div
+              className="flex gap-1.5 overflow-x-auto"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}
+            >
+              {post.categories.map((cat) => (
+                <button
+                  key={`cat-${cat.slug || cat.name}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onCategoryClick(cat);
+                  }}
+                  className="text-[10px] px-2.5 py-0.5 text-black/55 border border-black/15 whitespace-nowrap hover:border-black/40 hover:text-black transition-colors duration-150 shrink-0 cursor-pointer rounded-xl"
+                >
+                  {cat.name}
+                </button>
+              ))}
+              {post.tags.slice(0, 3).map((tag) => (
+                <button
+                  key={`tag-${tag.slug || tag.name}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTagClick(tag);
+                  }}
+                  className="text-[10px] px-2.5 py-0.5 text-black/40 border border-black/[0.08] whitespace-nowrap hover:border-black/30 hover:text-black/70 transition-colors duration-150 shrink-0 cursor-pointer bg-black/[0.02] rounded-xl"
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </Link>
+        <Link
+          to={`/${post.slug}`}
+          className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5"
+          tabIndex={-1}
+        >
+          <motion.span animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }} transition={{ duration: 0.18 }} className="absolute">
+            <ArrowUpRight size={16} className="text-black/50" />
+          </motion.span>
+          <motion.span animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }} transition={{ duration: 0.18 }} className="absolute">
+            <ArrowUpRight size={16} className="text-black" />
+          </motion.span>
+        </Link>
+      </div>
 
       {/* Image + meta */}
       <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
