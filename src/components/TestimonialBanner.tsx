@@ -26,7 +26,7 @@ const testimonials = [
   },
 ];
 
-const AUTO_SLIDE_INTERVAL = 5500;
+const AUTO_SLIDE_INTERVAL = 3000;
 
 /* ══════════════════════════════════════════
    COMPONENT

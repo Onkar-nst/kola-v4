@@ -254,7 +254,7 @@ const HeroSection = () => {
                   className="px-1.5 py-0.5 rounded-[5px] text-[11px] font-bold text-white"
                   style={{ backgroundColor: BRAND }}
                 >
-                  99+
+                  199+
                 </span>
                 <span className="text-[11px] sm:text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground">
                   Brands grown across 6 global markets
@@ -386,7 +386,7 @@ const HeroSection = () => {
                       />
                     ))}
                   </div>
-                  <p className="text-[14px] font-semibold">99+ Happy Clients</p>
+                  <p className="text-[14px] font-semibold">199+ Global Founders & Clients</p>
                 </div>
               </motion.div>
             </div>

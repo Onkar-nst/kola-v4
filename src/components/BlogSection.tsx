@@ -258,9 +258,6 @@ const BlogSection = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-black/35 font-semibold mb-3">
-              Journal & Insights
-            </p>
             <AnimatedHeading
               lines={["From our blog,", "design insights."]}
               className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] font-semibold"

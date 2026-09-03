@@ -73,23 +73,22 @@ const MainframeHero = () => {
               <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-black/10 bg-black/[0.02] mb-6">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-[11.5px] font-medium tracking-wide uppercase text-black/70">
-                  99+ Brands Scaled Across 6 Markets
+                  199+ Brands Scaled Across 6 Markets
                 </span>
               </div>
 
               {/* MAIN HEADLINE */}
-              <h1 className="mb-6 text-[clamp(2.3rem,4.5vw,3.9rem)] leading-[1.05] tracking-[-0.03em]">
-                <span className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.25em] text-black/40 font-medium">
-                  <span>We Are Your</span>
-                  <span className="inline-block px-2.5 py-0.5 rounded-xl bg-black text-white font-semibold">
-                    Digital
-                  </span>
+              <h1 className="mb-6 text-[clamp(2.2rem,4.4vw,3.8rem)] leading-[1.1] tracking-[-0.03em]">
+                <span className="block text-black/40 font-medium mb-1">
+                  We Are Your
                 </span>
 
-                <span className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.22em] text-black font-semibold mt-1">
-                  <span>Growth</span>
-                  <span className="inline-flex items-center justify-center shrink-0 rounded-full w-[0.95em] h-[0.95em] bg-black text-white">
-                    <Megaphone className="w-[0.5em] h-[0.5em] -rotate-12" />
+                <span className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.25em] gap-y-2 text-black font-semibold">
+                  <span className="inline-block px-3 py-0.5 rounded-xl bg-black text-white font-semibold shadow-sm">
+                    Digital Growth
+                  </span>
+                  <span className="inline-flex items-center justify-center shrink-0 rounded-full w-[0.92em] h-[0.92em] bg-black text-white">
+                    <Megaphone className="w-[0.52em] h-[0.52em] -rotate-12" />
                   </span>
                   <span>Partner.</span>
                 </span>
@@ -129,35 +128,7 @@ const MainframeHero = () => {
                 </Link>
               </div>
 
-              {/* CLIENT AVATARS + RATING PROOF */}
-              <div className="flex items-center justify-center lg:justify-start gap-3.5">
-                <div className="flex -space-x-3">
-                  {clientAvatars.map((src, i) => (
-                    <img
-                      key={i}
-                      src={src}
-                      alt="Client"
-                      width={40}
-                      height={40}
-                      loading="eager"
-                      decoding="async"
-                      className="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm"
-                    />
-                  ))}
-                </div>
-                <div className="text-left">
-                  <div className="flex gap-0.5 mb-0.5">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star
-                        key={i}
-                        size={12}
-                        className="text-amber-500 fill-amber-500"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[13.5px] font-semibold text-black">99+ Global Founders & Clients</p>
-                </div>
-              </div>
+
             </div>
 
             {/* ================= RIGHT: HIGH-PERFORMANCE 3D STAGE ================= */}

@@ -5,7 +5,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
-import AboutSection from "@/components/AboutSection";
+import AboutPageHero from "@/components/AboutPageHero";
 import SectionDivider from "@/components/SectionDivider";
 import TestimonialBanner from "@/components/TestimonialBanner";
 import CTAFooter from "@/components/CTAFooter";
@@ -95,7 +95,7 @@ const stats = [
     prefix: "",
     suffix: "+",
     decimals: 0,
-    label: "Happy clients",
+    label: "Global Founders & Clients",
     sub: "across 6 markets",
   },
 ];
@@ -165,9 +165,9 @@ const AboutPage = () => {
       <div className="relative overflow-hidden">
         <ColumnGuides />
 
-        {/* WHO WE ARE — the same block the homepage opens with */}
+        {/* WHO WE ARE — dedicated About page component */}
         <div className="pt-16 md:pt-24">
-          <AboutSection />
+          <AboutPageHero />
         </div>
 
         <SectionDivider />
@@ -175,11 +175,7 @@ const AboutPage = () => {
         {/* THE NUMBERS */}
         <section className="py-20 section-container p-6 md:p-10">
           <div className="max-w-[1080px] mx-auto">
-            <p className="text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-12">
-              The numbers
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 text-center">
               {stats.map((s, i) => (
                 <motion.div
                   key={s.label}
@@ -187,9 +183,9 @@ const AboutPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.08 }}
-                  className="border-t border-border pt-5"
+                  className="flex flex-col items-center justify-center pt-5 text-center"
                 >
-                  <p className="text-[clamp(2rem,3.4vw,2.75rem)] font-semibold tracking-[-0.03em] leading-none">
+                  <p className="text-[clamp(2.2rem,3.6vw,2.9rem)] font-semibold tracking-[-0.03em] leading-none text-center">
                     <AnimatedCounter
                       value={s.target}
                       prefix={s.prefix}
@@ -197,8 +193,8 @@ const AboutPage = () => {
                       decimals={s.decimals}
                     />
                   </p>
-                  <p className="text-[15px] font-medium mt-3">{s.label}</p>
-                  <p className="text-[13px] text-muted-foreground mt-0.5">
+                  <p className="text-[15px] font-medium mt-3 text-center">{s.label}</p>
+                  <p className="text-[13px] text-muted-foreground mt-0.5 text-center">
                     {s.sub}
                   </p>
                 </motion.div>
@@ -210,22 +206,17 @@ const AboutPage = () => {
         <SectionDivider />
 
         {/* WHAT WE DO */}
-        <section className="py-24 section-container p-6 md:p-10">
+        <section className="py-24 section-container p-6 md:pt-12 md:p-10">
           <div className="max-w-[1080px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-14 items-end mb-16">
               <AnimatedHeading
                 lines={["What we do,", "engineered for impact."]}
                 className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
               />
-              <p className="text-base text-muted-foreground leading-[1.65] lg:pb-2">
-                We combine creative design with robust engineering and growth
-                marketing to build digital assets that consistently deliver
-                results.
-              </p>
             </div>
 
-            {/* Negative offsets collapse the shared edges into single rules */}
-            <div className="grid grid-cols-1 md:grid-cols-2">
+            {/* Capabilities cards with rounded-xl and equal gap */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {capabilities.map((cap, i) => (
                 <motion.div
                   key={cap.num}
@@ -233,7 +224,7 @@ const AboutPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className="group border border-border bg-card p-8 -mt-px -ml-px transition-colors duration-300 hover:border-foreground/25"
+                  className="group rounded-xl border border-border bg-card p-8 transition-all duration-300 hover:border-foreground/25 hover:shadow-sm"
                 >
                   <span
                     className="text-[12px] font-semibold tracking-[0.1em]"
@@ -262,10 +253,7 @@ const AboutPage = () => {
               lines={["How we work,", "start to scale."]}
               className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] mb-4"
             />
-            <p className="text-base text-muted-foreground leading-[1.65] max-w-[520px] mb-16">
-              No bloated handoffs, no confusing jargon — clear milestones from
-              day one.
-            </p>
+            
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
               {processSteps.map((item, i) => (
@@ -275,11 +263,11 @@ const AboutPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="border-t border-border pt-6"
+                  className=" pt-6"
                 >
                   <span
                     className="text-[12px] font-semibold tracking-[0.1em]"
-                    style={{ color: BRAND }}
+                    
                   >
                     {item.step}
                   </span>
@@ -301,9 +289,7 @@ const AboutPage = () => {
         <section className="py-20 border-t border-border section-container p-6 md:p-10">
           <div className="max-w-[1080px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <p className="text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-4">
-                Let's collaborate
-              </p>
+             
               <AnimatedHeading
                 lines={["Ready to elevate", "your digital presence?"]}
                 className="text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] tracking-[-0.02em]"

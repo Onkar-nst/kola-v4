@@ -167,8 +167,8 @@ const ServiceRow = memo(({ service, isOpen, onToggle }: ServiceRowProps) => (
           className="
             w-11 h-11 rounded-full
             flex items-center justify-center
-            bg-black text-white
-            shadow-sm shrink-0
+            bg-black text-white grayscale
+            shadow-lg shrink-0
           "
         >
           <img
@@ -178,8 +178,7 @@ const ServiceRow = memo(({ service, isOpen, onToggle }: ServiceRowProps) => (
             height={20}
             loading="lazy"
             decoding="async"
-            className="w-5 h-5 object-contain"
-            style={{ filter: "invert(1) brightness(1.25)" }}
+            className="w-5 h-5 invert"
           />
         </div>
 
