@@ -322,9 +322,8 @@ const ServicesPage = () => {
             <div className="text-center max-w-2xl mx-auto mb-16">
               <AnimatedHeading
                 lines={["Engineered for", "end-to-end execution."]}
-                className="text-3xl md:text-4xl font-bold tracking-tight mt-2"
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
               />
-
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -391,7 +390,7 @@ const ServicesPage = () => {
 
             <AnimatedHeading
               lines={["Technologies we build", "and scale with."]}
-              className="text-3xl md:text-4xl font-bold tracking-tight mt-2 mb-12"
+              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] mb-12"
             />
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 max-w-4xl mx-auto">
@@ -422,7 +421,7 @@ const ServicesPage = () => {
 
               <AnimatedHeading
                 lines={["Transparent ways", "to collaborate."]}
-                className="text-3xl md:text-4xl font-bold tracking-tight mt-2"
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
               />
             </div>
 
@@ -524,7 +523,7 @@ const ServicesPage = () => {
 
               <AnimatedHeading
                 lines={["Frequently Asked", "Questions."]}
-                className="text-3xl md:text-4xl font-bold tracking-tight mt-2"
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
               />
             </div>
 
@@ -579,7 +578,7 @@ const ServicesPage = () => {
 
               <AnimatedHeading
                 lines={["Ready to supercharge", "your digital growth?"]}
-                className="text-2xl md:text-3xl font-bold tracking-tight"
+                className="text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] tracking-[-0.02em]"
               />
             </div>
             <button
