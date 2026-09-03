@@ -9,6 +9,13 @@ const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 const PER_PAGE = 6;
 
 /* ─── Types ─── */
+export interface ProjectTaxonomyItem {
+  id?: number;
+  name: string;
+  slug: string;
+  taxonomy?: string;
+}
+
 interface WPProject {
   id: number;
   slug: string;
@@ -36,6 +43,13 @@ interface WPProject {
   };
   _embedded?: {
     "wp:featuredmedia"?: Array<{ source_url: string }>;
+    "wp:term"?: Array<Array<{
+      id: number;
+      name: string;
+      slug: string;
+      taxonomy: string;
+      link?: string;
+    }>>;
   };
 }
 
@@ -45,7 +59,9 @@ interface NormalizedProject {
   title: string;
   img: string;
   hoverImg: string;
-  tags: string[];
+  tags: ProjectTaxonomyItem[];
+  categories: ProjectTaxonomyItem[];
+  allTerms: ProjectTaxonomyItem[];
   liveUrl: string;
 }
 
@@ -81,9 +97,66 @@ const normalize = (p: WPProject): NormalizedProject => {
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
 
   const rawSection = getArticleSection(p);
-  const tags: string[] = rawSection
-    ? rawSection.split(",").map((t: string) => t.trim()).filter(Boolean).slice(0, 3)
-    : p.acf?.tags ?? [];
+  const categories: ProjectTaxonomyItem[] = [];
+  const tags: ProjectTaxonomyItem[] = [];
+  const seenSlugs = new Set<string>();
+
+  if (Array.isArray(p._embedded?.["wp:term"])) {
+    p._embedded["wp:term"].forEach((group) => {
+      if (Array.isArray(group)) {
+        group.forEach((term: any) => {
+          if (term?.name) {
+            const decodedName = decodeHtmlEntities(term.name);
+            const slug = term.slug || decodedName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            const item: ProjectTaxonomyItem = {
+              id: term.id,
+              name: decodedName,
+              slug,
+              taxonomy: term.taxonomy,
+            };
+            if (term.taxonomy === "project-category" || term.taxonomy === "category") {
+              categories.push(item);
+            } else if (term.taxonomy === "project-tag" || term.taxonomy === "post_tag") {
+              tags.push(item);
+            } else {
+              tags.push(item);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Fallback for tags if embedded terms didn't provide any
+  if (tags.length === 0) {
+    if (rawSection) {
+      rawSection.split(",").map((t: string) => t.trim()).filter(Boolean).slice(0, 3).forEach((name) => {
+        const decoded = decodeHtmlEntities(name);
+        tags.push({
+          name: decoded,
+          slug: decoded.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          taxonomy: "project-tag",
+        });
+      });
+    } else if (p.acf?.tags && Array.isArray(p.acf.tags)) {
+      p.acf.tags.forEach((name) => {
+        const decoded = decodeHtmlEntities(name);
+        tags.push({
+          name: decoded,
+          slug: decoded.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          taxonomy: "project-tag",
+        });
+      });
+    }
+  }
+
+  const allTerms: ProjectTaxonomyItem[] = [];
+  [...categories, ...tags].forEach((t) => {
+    if (!seenSlugs.has(t.slug)) {
+      seenSlugs.add(t.slug);
+      allTerms.push(t);
+    }
+  });
 
   return {
     id: p.id,
@@ -92,6 +165,8 @@ const normalize = (p: WPProject): NormalizedProject => {
     img,
     hoverImg: p.acf?.hover_img ?? img,
     tags,
+    categories,
+    allTerms,
     liveUrl: p.acf?.live_url ?? "",
   };
 };
@@ -154,7 +229,7 @@ const ProjectCard = ({
         transition={{ delay: index * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         onMouseEnter={() => { setHovered(true); trigger(); }}
         onMouseLeave={() => setHovered(false)}
-        className="group relative isolate overflow-hidden border border-border bg-card
+        className="group relative isolate overflow-hidden rounded-xl border border-border bg-card
                    cursor-pointer transition-colors duration-300 hover:border-foreground/25"
       >
         {/* Header — the card leads with its name, not with the picture */}
@@ -164,15 +239,16 @@ const ProjectCard = ({
               {project.title}
             </h3>
 
-            {project.tags.length > 0 && (
+            {project.categories.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {project.tags.slice(0, 3).map((tag) => (
+                {project.categories.slice(0, 3).map((cat) => (
                   <span
-                    key={tag}
-                    className="text-[11.5px] font-normal px-2.5 py-[5px] whitespace-nowrap
-                               border border-border text-foreground/75 bg-background"
+                    key={`${cat.taxonomy || "cat"}-${cat.slug}`}
+                    data-slug={cat.slug}
+                    className="text-[11.5px] font-normal px-2.5 py-[4px] whitespace-nowrap
+                               border border-border text-foreground/75 bg-background rounded-xl"
                   >
-                    {tag}
+                    {cat.name}
                   </span>
                 ))}
               </div>
@@ -262,7 +338,7 @@ const ProjectsSection = () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${WP_API_BASE}/projects?per_page=${PER_PAGE}&page=${page}&_embed=1`
+          `${WP_API_BASE}/project?per_page=${PER_PAGE}&page=${page}&_embed=1`
         );
         if (!res.ok) throw new Error("Failed to fetch");
         if (cancelled) return;

@@ -56,7 +56,6 @@ interface NormalizedPost {
   img: string;
   imgAlt: string;
   categories: string[];
-  readTime: number;
 }
 
 /* ══════════════════════════════════════════
@@ -83,14 +82,6 @@ const formatDate = (iso: string): string => {
   } catch {
     return iso;
   }
-};
-
-const estimateReadTime = (excerpt: string, content?: string): number => {
-  const source = content ? stripHtml(content) : stripHtml(excerpt);
-  const wordCount = content
-    ? source.split(/\s+/).length
-    : Math.round(source.split(/\s+/).length * 8);
-  return Math.max(1, Math.round(wordCount / 200));
 };
 
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
@@ -136,7 +127,6 @@ const normalizePost = (p: WPPost): NormalizedPost => {
     img,
     imgAlt,
     categories,
-    readTime: estimateReadTime(p.excerpt.rendered, p.content?.rendered),
   };
 };
 
@@ -175,7 +165,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
         <motion.div
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          className="group overflow-hidden rounded-2xl border border-black/10 bg-white h-full flex flex-col transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:border-black/20"
+          className="group overflow-hidden rounded-xl border border-black/10 bg-white h-full flex flex-col transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:border-black/20"
         >
           {/* Image */}
           <div className="relative overflow-hidden aspect-[16/10] bg-black/[0.03]">
@@ -230,7 +220,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
 ══════════════════════════════════════════ */
 
 const CardSkeleton = () => (
-  <div className="border border-black/10 rounded-2xl overflow-hidden animate-pulse bg-white">
+  <div className="border border-black/10 rounded-xl overflow-hidden animate-pulse bg-white">
     <div className="aspect-[16/10] bg-black/[0.05]" />
     <div className="p-6 space-y-3">
       <div className="h-4 w-16 bg-black/[0.04] rounded-full" />

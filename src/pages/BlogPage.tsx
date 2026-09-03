@@ -103,8 +103,6 @@ const formatDate = (iso: string): string => {
     return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
   } catch { return iso; }
 };
-const estimateReadTime = (html: string): number =>
-  Math.max(1, Math.ceil(stripHtml(html).split(/\s+/).length / 200));
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
   for (const node of schema["@graph"]) {
@@ -643,7 +641,7 @@ const BlogPage = () => {
   // ── Fetch 3 sidebar projects ──
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/projects?per_page=3&_embed=1`)
+    fetch(`${WP_API_BASE}/project?per_page=3&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => { if (!cancelled) setSidebarProjects(data.map(normalizeProject)); })
       .catch(() => {});
@@ -663,7 +661,6 @@ const BlogPage = () => {
   /* ── Derived ── */
   const displayTitle  = decodeHtmlEntities(post.title.rendered);
   const formattedDate = formatDate(post.date);
-  const readTime      = estimateReadTime(post.content.rendered);
   const categories    = post._embedded?.["wp:term"]?.[0]?.map((t) => ({
     id: t.id, name: decodeHtmlEntities(t.name), slug: t.slug,
   })) ?? [];

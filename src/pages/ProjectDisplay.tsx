@@ -6,7 +6,7 @@ import {
   memo,
 } from "react";
 import { createPortal } from "react-dom";
-import { useSearchParams, useNavigate, Link, useParams, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate, Link, useLocation, useParams } from "react-router-dom";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   ArrowUpRight,
@@ -34,6 +34,20 @@ const PER_PAGE = 6;
    TYPES
 ══════════════════════════════════════════ */
 
+export interface WPTaxonomyItem {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+export interface ProjectTaxonomyItem {
+  id?: number;
+  name: string;
+  slug: string;
+  taxonomy?: string;
+}
+
 interface AioseoSchema {
   "@context"?: string;
   "@graph"?: Array<{
@@ -57,6 +71,8 @@ interface WPProject {
   title: { rendered: string };
   content: { rendered: string };
   featured_media: number;
+  "project-category"?: number[];
+  "project-tag"?: number[];
   aioseo_head_json?: AioseoHeadJson;
   acf?: {
     live_url?: string;
@@ -65,6 +81,13 @@ interface WPProject {
   };
   _embedded?: {
     "wp:featuredmedia"?: Array<{ source_url: string }>;
+    "wp:term"?: Array<Array<{
+      id: number;
+      name: string;
+      slug: string;
+      taxonomy: string;
+      link?: string;
+    }>>;
   };
 }
 
@@ -74,7 +97,9 @@ interface NormalizedProject {
   title: string;
   img: string;
   hoverImg: string;
-  tags: string[];
+  categories: ProjectTaxonomyItem[];
+  tags: ProjectTaxonomyItem[];
+  allTerms: ProjectTaxonomyItem[];
   liveUrl: string;
 }
 
@@ -115,13 +140,68 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
   }
   const img =
     p._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "/placeholder.jpg";
+
   const rawSection = getArticleSection(p);
-  const termTags = (p as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t?.name ?? "")).filter(Boolean) ?? [];
-  const acfTags = p.acf?.tags?.map(decodeHtmlEntities) ?? [];
-  const sectionTags = rawSection
-    ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
-    : [];
-  const tags: string[] = Array.from(new Set([...sectionTags, ...termTags, ...acfTags])).filter(Boolean);
+  const categories: ProjectTaxonomyItem[] = [];
+  const tags: ProjectTaxonomyItem[] = [];
+  const seenSlugs = new Set<string>();
+
+  if (Array.isArray(p._embedded?.["wp:term"])) {
+    p._embedded["wp:term"].forEach((group) => {
+      if (Array.isArray(group)) {
+        group.forEach((term: any) => {
+          if (term?.name) {
+            const decodedName = decodeHtmlEntities(term.name);
+            const slug = term.slug || decodedName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            const item: ProjectTaxonomyItem = {
+              id: term.id,
+              name: decodedName,
+              slug,
+              taxonomy: term.taxonomy,
+            };
+            if (term.taxonomy === "project-category" || term.taxonomy === "category") {
+              categories.push(item);
+            } else if (term.taxonomy === "project-tag" || term.taxonomy === "post_tag") {
+              tags.push(item);
+            } else {
+              tags.push(item);
+            }
+          }
+        });
+      }
+    });
+  }
+
+  // Fallback for tags if embedded terms didn't provide any
+  if (tags.length === 0) {
+    if (rawSection) {
+      rawSection.split(",").map((t: string) => t.trim()).filter(Boolean).slice(0, 3).forEach((name) => {
+        const decoded = decodeHtmlEntities(name);
+        tags.push({
+          name: decoded,
+          slug: decoded.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          taxonomy: "project-tag",
+        });
+      });
+    } else if (p.acf?.tags && Array.isArray(p.acf.tags)) {
+      p.acf.tags.forEach((name) => {
+        const decoded = decodeHtmlEntities(name);
+        tags.push({
+          name: decoded,
+          slug: decoded.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          taxonomy: "project-tag",
+        });
+      });
+    }
+  }
+
+  const allTerms: ProjectTaxonomyItem[] = [];
+  [...categories, ...tags].forEach((t) => {
+    if (!seenSlugs.has(t.slug)) {
+      seenSlugs.add(t.slug);
+      allTerms.push(t);
+    }
+  });
 
   return {
     id: p.id,
@@ -129,7 +209,9 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
     title: decodeHtmlEntities(p.title.rendered),
     img,
     hoverImg: p.acf?.hover_img ?? img,
+    categories,
     tags,
+    allTerms,
     liveUrl: p.acf?.live_url ?? "",
   };
 };
@@ -138,25 +220,43 @@ const normalizeProject = (p: WPProject): NormalizedProject => {
    HOOKS
 ══════════════════════════════════════════ */
 
-const useAllTags = () => {
-  const [tags, setTags] = useState<string[]>([]);
+const useProjectCategories = () => {
+  const [categories, setCategories] = useState<WPTaxonomyItem[]>([]);
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/projects?per_page=100&_embed=1`)
-      .then((r) => r.json() as Promise<WPProject[]>)
+    fetch(`${WP_API_BASE}/project-category?per_page=50&hide_empty=true`)
+      .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
       .then((data) => {
-        if (cancelled || !Array.isArray(data)) return;
-        const tagSet = new Set<string>();
-        for (const p of data) {
-          const rawSection = getArticleSection(p);
-          const termTags = (p as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t?.name ?? "")).filter(Boolean) ?? [];
-          const acfTags = p.acf?.tags?.map(decodeHtmlEntities) ?? [];
-          const sectionTags = rawSection
-            ? rawSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
-            : [];
-          [...sectionTags, ...termTags, ...acfTags].forEach((t) => tagSet.add(t));
+        if (!cancelled && Array.isArray(data)) {
+          setCategories(
+            data
+              .map((c) => ({ ...c, name: decodeHtmlEntities(c.name) }))
+              .filter((c) => c.count > 0)
+              .sort((a, b) => b.count - a.count)
+          );
         }
-        setTags(Array.from(tagSet).sort());
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return categories;
+};
+
+const useProjectTags = () => {
+  const [tags, setTags] = useState<WPTaxonomyItem[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${WP_API_BASE}/project-tag?per_page=50&hide_empty=true`)
+      .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
+      .then((data) => {
+        if (!cancelled && Array.isArray(data)) {
+          setTags(
+            data
+              .map((t) => ({ ...t, name: decodeHtmlEntities(t.name) }))
+              .filter((t) => t.count > 0)
+              .sort((a, b) => b.count - a.count)
+          );
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -164,13 +264,18 @@ const useAllTags = () => {
   return tags;
 };
 
-const useProjects = (page: number, activeTag: string | null): FetchState => {
+const useProjects = (
+  page: number,
+  categorySlug: string | null,
+  tagSlug: string | null
+): FetchState => {
   const [state, setState] = useState<FetchState>(() => {
     if (
       typeof window !== "undefined" &&
       (window as any).__INITIAL_DATA__?.projects &&
       page === 1 &&
-      activeTag === null
+      !categorySlug &&
+      !tagSlug
     ) {
       return {
         projects: (window as any).__INITIAL_DATA__.projects.projects,
@@ -183,20 +288,11 @@ const useProjects = (page: number, activeTag: string | null): FetchState => {
   });
 
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      (window as any).__INITIAL_DATA__?.projects &&
-      page === 1 &&
-      activeTag === null &&
-      state.projects.length > 0
-    ) {
-      return;
-    }
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
 
-    if (!activeTag) {
-      fetch(`${WP_API_BASE}/projects?per_page=${PER_PAGE}&page=${page}&_embed=1`)
+    if (!categorySlug && !tagSlug) {
+      fetch(`${WP_API_BASE}/project?per_page=${PER_PAGE}&page=${page}&_embed=1`)
         .then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const totalPages = Number(r.headers.get("X-WP-TotalPages") ?? 1);
@@ -207,25 +303,52 @@ const useProjects = (page: number, activeTag: string | null): FetchState => {
         })
         .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
     } else {
-      fetch(`${WP_API_BASE}/projects?per_page=100&_embed=1`)
+      fetch(`${WP_API_BASE}/project?per_page=100&_embed=1`)
         .then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const data: WPProject[] = await r.json();
           if (cancelled) return;
-          const filtered = data
-            .map(normalizeProject)
-            .filter((p) => p.tags.some((t) => t.toLowerCase() === activeTag.toLowerCase()));
+          const normalized = data.map(normalizeProject);
+          const filtered = normalized.filter((p) => {
+            if (categorySlug) {
+              return p.categories.some(
+                (c) =>
+                  c.slug.toLowerCase() === categorySlug.toLowerCase() ||
+                  c.name.toLowerCase() === categorySlug.toLowerCase()
+              );
+            }
+            if (tagSlug) {
+              return (
+                p.tags.some(
+                  (t) =>
+                    t.slug.toLowerCase() === tagSlug.toLowerCase() ||
+                    t.name.toLowerCase() === tagSlug.toLowerCase()
+                ) ||
+                p.allTerms.some(
+                  (t) =>
+                    t.slug.toLowerCase() === tagSlug.toLowerCase() ||
+                    t.name.toLowerCase() === tagSlug.toLowerCase()
+                )
+              );
+            }
+            return true;
+          });
           const totalItems = filtered.length;
           const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
           const safePage = Math.min(page, totalPages);
           const start = (safePage - 1) * PER_PAGE;
-          setState({ projects: filtered.slice(start, start + PER_PAGE), loading: false, totalPages, totalItems });
+          setState({
+            projects: filtered.slice(start, start + PER_PAGE),
+            loading: false,
+            totalPages,
+            totalItems,
+          });
         })
         .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
     }
 
     return () => { cancelled = true; };
-  }, [page, activeTag]);
+  }, [page, categorySlug, tagSlug]);
 
   return state;
 };
@@ -270,23 +393,16 @@ const GlitchOverlay = memo(() => (
 
 /* ══════════════════════════════════════════
    PROJECT CARD ROW
-   Strategy: each "row" is its own 2-col CSS grid
-   with rows [auto 1fr]. The card header occupies
-   row-1 and the image occupies row-2. Because both
-   cards in the same row share that grid, the auto
-   row stretches to the taller header — giving equal
-   header heights without any JS measurement.
-   On mobile the grid collapses to 1 col and each
-   card renders its own header + image stacked.
 ══════════════════════════════════════════ */
 
 interface ProjectCardRowProps {
   pair: NormalizedProject[];
   rowIndex: number;
-  onTagClick: (tag: string) => void;
+  onCategoryClick: (slug: string) => void;
+  onTagClick: (slug: string) => void;
 }
 
-const ProjectCardRow = memo(({ pair, rowIndex, onTagClick }: ProjectCardRowProps) => {
+const ProjectCardRow = memo(({ pair, rowIndex, onCategoryClick, onTagClick }: ProjectCardRowProps) => {
   return (
     <div
       className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch"
@@ -297,6 +413,7 @@ const ProjectCardRow = memo(({ pair, rowIndex, onTagClick }: ProjectCardRowProps
           key={project.slug}
           project={project}
           index={rowIndex * 2 + i}
+          onCategoryClick={onCategoryClick}
           onTagClick={onTagClick}
         />
       ))}
@@ -306,19 +423,16 @@ const ProjectCardRow = memo(({ pair, rowIndex, onTagClick }: ProjectCardRowProps
 
 /* ══════════════════════════════════════════
    PROJECT CARD SUBGRID
-   Each card is a flex-col with the header growing
-   to natural height and the image filling the rest.
-   Equal header heights are achieved at the ROW level
-   by using a CSS subgrid container per pair.
 ══════════════════════════════════════════ */
 
 interface ProjectCardSubgridProps {
   project: NormalizedProject;
   index: number;
-  onTagClick: (tag: string) => void;
+  onCategoryClick: (slug: string) => void;
+  onTagClick: (slug: string) => void;
 }
 
-const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubgridProps) => {
+const ProjectCardSubgrid = memo(({ project, index, onCategoryClick, onTagClick }: ProjectCardSubgridProps) => {
   const { glitching, trigger } = useGlitch();
   const [hovered, setHovered] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -330,42 +444,38 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="group overflow-hidden border border-black/10 bg-white/5 backdrop-blur-xl relative flex flex-col h-full"
+      className="group overflow-hidden rounded-xl border border-black/10 bg-white/5 backdrop-blur-xl relative flex flex-col h-full"
       onMouseEnter={() => { setHovered(true); trigger(); }}
       onMouseLeave={() => setHovered(false)}
     >
-
       {/* HEADER */}
       <Link to={`/${project.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
-        <div className="flex justify-between items-start px-5 py-4  gap-3">
-
+        <div className="flex justify-between items-start px-5 py-4 gap-3">
           {/* LEFT */}
           <div className="min-w-0 flex-1 flex flex-col">
-
             {/* TITLE */}
             <span className="text-[15px] text-black font-medium leading-snug block">
               {project.title}
             </span>
 
-            {/* TAGS — FULLY VISIBLE (NO CLIP / NO OVERFLOW ISSUE) */}
-            {project.tags.length > 0 && (
+            {/* CATEGORY BADGES */}
+            {project.categories.length > 0 && (
               <div className="flex gap-1.5 mt-2 flex-wrap">
-                {project.tags.map((tag) => (
+                {project.categories.map((cat) => (
                   <button
-                    key={tag}
+                    key={`${cat.taxonomy || "cat"}-${cat.slug}`}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      onTagClick(tag);
+                      onCategoryClick(cat.slug);
                     }}
-                    className="text-xs px-2 py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-sm cursor-pointer"
+                    className="text-xs px-2.5 py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-xl cursor-pointer"
                   >
-                    {tag}
+                    {cat.name}
                   </button>
                 ))}
               </div>
             )}
-
           </div>
 
           {/* ARROW */}
@@ -385,7 +495,6 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
               <ArrowUpRight size={16} className="text-black" />
             </motion.span>
           </div>
-
         </div>
       </Link>
 
@@ -395,8 +504,7 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
         style={{ textDecoration: "none" }}
         className="mt-auto block"
       >
-       <div className="relative w-full h-[220px] overflow-hidden">
-
+        <div className="relative w-full h-[220px] overflow-hidden">
           <motion.img
             src={project.img}
             alt={project.title}
@@ -419,13 +527,12 @@ const ProjectCardSubgrid = memo(({ project, index, onTagClick }: ProjectCardSubg
           <AnimatePresence>
             {glitching && <GlitchOverlay />}
           </AnimatePresence>
-
         </div>
       </Link>
-
     </motion.div>
   );
 });
+
 /* ══════════════════════════════════════════
    SKELETON CARD
 ══════════════════════════════════════════ */
@@ -435,7 +542,7 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
-    className="border border-black/10 overflow-hidden flex flex-col"
+    className="border border-black/10 overflow-hidden rounded-xl flex flex-col"
   >
     <div className="px-5 py-4 border-b border-black/10 space-y-2">
       <div className="h-4 bg-black/[0.06] rounded-sm w-3/4 animate-pulse" />
@@ -450,58 +557,75 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
 ));
 
 /* ══════════════════════════════════════════
-   DESKTOP TAG FILTER BAR
+   FILTER TABS & BARS
 ══════════════════════════════════════════ */
 
-interface TagFilterBarProps {
-  tags: string[];
-  activeTag: string | null;
-  onTagSelect: (tag: string | null) => void;
+type FilterMode = "category" | "tag";
+
+const FilterModeTabs = memo(({ mode, onSwitch }: { mode: FilterMode; onSwitch: (m: FilterMode) => void }) => (
+  <div className="flex gap-1 p-1 bg-black/[0.04] rounded-full w-fit">
+    {(["category", "tag"] as FilterMode[]).map((m) => (
+      <motion.button
+        key={m}
+        onClick={() => onSwitch(m)}
+        whileTap={{ scale: 0.96 }}
+        className={`px-4 py-1.5 text-[12px] font-medium rounded-full transition-all duration-200 capitalize ${
+          mode === m ? "bg-white text-black shadow-sm" : "text-black/45 hover:text-black"
+        }`}
+      >
+        {m === "category" ? "Categories" : "Tags"}
+      </motion.button>
+    ))}
+  </div>
+));
+
+interface DesktopFilterBarProps {
+  items: WPTaxonomyItem[];
+  activeSlug: string | null;
+  onSelect: (slug: string | null) => void;
 }
 
-const DesktopTagFilterBar = memo(({ tags, activeTag, onTagSelect }: TagFilterBarProps) => {
-  if (!tags.length) return null;
+const DesktopFilterBar = memo(({ items, activeSlug, onSelect }: DesktopFilterBarProps) => {
+  if (!items.length) return null;
   return (
     <div className="hidden md:flex flex-wrap gap-2">
       <motion.button
-        onClick={() => onTagSelect(null)}
+        onClick={() => onSelect(null)}
         whileTap={{ scale: 0.95 }}
         className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${
-          !activeTag
+          !activeSlug
             ? "bg-black text-white border-black"
             : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
         }`}
       >
         All
       </motion.button>
-      {tags.map((tag) => (
+      {items.map((item) => (
         <motion.button
-          key={tag}
-          onClick={() => onTagSelect(tag === activeTag ? null : tag)}
+          key={item.slug}
+          onClick={() => onSelect(item.slug === activeSlug ? null : item.slug)}
           whileTap={{ scale: 0.95 }}
           className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${
-            activeTag === tag
+            activeSlug === item.slug
               ? "bg-black text-white border-black"
               : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"
           }`}
         >
-          {tag}
+          {item.name}
         </motion.button>
       ))}
     </div>
   );
 });
 
-/* ══════════════════════════════════════════
-   MOBILE TAG DROPDOWN
-   Uses React.createPortal to render into document.body,
-   completely escaping overflow:hidden, transform stacking
-   contexts, and z-index hierarchies from parent elements.
-   Position is calculated via getBoundingClientRect and
-   kept in sync on scroll and resize.
-══════════════════════════════════════════ */
+interface MobileDropdownProps {
+  items: WPTaxonomyItem[];
+  activeSlug: string | null;
+  placeholder: string;
+  onSelect: (slug: string | null) => void;
+}
 
-const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarProps) => {
+const MobileDropdown = memo(({ items, activeSlug, placeholder, onSelect }: MobileDropdownProps) => {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
@@ -510,7 +634,6 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
     if (triggerRef.current) setTriggerRect(triggerRef.current.getBoundingClientRect());
   }, []);
 
-  // Keep panel position in sync while open
   useEffect(() => {
     if (!open) return;
     syncRect();
@@ -522,28 +645,28 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
     };
   }, [open, syncRect]);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
-      const panel = document.getElementById("pd-mobile-tag-panel");
+      const panel = document.getElementById("pd-mobile-panel");
       if (!triggerRef.current?.contains(t) && !panel?.contains(t)) {
         setOpen(false);
       }
     };
-    // Small delay so the triggering click doesn't immediately close
     const timer = setTimeout(() => document.addEventListener("mousedown", handler), 10);
     return () => { clearTimeout(timer); document.removeEventListener("mousedown", handler); };
   }, [open]);
+
+  const activeName = items.find((i) => i.slug === activeSlug)?.name ?? null;
 
   const panel =
     open && triggerRect
       ? createPortal(
           <AnimatePresence>
             <motion.div
-              id="pd-mobile-tag-panel"
-              key="pd-tag-panel"
+              id="pd-mobile-panel"
+              key="pd-panel"
               initial={{ opacity: 0, y: -6, scaleY: 0.95 }}
               animate={{ opacity: 1, y: 0, scaleY: 1 }}
               exit={{ opacity: 0, y: -4, scaleY: 0.97 }}
@@ -558,33 +681,32 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
               }}
               className="bg-white border border-black/[0.12] rounded-xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto"
             >
-              {/* All */}
               <button
-                onClick={() => { onTagSelect(null); setOpen(false); }}
+                onClick={() => { onSelect(null); setOpen(false); }}
                 className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] border-b border-black/[0.07] transition-colors duration-100 ${
-                  !activeTag
+                  !activeSlug
                     ? "text-black font-semibold bg-black/[0.04]"
                     : "text-black/55 hover:bg-black/[0.02] hover:text-black"
                 }`}
               >
-                <span>All categories</span>
-                {!activeTag && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+                <span>{placeholder}</span>
+                {!activeSlug && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
               </button>
 
-              {tags.map((tag, i) => (
+              {items.map((item, i) => (
                 <button
-                  key={tag}
-                  onClick={() => { onTagSelect(tag === activeTag ? null : tag); setOpen(false); }}
+                  key={item.slug}
+                  onClick={() => { onSelect(item.slug === activeSlug ? null : item.slug); setOpen(false); }}
                   className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] transition-colors duration-100 ${
-                    i < tags.length - 1 ? "border-b border-black/[0.05]" : ""
+                    i < items.length - 1 ? "border-b border-black/[0.05]" : ""
                   } ${
-                    activeTag === tag
+                    activeSlug === item.slug
                       ? "text-black font-semibold bg-black/[0.04]"
                       : "text-black/55 hover:bg-black/[0.02] hover:text-black"
                   }`}
                 >
-                  <span>{tag}</span>
-                  {activeTag === tag && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+                  <span>{item.name}</span>
+                  {activeSlug === item.slug && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
                 </button>
               ))}
             </motion.div>
@@ -601,13 +723,13 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
         whileTap={{ scale: 0.98 }}
         className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.15] rounded-lg text-[13px] bg-white shadow-sm"
       >
-        <span className={activeTag ? "text-black font-medium" : "text-black/45"}>
-          {activeTag ?? "All categories"}
+        <span className={activeSlug ? "text-black font-medium" : "text-black/45"}>
+          {activeName ?? placeholder}
         </span>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {activeTag && (
+          {activeSlug && (
             <button
-              onClick={(e) => { e.stopPropagation(); onTagSelect(null); setOpen(false); }}
+              onClick={(e) => { e.stopPropagation(); onSelect(null); setOpen(false); }}
               className="text-black/30 hover:text-black/60 transition-colors p-0.5"
               aria-label="Clear filter"
             >
@@ -632,16 +754,16 @@ const MobileTagDropdown = memo(({ tags, activeTag, onTagSelect }: TagFilterBarPr
    ACTIVE FILTER BADGE
 ══════════════════════════════════════════ */
 
-const ActiveFilterBadge = memo(({ tag, onClear }: { tag: string; onClear: () => void }) => (
+const ActiveFilterBadge = memo(({ label, onClear }: { label: string; onClear: () => void }) => (
   <motion.div
-    key={tag}
+    key={label}
     initial={{ opacity: 0, scale: 0.9, y: -4 }}
     animate={{ opacity: 1, scale: 1, y: 0 }}
     exit={{ opacity: 0, scale: 0.9, y: -4 }}
     transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
     className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white text-[11.5px] rounded-full font-medium"
   >
-    <span>{tag}</span>
+    <span>{label}</span>
     <button onClick={onClear} className="hover:opacity-70 transition-opacity" aria-label="Remove filter">
       <X size={10} strokeWidth={2} />
     </button>
@@ -652,19 +774,19 @@ const ActiveFilterBadge = memo(({ tag, onClear }: { tag: string; onClear: () => 
    RESULTS COUNT
 ══════════════════════════════════════════ */
 
-const ResultsCount = memo(({ total, loading, activeTag }: {
-  total: number; loading: boolean; activeTag: string | null;
+const ResultsCount = memo(({ total, loading, filterLabel }: {
+  total: number; loading: boolean; filterLabel: string | null;
 }) => {
   if (loading) return null;
   return (
     <motion.p
-      key={`${total}-${activeTag}`}
+      key={`${total}-${filterLabel}`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="text-[11.5px] text-black/30 tracking-wide"
     >
       {total} {total === 1 ? "project" : "projects"}
-      {activeTag ? ` in "${activeTag}"` : ""}
+      {filterLabel ? ` in "${filterLabel}"` : ""}
     </motion.p>
   );
 });
@@ -733,7 +855,7 @@ const Pagination = memo(({ page, totalPages, onPageChange }: {
    EMPTY STATE
 ══════════════════════════════════════════ */
 
-const EmptyState = memo(({ activeTag, onClear }: { activeTag: string; onClear: () => void }) => (
+const EmptyState = memo(({ filterLabel, onClear }: { filterLabel: string; onClear: () => void }) => (
   <motion.div
     key="empty"
     initial={{ opacity: 0, y: 16 }}
@@ -743,8 +865,8 @@ const EmptyState = memo(({ activeTag, onClear }: { activeTag: string; onClear: (
     className="col-span-full py-24 flex flex-col items-center justify-center gap-4"
   >
     <p className="text-black/30 text-sm tracking-wide">
-      No projects tagged{" "}
-      <span className="text-black/60 font-medium">"{activeTag}"</span>
+      No projects found for{" "}
+      <span className="text-black/60 font-medium">"{filterLabel}"</span>
     </p>
     <button
       onClick={onClear}
@@ -765,39 +887,55 @@ const ProjectDisplay = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const isTagRoute = location.pathname.startsWith("/tag") || location.pathname.startsWith("/tags");
-  const isCategoryRoute = location.pathname.startsWith("/category") || location.pathname.startsWith("/categories");
+  const isCategoryRoute = location.pathname.startsWith("/projects/category");
+  const isTagRoute = location.pathname.startsWith("/projects/tag");
+  const categoryParam = searchParams.get("category");
   const tagParam = searchParams.get("tag");
   const pageParam = Number(searchParams.get("page") ?? 1);
 
-  const [activeTag, setActiveTag] = useState<string | null>(() => {
-    if ((isTagRoute || isCategoryRoute) && routeSlug) {
-      return decodeURIComponent(routeSlug).replace(/-/g, " ");
-    }
-    return tagParam;
-  });
+  const [filterMode, setFilterMode] = useState<FilterMode>(() =>
+    isTagRoute || tagParam ? "tag" : "category"
+  );
+  const [activeCategorySlug, setActiveCategorySlug] = useState<string | null>(
+    isCategoryRoute && routeSlug ? routeSlug : categoryParam
+  );
+  const [activeTagSlug, setActiveTagSlug] = useState<string | null>(
+    isTagRoute && routeSlug ? routeSlug : tagParam
+  );
   const [page, setPage] = useState<number>(Math.max(1, pageParam));
 
-  const allTags = useAllTags();
+  const categories = useProjectCategories();
+  const tags = useProjectTags();
 
   useEffect(() => {
-    if ((isTagRoute || isCategoryRoute) && routeSlug) {
-      const decoded = decodeURIComponent(routeSlug).replace(/-/g, " ");
-      const matchingTag = allTags.find(
-        (t) =>
-          t.toLowerCase() === decoded.toLowerCase() ||
-          t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === routeSlug.toLowerCase()
-      );
-      setActiveTag(matchingTag || decoded);
+    if (isCategoryRoute && routeSlug) {
+      setFilterMode("category");
+      setActiveCategorySlug(routeSlug);
+      setActiveTagSlug(null);
+    } else if (isTagRoute && routeSlug) {
+      setFilterMode("tag");
+      setActiveTagSlug(routeSlug);
+      setActiveCategorySlug(null);
+    } else if (categoryParam) {
+      setFilterMode("category");
+      setActiveCategorySlug(categoryParam);
+      setActiveTagSlug(null);
     } else if (tagParam) {
-      setActiveTag(tagParam);
+      setFilterMode("tag");
+      setActiveTagSlug(tagParam);
+      setActiveCategorySlug(null);
     } else {
-      setActiveTag(null);
+      setActiveCategorySlug(null);
+      setActiveTagSlug(null);
     }
     setPage(Math.max(1, pageParam));
-  }, [isTagRoute, isCategoryRoute, routeSlug, allTags, tagParam, pageParam]);
+  }, [isCategoryRoute, isTagRoute, routeSlug, categoryParam, tagParam, pageParam]);
 
-  const { projects, loading, totalPages, totalItems } = useProjects(page, activeTag);
+  const { projects, loading, totalPages, totalItems } = useProjects(
+    page,
+    activeCategorySlug,
+    activeTagSlug
+  );
 
   const scrollToTop = useCallback(() => {
     setTimeout(() => {
@@ -808,13 +946,13 @@ const ProjectDisplay = () => {
     }, 60);
   }, []);
 
-  const handleTagSelect = useCallback(
-    (tag: string | null) => {
-      setActiveTag(tag);
+  const handleCategorySelect = useCallback(
+    (slug: string | null) => {
+      setActiveCategorySlug(slug);
+      setActiveTagSlug(null);
       setPage(1);
-      if (tag) {
-        const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-        navigate(`/tag/${encodeURIComponent(tagSlug)}`);
+      if (slug) {
+        navigate(`/projects/category/${encodeURIComponent(slug)}`);
       } else {
         navigate("/projects");
       }
@@ -823,17 +961,57 @@ const ProjectDisplay = () => {
     [navigate, scrollToTop]
   );
 
+  const handleTagSelect = useCallback(
+    (slug: string | null) => {
+      setActiveTagSlug(slug);
+      setActiveCategorySlug(null);
+      setPage(1);
+      if (slug) {
+        navigate(`/projects/tag/${encodeURIComponent(slug)}`);
+      } else {
+        navigate("/projects");
+      }
+      scrollToTop();
+    },
+    [navigate, scrollToTop]
+  );
+
+  const handleModeSwitch = useCallback(
+    (newMode: FilterMode) => {
+      setFilterMode(newMode);
+      setActiveCategorySlug(null);
+      setActiveTagSlug(null);
+      setPage(1);
+      navigate("/projects");
+      scrollToTop();
+    },
+    [navigate, scrollToTop]
+  );
+
   const handlePageChange = useCallback(
     (newPage: number) => {
       setPage(newPage);
-      const search = newPage > 1 ? `?page=${newPage}` : "";
-      navigate(`${location.pathname}${search}`, { replace: true });
+      const params = new URLSearchParams(location.search);
+      if (newPage > 1) {
+        params.set("page", String(newPage));
+      } else {
+        params.delete("page");
+      }
+      const searchStr = params.toString() ? `?${params.toString()}` : "";
+      navigate(`/projects${searchStr}`, { replace: true });
       scrollToTop();
     },
-    [location.pathname, navigate, scrollToTop]
+    [location.search, navigate, scrollToTop]
   );
 
-  const gridKey = `${activeTag ?? "all"}-${page}`;
+  const activeFilterLabel =
+    activeCategorySlug
+      ? categories.find((c) => c.slug === activeCategorySlug)?.name ?? activeCategorySlug
+      : activeTagSlug
+      ? tags.find((t) => t.slug === activeTagSlug)?.name ?? activeTagSlug
+      : null;
+
+  const gridKey = `${activeCategorySlug ?? ""}-${activeTagSlug ?? ""}-${page}`;
 
   // Chunk projects into pairs for row-level subgrid alignment
   const projectRows = Array.from(
@@ -890,16 +1068,60 @@ const ProjectDisplay = () => {
               transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="mb-8 space-y-4"
             >
-              <DesktopTagFilterBar tags={allTags} activeTag={activeTag} onTagSelect={handleTagSelect} />
-              <MobileTagDropdown tags={allTags} activeTag={activeTag} onTagSelect={handleTagSelect} />
+              {/* Category / Tag Switcher */}
+              <div className="flex items-center justify-between">
+                <FilterModeTabs mode={filterMode} onSwitch={handleModeSwitch} />
+              </div>
+
+              {/* Desktop Filter Pills */}
+              {filterMode === "category" ? (
+                <DesktopFilterBar
+                  items={categories}
+                  activeSlug={activeCategorySlug}
+                  onSelect={handleCategorySelect}
+                />
+              ) : (
+                <DesktopFilterBar
+                  items={tags}
+                  activeSlug={activeTagSlug}
+                  onSelect={handleTagSelect}
+                />
+              )}
+
+              {/* Mobile Filter Dropdown */}
+              {filterMode === "category" ? (
+                <MobileDropdown
+                  items={categories}
+                  activeSlug={activeCategorySlug}
+                  placeholder="All categories"
+                  onSelect={handleCategorySelect}
+                />
+              ) : (
+                <MobileDropdown
+                  items={tags}
+                  activeSlug={activeTagSlug}
+                  placeholder="All tags"
+                  onSelect={handleTagSelect}
+                />
+              )}
 
               <div className="flex items-center gap-3 min-h-[24px]">
                 <AnimatePresence>
-                  {activeTag && (
-                    <ActiveFilterBadge tag={activeTag} onClear={() => handleTagSelect(null)} />
+                  {activeFilterLabel && (
+                    <ActiveFilterBadge
+                      label={activeFilterLabel}
+                      onClear={() => {
+                        if (activeCategorySlug) handleCategorySelect(null);
+                        else handleTagSelect(null);
+                      }}
+                    />
                   )}
                 </AnimatePresence>
-                <ResultsCount total={totalItems} loading={loading} activeTag={activeTag} />
+                <ResultsCount
+                  total={totalItems}
+                  loading={loading}
+                  filterLabel={activeFilterLabel}
+                />
               </div>
             </motion.div>
           </div>
@@ -918,29 +1140,28 @@ const ProjectDisplay = () => {
                 className="flex flex-col gap-4"
               >
                 {loading ? (
-                  /* Skeleton uses simple 2-col grid — no subgrid needed */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Array.from({ length: PER_PAGE }).map((_, i) => (
                       <SkeletonCard key={i} index={i} />
                     ))}
                   </div>
-                ) : projects.length === 0 && activeTag ? (
+                ) : projects.length === 0 && (activeCategorySlug || activeTagSlug) ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <EmptyState activeTag={activeTag} onClear={() => handleTagSelect(null)} />
+                    <EmptyState
+                      filterLabel={activeFilterLabel ?? "selected filter"}
+                      onClear={() => {
+                        if (activeCategorySlug) handleCategorySelect(null);
+                        else handleTagSelect(null);
+                      }}
+                    />
                   </div>
                 ) : (
-                  /*
-                    Each pair of cards shares a subgrid row container.
-                    Desktop: 2 cols, rows [auto 1fr].
-                      - "auto" row = tallest header in the pair sets the height.
-                      - "1fr" row = image fills the rest equally.
-                    Mobile: collapses to 1 col, each card renders normally.
-                  */
                   projectRows.map((pair, rowIdx) => (
                     <ProjectCardRow
                       key={rowIdx}
                       pair={pair}
                       rowIndex={rowIdx}
+                      onCategoryClick={handleCategorySelect}
                       onTagClick={handleTagSelect}
                     />
                   ))

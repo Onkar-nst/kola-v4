@@ -765,7 +765,7 @@ const ProjectPage = () => {
     let cancelled = false;
     setLoading(true); setNotFound(false); setProject(null);
 
-    fetch(`${WP_API_BASE}/projects?slug=${encodeURIComponent(slug)}&_embed=1`)
+    fetch(`${WP_API_BASE}/project?slug=${encodeURIComponent(slug)}&_embed=1`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() as Promise<WPProject[]>; })
       .then((data) => { if (cancelled) return; if (!data.length) setNotFound(true); else setProject(data[0]); })
       .catch(() => { if (!cancelled) setNotFound(true); })
@@ -778,7 +778,7 @@ const ProjectPage = () => {
     if (!slug) return;
     let cancelled = false;
 
-    fetch(`${WP_API_BASE}/projects?per_page=6&_embed=1`)
+    fetch(`${WP_API_BASE}/project?per_page=6&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => {
         if (!cancelled && Array.isArray(data))

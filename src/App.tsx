@@ -75,7 +75,11 @@ const App = () => {
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/contact-us" element={<ContactPage />} />
                   <Route path="/projects" element={<ProjectDisplay />} />
+                  <Route path="/projects/category/:slug" element={<ProjectDisplay />} />
+                  <Route path="/projects/tag/:slug" element={<ProjectDisplay />} />
                   <Route path="/blogs" element={<BlogDisplay />} />
+                  <Route path="/blogs/category/:slug" element={<BlogDisplay />} />
+                  <Route path="/blogs/tag/:slug" element={<BlogDisplay />} />
                   <Route path="/category/:slug" element={<BlogDisplay />} />
                   <Route path="/tag/:slug" element={<BlogDisplay />} />
                   <Route path="/project/:slug" element={<SlugResolver />} />
