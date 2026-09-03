@@ -941,10 +941,8 @@ const BlogDisplay = () => {
               transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="mb-8 space-y-4">
 
-              {/* Mode switcher */}
-              <FilterModeTabs mode={filterMode} onSwitch={handleFilterModeSwitch} />
-
-              {/* Desktop filter bar — shows based on mode */}
+              {/* Desktop filter bar — categories, unless a tag deep-link
+                  brought the reader here */}
               {filterMode === "category" ? (
                 <DesktopCategoryBar
                   categories={categories}
@@ -956,7 +954,7 @@ const BlogDisplay = () => {
                 <DesktopTagBar tags={allTags} activeTag={activeTag} onSelect={handleTagSelect} />
               )}
 
-              {/* Mobile dropdown — shows based on mode */}
+              {/* Mobile dropdown */}
               {filterMode === "category" ? (
                 <MobileDropdown
                   items={categoryItems}

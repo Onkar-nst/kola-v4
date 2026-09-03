@@ -11,8 +11,8 @@ const avatarImg =
 // const logo = "https://kolacommunications.com/favicon.png";
 
 const navLinks = [
-  { label: "About", to: "/about", type: "link" },
   { label: "Services", to: "/services", type: "link" },
+  { label: "About", to: "/about", type: "link" },
   { label: "Our Work", to: "/projects", type: "link" },
   { label: "Blogs", to: "/blogs", type: "link" },
 ];

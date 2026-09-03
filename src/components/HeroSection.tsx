@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, useAnimationFrame } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Megaphone, Star, Play } from "lucide-react";
 import { Link } from "react-router-dom";
-import { HashLink } from "react-router-hash-link";
 import ContactForm from "@/components/ContactForm";
-import AnimatedHeading from "@/components/AnimatedHeading";
+
+/* The brand blue, sampled straight from the KOLA logo. It carries the
+   highlight box, icon badge, CTA, rating stars and the gradient band —
+   swap this one value to re-tint the whole section. */
+const BRAND = "#3A3ABE";
 
 /* ─── Client Avatars for Social Proof ─── */
 const clientAvatars = [
@@ -61,12 +64,11 @@ const showcaseProjects = [
   },
 ];
 
-/* ─── Infinite Marquee Showcase Reel ─── */
-const ShowcaseReel = () => {
+/* ─── Generic horizontal marquee, driven off one rAF ─── */
+const useMarquee = (speed: number, paused = false) => {
   const x = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const halfWidthRef = useRef(0);
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -79,21 +81,21 @@ const ShowcaseReel = () => {
   }, []);
 
   useAnimationFrame((_, delta) => {
-    if (halfWidthRef.current === 0 || isHovered) return;
-
-    // Smooth continuous auto-scroll speed
-    const speed = 40; // px per second
+    if (halfWidthRef.current === 0 || paused) return;
     x.current -= (speed * delta) / 1000;
-
-    if (x.current <= -halfWidthRef.current) {
-      x.current += halfWidthRef.current;
-    }
-
+    if (x.current <= -halfWidthRef.current) x.current += halfWidthRef.current;
     if (containerRef.current) {
       containerRef.current.style.transform = `translateX(${x.current}px)`;
     }
   });
 
+  return containerRef;
+};
+
+/* ─── Infinite Marquee Showcase Reel ─── */
+const ShowcaseReel = () => {
+  const [isHovered, setIsHovered] = useState(false);
+  const containerRef = useMarquee(40, isHovered);
   const doubledProjects = [...showcaseProjects, ...showcaseProjects];
 
   return (
@@ -102,7 +104,6 @@ const ShowcaseReel = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Side gradient overlays for seamless fade */}
       <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-24 bg-gradient-to-r from-background via-background/60 to-transparent z-10" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-24 bg-gradient-to-l from-background via-background/60 to-transparent z-10" />
 
@@ -113,46 +114,55 @@ const ShowcaseReel = () => {
         {doubledProjects.map((item, i) => (
           <Link
             key={i}
-            to={`/projects`}
+            to="/projects"
             className="
               group relative block shrink-0
-              w-[190px] sm:w-[240px] md:w-[290px] lg:w-[320px]
-              aspect-[16/11]
-              rounded-xl sm:rounded-2xl md:rounded-3xl
-              overflow-hidden
-              border border-border/80 bg-card
+              w-[200px] sm:w-[250px] md:w-[295px] lg:w-[325px]
+              rounded-2xl overflow-hidden
+              border border-border/70 bg-card p-2 sm:p-2.5
               shadow-[0_4px_20px_rgba(0,0,0,0.03)]
-              hover:shadow-[0_10px_30px_rgba(0,0,0,0.1)]
-              hover:border-foreground/30
-              transition-all duration-400
+              hover:shadow-[0_14px_34px_-12px_rgba(0,0,0,0.18)]
+              hover:border-foreground/25 hover:-translate-y-1
+              transition-all duration-500 ease-out
             "
           >
-            {/* Image */}
-            <img
-              src={item.image}
-              alt={item.title}
-              loading="lazy"
-              className="w-full h-full object-cover grayscale-[15%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-500 ease-out"
-            />
+            {/* Image panel */}
+            <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted">
+              <img
+                src={item.image}
+                alt={item.title}
+                loading="lazy"
+                className="w-full h-full object-cover grayscale-[25%] group-hover:grayscale-0 group-hover:scale-[1.06] transition-all duration-700 ease-out"
+              />
+              {/* Index chip */}
+              <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md text-[9px] font-bold tracking-wider text-white bg-black/45 backdrop-blur-sm">
+                {String((i % showcaseProjects.length) + 1).padStart(2, "0")}
+              </span>
+            </div>
 
-            {/* Dark subtle overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-85 group-hover:opacity-90 transition-opacity duration-300" />
-
-            {/* Text details */}
-            <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 md:p-5 flex items-end justify-between">
-              <div>
-                <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider text-white/75 uppercase mb-0.5 block">
-                  {item.category}
-                </span>
-                <h4 className="text-xs sm:text-sm md:text-base font-bold text-white leading-tight">
+            {/* Caption bar */}
+            <div className="flex items-center justify-between gap-2 px-1.5 pt-2.5 pb-1">
+              <div className="min-w-0">
+                <h4 className="text-xs sm:text-sm md:text-[15px] font-bold text-foreground leading-tight truncate">
                   {item.title}
                 </h4>
+                <span className="mt-0.5 block text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase truncate"
+                      style={{ color: BRAND }}>
+                  {item.category}
+                </span>
               </div>
-
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white group-hover:bg-white group-hover:text-black transition-colors shrink-0">
-                <ArrowUpRight size={12} className="sm:w-3.5 sm:h-3.5" />
+              <div className="w-7 h-7 rounded-full border border-border flex items-center justify-center text-foreground/60 shrink-0
+                              group-hover:bg-foreground group-hover:text-background group-hover:border-foreground
+                              group-hover:rotate-45 transition-all duration-300">
+                <ArrowUpRight size={13} />
               </div>
             </div>
+
+            {/* Accent underline */}
+            <span
+              className="absolute left-2 right-2 bottom-0 h-[2px] rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
+              style={{ backgroundColor: BRAND }}
+            />
           </Link>
         ))}
       </div>
@@ -160,116 +170,253 @@ const ShowcaseReel = () => {
   );
 };
 
-/* ─── Main Hero Section ─── */
+/* ─── Main Hero Section ───
+   One layered stage rather than two columns: the headline sits behind the
+   robot and the robot stands in front of it, so the type runs behind the
+   figure. The scene is set to global mouse events, so the canvas can ignore
+   pointer input entirely — the robot still tracks the cursor anywhere on
+   the page, while clicks pass through to the button beneath it. ─── */
 const HeroSection = () => {
   const [contactOpen, setContactOpen] = useState(false);
+  const splineRef = useRef<HTMLElement>(null);
+
+  /* The "Built with Spline" badge lives inside the viewer's shadow root, so
+     it can't be reached with CSS — poll briefly after mount and drop it. */
+  useEffect(() => {
+    const strip = () => {
+      const root = (splineRef.current as any)?.shadowRoot as ShadowRoot | undefined;
+      const badge = root?.querySelector("#logo");
+      if (badge) {
+        badge.remove();
+        return true;
+      }
+      return false;
+    };
+    if (strip()) return;
+    const id = setInterval(() => { if (strip()) clearInterval(id); }, 200);
+    const stop = setTimeout(() => clearInterval(id), 15000);
+    return () => { clearInterval(id); clearTimeout(stop); };
+  }, []);
 
   return (
-    <section className="pt-28 pb-6 sm:pt-32 sm:pb-8 md:pt-36 md:pb-12 relative overflow-hidden">
-      <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
+    <>
+      <section className="relative overflow-hidden bg-background text-foreground min-h-[92vh] flex flex-col pt-28 sm:pt-32">
+        <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
 
-      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 md:px-10 text-center">
-        {/* 1. TOP SOCIAL PROOF PILL */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 sm:gap-2.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full border border-border/80 bg-muted/60 backdrop-blur-md text-[11px] sm:text-xs font-medium mb-5 sm:mb-6 shadow-sm"
+        {/* A faint brand wash from the top */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background: `radial-gradient(120% 60% at 50% 0%, ${BRAND}14 0%, transparent 55%)`,
+          }}
+        />
+
+        {/* Circuit-board backdrop, drawn rather than fetched */}
+        <svg
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 w-full h-full opacity-[0.13]"
+          preserveAspectRatio="xMidYMid slice"
         >
-          {/* Overlapping avatars */}
-          <div className="flex -space-x-1.5 sm:-space-x-2">
-            {clientAvatars.slice(0, 4).map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt="Client avatar"
-                className="w-5 h-5 sm:w-5.5 sm:h-5.5 rounded-full border border-background object-cover"
+          <defs>
+            <pattern
+              id="kola-circuit"
+              width="180"
+              height="180"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M0 40 H70 L100 70 H180 M0 130 H50 L80 100 H180 M40 0 V25 M140 180 V150"
+                fill="none"
+                stroke={BRAND}
+                strokeWidth="1"
               />
-            ))}
-          </div>
+              <circle cx="70" cy="40" r="3" fill={BRAND} />
+              <circle cx="80" cy="100" r="3" fill={BRAND} />
+              <circle cx="140" cy="150" r="3" fill={BRAND} />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#kola-circuit)" />
+        </svg>
 
-          <span className="text-muted-foreground font-semibold">
-            99+ Happy Global Clients
-          </span>
-        </motion.div>
+        <div className="relative z-10 flex-1 max-w-[1240px] w-full mx-auto px-6 md:px-10 py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-12 items-center h-full">
+            {/* ================= LEFT: THE WORDS ================= */}
+            <div className="text-center lg:text-left">
+              {/* EYEBROW */}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="inline-flex items-center gap-2.5 mb-6"
+              >
+                <span
+                  className="px-1.5 py-0.5 rounded-[5px] text-[11px] font-bold text-white"
+                  style={{ backgroundColor: BRAND }}
+                >
+                  99+
+                </span>
+                <span className="text-[11px] sm:text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground">
+                  Brands grown across 6 global markets
+                </span>
+              </motion.div>
 
-        {/* 2. MASSIVE CENTERED EDITORIAL HEADLINE */}
-        <div className="max-w-[900px] mx-auto mb-4 sm:mb-5">
-          <AnimatedHeading
-            lines={["Pure Performance.", "Potent Storytelling."]}
-            className="
-              hidden md:block
-              text-[clamp(2.8rem,5.5vw,4.8rem)]
-              leading-[1.01]
-              tracking-[-0.035em]
-              font-bold
-              text-center
-            "
-          />
-          <AnimatedHeading
-            lines={["Pure Performance.", "Potent Storytelling."]}
-            className="
-              md:hidden
-              text-[clamp(2.1rem,7.5vw,3.2rem)]
-              leading-[1.04]
-              tracking-[-0.03em]
-              font-bold
-              text-center
-            "
-          />
-        </div>
+              {/* HEADLINE */}
+              <h1
+                className="
+                  mb-6
+                  text-[clamp(2.1rem,4.4vw,3.7rem)]
+                  leading-[1.06]
+                  tracking-[-0.02em]
+                "
+              >
+                <motion.span
+                  initial={{ opacity: 0, y: 26, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.25em] text-muted-foreground font-medium"
+                >
+                  <span>We Are Your</span>
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.85, rotate: 0 }}
+                    animate={{ opacity: 1, scale: 1, rotate: -3 }}
+                    transition={{
+                      delay: 0.3,
+                      type: "spring",
+                      stiffness: 160,
+                      damping: 15,
+                    }}
+                    className="inline-block px-[0.14em] pb-[0.06em] text-white"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    Digital
+                  </motion.span>
+                </motion.span>
 
-        {/* 3. REFINED SUB-HEADLINE */}
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-xs sm:text-sm md:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8 font-normal px-2"
-        >
-          From high-performance website development to SEO, lead generation and
-          beyond — we craft data-driven digital strategies for brands ready to
-          scale bold.
-        </motion.p>
+                <motion.span
+                  initial={{ opacity: 0, y: 26, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  transition={{
+                    duration: 0.7,
+                    delay: 0.12,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.22em] text-foreground font-semibold"
+                >
+                  <span>Growth</span>
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.4, rotate: -40 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                    transition={{
+                      delay: 0.45,
+                      type: "spring",
+                      stiffness: 180,
+                      damping: 13,
+                    }}
+                    className="inline-flex items-center justify-center shrink-0 rounded-full w-[0.95em] h-[0.95em] text-white"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    <Megaphone className="w-[0.5em] h-[0.5em] -rotate-12" />
+                  </motion.span>
+                  <span>Partner.</span>
+                </motion.span>
+              </h1>
 
-        {/* 4. DUAL ACTION BUTTONS */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="flex items-center justify-center gap-4 sm:gap-6 mb-8 sm:mb-10"
-        >
-          {/* Primary CTA with arrow circle */}
-          <button
-            onClick={() => setContactOpen(true)}
-            className="
-              group flex items-center gap-2.5
-              bg-black text-white dark:bg-white dark:text-black
-              pl-5 pr-1.5 py-1.5 sm:pl-6 sm:pr-2 sm:py-2 rounded-full
-              text-xs sm:text-sm font-medium
-              shadow-[0_4px_20px_rgba(0,0,0,0.1)]
-              hover:opacity-90 transition-opacity
-            "
-          >
-            <span>Book a Call</span>
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/20 dark:bg-black/10 flex items-center justify-center text-white dark:text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
-              <ArrowUpRight size={13} className="sm:w-3.5 sm:h-3.5" />
+              {/* SUB-HEADLINE */}
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.45 }}
+                className="text-base sm:text-lg text-muted-foreground max-w-[500px] mx-auto lg:mx-0 leading-[1.65] mb-8"
+              >
+                From high-performance websites to SEO and lead generation, we
+                craft data-driven strategies for brands ready to scale bold.
+              </motion.p>
+
+              {/* CTA */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.55 }}
+                className="mb-8"
+              >
+                <button
+                  onClick={() => setContactOpen(true)}
+                  className="
+                    group inline-flex items-center gap-2.5
+                    pl-7 pr-2.5 py-2.5 rounded-full
+                    text-sm font-medium text-white
+                    shadow-[0_6px_24px_rgba(58,58,190,0.3)]
+                    hover:opacity-90 transition-opacity
+                  "
+                  style={{ backgroundColor: BRAND }}
+                >
+                  <span>Book a Call</span>
+                  <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center group-hover:translate-x-0.5 transition-transform">
+                    <Play size={12} className="fill-current ml-0.5" />
+                  </span>
+                </button>
+              </motion.div>
+
+              {/* AVATARS + RATING */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.65 }}
+                className="flex items-center justify-center lg:justify-start gap-3.5"
+              >
+                <div className="flex -space-x-3">
+                  {clientAvatars.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      loading="lazy"
+                      className="w-10 h-10 rounded-full border-2 border-background object-cover"
+                    />
+                  ))}
+                </div>
+                <div className="text-left">
+                  <div className="flex gap-0.5 mb-0.5">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star
+                        key={i}
+                        size={12}
+                        style={{ color: BRAND, fill: BRAND }}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-[14px] font-semibold">99+ Happy Clients</p>
+                </div>
+              </motion.div>
             </div>
-          </button>
 
-          {/* Secondary Link */}
-          <HashLink
-            to="/#pricing"
-            smooth
-            className="text-xs sm:text-sm font-medium text-foreground hover:text-muted-foreground transition underline underline-offset-4"
-          >
-            See Pricing
-          </HashLink>
-        </motion.div>
+            {/* ================= RIGHT: THE ROBOT =================
+                The scene paints its own opaque ground, so the panel is given
+                that same tone deliberately — a designed card rather than a
+                stray box sitting on the page. */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="relative h-[380px] sm:h-[460px] lg:h-[600px] rounded-3xl overflow-hidden bg-[#EAEAEA]"
+            >
+              <spline-viewer
+                ref={splineRef}
+                url="https://prod.spline.design/zyP-FoNAy1RNLOZx/scene.splinecode"
+                className="w-full h-full block pointer-events-none"
+              />
+
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* THE WORK ITSELF */}
+      <div className="pt-14 sm:pt-16">
+        <ShowcaseReel />
       </div>
-
-      {/* 5. BOTTOM SHOWCASE REEL */}
-      <ShowcaseReel />
-    </section>
+    </>
   );
 };
 

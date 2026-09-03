@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
-import { useInView } from "framer-motion";
+import { useInView, motion } from "framer-motion";
+import { ArrowUpRight } from "lucide-react";
 
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
 import AboutSection from "@/components/AboutSection";
+import SectionDivider from "@/components/SectionDivider";
 import TestimonialBanner from "@/components/TestimonialBanner";
 import CTAFooter from "@/components/CTAFooter";
 import ContactForm from "@/components/ContactForm";
+import AnimatedHeading from "@/components/AnimatedHeading";
+
+/* The brand blue, as the homepage hero uses it. */
+const BRAND = "#3A3ABE";
 
 /* ══════════════════════════════════════════
    ANIMATED COUNTER
@@ -36,16 +42,11 @@ const AnimatedCounter = ({
     const startTime = performance.now();
 
     const update = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min((now - startTime) / duration, 1);
       // easeOutExpo
       const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const current = ease * value;
-      setDisplayValue(current);
-
-      if (progress < 1) {
-        requestAnimationFrame(update);
-      }
+      setDisplayValue(ease * value);
+      if (progress < 1) requestAnimationFrame(update);
     };
 
     requestAnimationFrame(update);
@@ -61,7 +62,7 @@ const AnimatedCounter = ({
 };
 
 /* ══════════════════════════════════════════
-   DATA CONSTANTS
+   DATA
    ══════════════════════════════════════════ */
 
 const stats = [
@@ -70,7 +71,7 @@ const stats = [
     prefix: "+",
     suffix: "%",
     decimals: 0,
-    label: "Organic Traffic",
+    label: "Organic traffic",
     sub: "average client growth",
   },
   {
@@ -78,7 +79,7 @@ const stats = [
     prefix: "",
     suffix: "x",
     decimals: 1,
-    label: "Lead Gen Rate",
+    label: "Lead gen rate",
     sub: "vs industry standard",
   },
   {
@@ -94,8 +95,8 @@ const stats = [
     prefix: "",
     suffix: "+",
     decimals: 0,
-    label: "Happy Clients",
-    sub: "across 6 countries",
+    label: "Happy clients",
+    sub: "across 6 markets",
   },
 ];
 
@@ -107,7 +108,7 @@ const capabilities = [
   },
   {
     num: "02",
-    title: "SEO & Answer Engine Optimization",
+    title: "SEO & Answer Engine Optimisation",
     desc: "Dominate Google organic rankings and establish clear authority across AI search engines like ChatGPT and Perplexity.",
   },
   {
@@ -126,22 +127,22 @@ const processSteps = [
   {
     step: "01",
     title: "Consult & Align",
-    desc: "We dive deep into your brand, target audience, and business goals on a discovery call to map out a clear growth blueprint.",
+    desc: "We dive deep into your brand, audience, and business goals on a discovery call, and map out a clear growth blueprint.",
   },
   {
     step: "02",
     title: "Craft & Execute",
-    desc: "From clean code to conversion copy and campaign setup, our team executes with extreme attention to detail and milestone updates.",
+    desc: "From clean code to conversion copy and campaign setup, our team executes with attention to detail and milestone updates.",
   },
   {
     step: "03",
     title: "Scale & Measure",
-    desc: "We track every key metric with transparent weekly and monthly reporting, continuously iterating to maximize your return on investment.",
+    desc: "We track every key metric with transparent weekly and monthly reporting, iterating continuously to maximise return.",
   },
 ];
 
 /* ══════════════════════════════════════════
-   COMPONENT
+   PAGE
    ══════════════════════════════════════════ */
 
 const AboutPage = () => {
@@ -164,22 +165,31 @@ const AboutPage = () => {
       <div className="relative overflow-hidden">
         <ColumnGuides />
 
-        {/* ══════════════════════════════════════════
-            ABOUT HERO SECTION (FROM HOME PAGE)
-           ══════════════════════════════════════════ */}
+        {/* WHO WE ARE — the same block the homepage opens with */}
         <div className="pt-16 md:pt-24">
           <AboutSection />
         </div>
 
-        {/* ══════════════════════════════════════════
-            MINIMAL STATS ROW WITH ANIMATED COUNTERS
-           ══════════════════════════════════════════ */}
-        <section className="py-16 border-t border-b border-border bg-[#fafafa]">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((s) => (
-                <div key={s.label}>
-                  <p className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+        <SectionDivider />
+
+        {/* THE NUMBERS */}
+        <section className="py-20 section-container p-6 md:p-10">
+          <div className="max-w-[1080px] mx-auto">
+            <p className="text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-12">
+              The numbers
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-8">
+              {stats.map((s, i) => (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: i * 0.08 }}
+                  className="border-t border-border pt-5"
+                >
+                  <p className="text-[clamp(2rem,3.4vw,2.75rem)] font-semibold tracking-[-0.03em] leading-none">
                     <AnimatedCounter
                       value={s.target}
                       prefix={s.prefix}
@@ -187,121 +197,135 @@ const AboutPage = () => {
                       decimals={s.decimals}
                     />
                   </p>
-                  <p className="text-sm font-medium text-foreground mt-1">
-                    {s.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-[15px] font-medium mt-3">{s.label}</p>
+                  <p className="text-[13px] text-muted-foreground mt-0.5">
                     {s.sub}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ══════════════════════════════════════════
-            CORE FOCUS & SPECIALIZATION
-           ══════════════════════════════════════════ */}
+        <SectionDivider />
+
+        {/* WHAT WE DO */}
         <section className="py-24 section-container p-6 md:p-10">
           <div className="max-w-[1080px] mx-auto">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-              <div>
-                <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                  What We Do
-                </span>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-                  Engineered for commercial impact.
-                </h2>
-              </div>
-              <p className="text-sm md:text-base text-muted-foreground max-w-md">
-                We combine creative design with robust engineering and growth marketing to build digital assets that consistently deliver results.
+            <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-14 items-end mb-16">
+              <AnimatedHeading
+                lines={["What we do,", "engineered for impact."]}
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+              />
+              <p className="text-base text-muted-foreground leading-[1.65] lg:pb-2">
+                We combine creative design with robust engineering and growth
+                marketing to build digital assets that consistently deliver
+                results.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {capabilities.map((cap) => (
-                <div
+            {/* Negative offsets collapse the shared edges into single rules */}
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {capabilities.map((cap, i) => (
+                <motion.div
                   key={cap.num}
-                  className="p-8 rounded-2xl border border-border bg-card/60 hover:bg-card transition-colors"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: i * 0.07 }}
+                  className="group border border-border bg-card p-8 -mt-px -ml-px transition-colors duration-300 hover:border-foreground/25"
                 >
-                  <span className="text-xs font-mono font-bold text-muted-foreground">
+                  <span
+                    className="text-[12px] font-semibold tracking-[0.1em]"
+                    style={{ color: BRAND }}
+                  >
                     {cap.num}
                   </span>
-                  <h3 className="text-xl font-bold mt-3 mb-2 text-foreground">
+                  <h3 className="text-[19px] font-semibold tracking-[-0.01em] mt-3 mb-2.5">
                     {cap.title}
                   </h3>
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  <p className="text-[15px] text-muted-foreground leading-[1.6]">
                     {cap.desc}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ══════════════════════════════════════════
-            OUR 3-STEP PROCESS
-           ══════════════════════════════════════════ */}
-        <section className="py-24 border-t border-border bg-[#fafafa]">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10">
-            <div className="text-center max-w-xl mx-auto mb-16">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                How We Work
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-                Simple, transparent process.
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                No bloated handoffs or confusing jargon. Clear milestones from day one.
-              </p>
-            </div>
+        <SectionDivider />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {processSteps.map((item) => (
-                <div key={item.step} className="flex flex-col justify-between">
-                  <div>
-                    <div className="w-10 h-10 rounded-full border border-border bg-white flex items-center justify-center text-sm font-semibold text-foreground mb-6 shadow-sm">
-                      {item.step}
-                    </div>
-                    <h3 className="text-lg font-bold mb-2 text-foreground">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
+        {/* HOW WE WORK */}
+        <section className="py-24 section-container p-6 md:p-10">
+          <div className="max-w-[1080px] mx-auto">
+            <AnimatedHeading
+              lines={["How we work,", "start to scale."]}
+              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] mb-4"
+            />
+            <p className="text-base text-muted-foreground leading-[1.65] max-w-[520px] mb-16">
+              No bloated handoffs, no confusing jargon — clear milestones from
+              day one.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8">
+              {processSteps.map((item, i) => (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, delay: i * 0.1 }}
+                  className="border-t border-border pt-6"
+                >
+                  <span
+                    className="text-[12px] font-semibold tracking-[0.1em]"
+                    style={{ color: BRAND }}
+                  >
+                    {item.step}
+                  </span>
+                  <h3 className="text-[19px] font-semibold tracking-[-0.01em] mt-3 mb-2.5">
+                    {item.title}
+                  </h3>
+                  <p className="text-[15px] text-muted-foreground leading-[1.6]">
+                    {item.desc}
+                  </p>
+                </motion.div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ══════════════════════════════════════════
-            CLIENT TESTIMONIAL BANNER (FROM HOME PAGE)
-           ══════════════════════════════════════════ */}
         <TestimonialBanner />
 
-        {/* ══════════════════════════════════════════
-            SIMPLE MINIMAL CTA BANNER
-           ══════════════════════════════════════════ */}
-        <section className="py-16 border-t border-border text-black">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* CTA */}
+        <section className="py-20 border-t border-border section-container p-6 md:p-10">
+          <div className="max-w-[1080px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
-              <p className="text-xs uppercase tracking-widest text-black/50 mb-1">
+              <p className="text-[12px] font-medium tracking-[0.14em] uppercase text-muted-foreground mb-4">
                 Let's collaborate
               </p>
-              <h3 className="text-2xl md:text-3xl font-bold tracking-tight">
-                Ready to elevate your digital presence?
-              </h3>
+              <AnimatedHeading
+                lines={["Ready to elevate", "your digital presence?"]}
+                className="text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] tracking-[-0.02em]"
+              />
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setContactOpen(true)}
-                className="rounded-full bg-white border text-black px-7 py-3 text-sm font-medium hover:bg-white/90 transition whitespace-nowrap"
-              >
-                Schedule a Discovery Call
-              </button>
-            </div>
+
+            <button
+              onClick={() => setContactOpen(true)}
+              className="
+                group inline-flex items-center gap-2.5 shrink-0
+                bg-black text-white dark:bg-white dark:text-black
+                pl-6 pr-2 py-2 rounded-full
+                text-sm font-medium
+                shadow-[0_4px_20px_rgba(0,0,0,0.1)]
+                hover:opacity-90 transition-opacity
+              "
+            >
+              <span>Schedule a Discovery Call</span>
+              <span className="w-7 h-7 rounded-full bg-white/20 dark:bg-black/10 flex items-center justify-center group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200">
+                <ArrowUpRight size={14} />
+              </span>
+            </button>
           </div>
         </section>
       </div>

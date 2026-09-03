@@ -91,7 +91,6 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Company</p>
           <div className="flex flex-col gap-2.5">
             {[
-              { label: "About Us", href: "/about" },
               { label: "Contact Us", href: "/contact" },
               { label: "Blog", href: "/blogs" },
               { label: "Our work", href: "/projects" },

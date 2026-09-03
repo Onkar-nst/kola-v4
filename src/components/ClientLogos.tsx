@@ -1,5 +1,7 @@
 import { useAnimationFrame } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+
 const clientAvatars = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
@@ -7,15 +9,25 @@ const clientAvatars = [
   "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
 ];
-import { supabase } from "@/lib/supabase";
 
 const SPEED = 100;
+
+/* Shipped with the site so the marquee never depends on a network round-trip.
+   Supabase rows, when present, take over — see the fetch below. */
+const FALLBACK_LOGOS = [
+  { type: "image", image_url: "/logos/veena-developers.svg", alt: "Veena Developers" },
+  { type: "image", image_url: "/logos/vayu-valves.svg", alt: "Vayu Valves" },
+  { type: "image", image_url: "/logos/tazaari.svg", alt: "Tazaari" },
+  { type: "image", image_url: "/logos/roy-infra.svg", alt: "Roy Infra" },
+  { type: "image", image_url: "/logos/purva-desai.svg", alt: "Purva Desai Company" },
+  { type: "image", image_url: "/logos/premier-league-news-now.svg", alt: "Premier League News Now" },
+];
 
 const ClientLogos = () => {
   const x = useRef(0);
   const containerRef = useRef(null);
   const halfWidthRef = useRef(0);
-  const [logos, setLogos] = useState([]);
+  const [logos, setLogos] = useState(FALLBACK_LOGOS);
 
   // FETCH FROM SUPABASE
   useEffect(() => {
@@ -27,9 +39,8 @@ const ClientLogos = () => {
 
       if (error) {
         console.error("ClientLogos fetch error:", error.message, error);
-      } else {
-        // console.log("ClientLogos fetched:", data);
-        setLogos(data ?? []);
+      } else if (data?.length) {
+        setLogos(data);
       }
     };
     fetchLogos();
@@ -67,7 +78,7 @@ const ClientLogos = () => {
       <div className="section-container p-10">
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
-          {/* LEFT */}
+          {/* LEFT — the proof, ahead of the logos it belongs to */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex -space-x-2">
               {clientAvatars.map((src, i) => (
@@ -75,6 +86,7 @@ const ClientLogos = () => {
                   key={i}
                   src={src}
                   alt={`Happy client ${i + 1}`}
+                  loading="lazy"
                   className="w-8 h-8 rounded-full border-2 border-background object-cover"
                 />
               ))}
@@ -114,7 +126,7 @@ const ClientLogos = () => {
                     <img
                       src={logo.image_url}
                       alt={logo.alt}
-                      className="h-32 md:h-28 w-auto object-contain opacity-70"
+                      className="h-16 md:h-20 w-auto object-contain opacity-70 grayscale"
                       onError={(e) => {
                         console.warn("Logo failed to load:", logo.image_url);
                         e.currentTarget.style.display = "none";

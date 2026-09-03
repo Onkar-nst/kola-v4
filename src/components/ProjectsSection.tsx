@@ -147,30 +147,30 @@ const ProjectCard = ({
 
   return (
     <Link to={`/${project.slug}`} style={{ textDecoration: "none" }}>
-      <motion.div
+      <motion.article
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
-        transition={{ delay: index * 0.1 }}
+        transition={{ delay: index * 0.08, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         onMouseEnter={() => { setHovered(true); trigger(); }}
         onMouseLeave={() => setHovered(false)}
-        className="group overflow-hidden border border-black/10 bg-white/5 backdrop-blur-xl relative cursor-pointer"
+        className="group relative isolate overflow-hidden border border-border bg-card
+                   cursor-pointer transition-colors duration-300 hover:border-foreground/25"
       >
-        {/* Header row — title + tags + arrow */}
-        <div className="flex justify-between items-center px-5 py-4 border-b border-black/10 gap-3">
-          <div className="flex-col items-center gap-3 min-w-0 flex-1">
-            {/* Title */}
-            <span className="text-md text-black font-medium shrink-0 leading-snug">
+        {/* Header — the card leads with its name, not with the picture */}
+        <div className="px-5 pt-4 pb-4 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h3 className="text-[16px] md:text-[17px] font-semibold leading-tight tracking-[-0.01em] text-foreground mb-2">
               {project.title}
-            </span>
+            </h3>
 
-            {/* Tags — shown beside the name */}
             {project.tags.length > 0 && (
-              <div className="flex gap-1.5 my-2 flex-wrap min-w-0">
+              <div className="flex flex-wrap gap-1.5">
                 {project.tags.slice(0, 3).map((tag) => (
                   <span
                     key={tag}
-                    className="text-xs px-2 py-0.5 text-black border border-black/10 whitespace-nowrap leading-snug"
+                    className="text-[11.5px] font-normal px-2.5 py-[5px] whitespace-nowrap
+                               border border-border text-foreground/75 bg-background"
                   >
                     {tag}
                   </span>
@@ -179,42 +179,44 @@ const ProjectCard = ({
             )}
           </div>
 
-          {/* Animated arrow */}
-          <div className="relative w-4 h-4 overflow-hidden shrink-0">
-            <motion.span
-              animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }}
-              className="absolute"
-            >
-              <ArrowUpRight size={16} className="text-black/50" />
-            </motion.span>
-            <motion.span
-              animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }}
-              className="absolute"
-            >
-              <ArrowUpRight size={16} className="text-black" />
-            </motion.span>
-          </div>
+          {/* Arrow — plain, and it travels on hover */}
+          <motion.span
+            className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors"
+            animate={{ x: hovered ? 2 : 0, y: hovered ? -2 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ArrowUpRight size={15} />
+          </motion.span>
         </div>
 
-        {/* Image */}
-        <div className="relative aspect-[16/9] overflow-hidden">
+        {/* Media — full bleed under the header, no scrim over it */}
+        <div className="relative aspect-[4/3] md:aspect-[16/9] overflow-hidden">
           <motion.img
             src={project.img}
             alt={project.title}
+            loading="lazy"
             className="absolute inset-0 w-full h-full object-cover"
-            animate={{ opacity: hovered && glitching ? 0 : 1 }}
+            animate={{
+              opacity: hovered && glitching ? 0 : 1,
+              scale: hovered ? 1.04 : 1,
+            }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           />
           <motion.img
             src={project.hoverImg}
-            alt={project.title}
+            alt=""
+            aria-hidden
             className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: hovered && !glitching ? 1 : 0, scale: hovered ? 1 : 1.1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: hovered && !glitching ? 1 : 0,
+              scale: hovered ? 1.04 : 1.1,
+            }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           />
           <AnimatePresence>{glitching && <GlitchOverlay />}</AnimatePresence>
         </div>
-      </motion.div>
+      </motion.article>
     </Link>
   );
 };
@@ -235,7 +237,7 @@ const PaginationBtn = ({
     onClick={onClick}
     disabled={disabled}
     className={`
-      inline-flex items-center justify-center w-9 h-9 text-sm border transition-colors
+      inline-flex items-center justify-center w-9 h-9 text-sm border rounded-full transition-colors
       ${active
         ? "border-black bg-black text-white"
         : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"
@@ -314,13 +316,23 @@ const ProjectsSection = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.35 }}
-          className="grid md:grid-cols-2 gap-4"
+          className="grid sm:grid-cols-2 gap-4 md:gap-6"
         >
           {loading
             ? Array.from({ length: PER_PAGE }).map((_, i) => (
-                <div key={i} className="border border-black/10 bg-white/5 animate-pulse">
-                  <div className="px-5 py-4 border-b border-black/10 h-12" />
-                  <div className="aspect-[16/9] bg-black/5" />
+                <div
+                  key={i}
+                  className="border border-border bg-card overflow-hidden animate-pulse"
+                >
+                  {/* Mirrors the card: header block, then media */}
+                  <div className="p-5 md:p-6">
+                    <div className="h-6 w-1/2 bg-black/5 mb-3" />
+                    <div className="flex gap-2">
+                      <div className="h-7 w-28 bg-black/5" />
+                      <div className="h-7 w-24 bg-black/5" />
+                    </div>
+                  </div>
+                  <div className="bg-black/5 aspect-[4/3] md:aspect-[16/9]" />
                 </div>
               ))
             : projects.map((p, i) => (

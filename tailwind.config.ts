@@ -17,6 +17,7 @@ export default {
         sans: ["Inter", "Inter Placeholder", "sans-serif"],
         display: ["Inter Display", "Inter", "sans-serif"],
         mono: ["Fragment Mono", "monospace"],
+        wordmark: ["Orbitron", "Inter Display", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

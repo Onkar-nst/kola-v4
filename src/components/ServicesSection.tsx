@@ -8,59 +8,60 @@ import { Plus } from "lucide-react";
 import {
   SiWordpress,
   SiShopify,
+  SiWebflow,
+  SiFramer,
+  SiWoocommerce,
   SiReact,
-  SiTailwindcss,
-  SiGithub,
-  SiGoogleanalytics,
-  SiMeta,
-  SiOpenai,
-  SiPython,
-  SiJavascript,
-  SiTypescript,
   SiNextdotjs,
+  SiTypescript,
+  SiJavascript,
+  SiTailwindcss,
   SiNodedotjs,
-  SiExpress,
-  SiMongodb,
   SiPostgresql,
   SiSupabase,
-  SiFirebase,
   SiVercel,
-  SiNetlify,
+  SiGithub,
+  SiCloudflare,
   SiFigma,
   SiCanva,
+  SiGoogleanalytics,
+  SiGoogleads,
+  SiGoogletagmanager,
+  SiGooglesearchconsole,
+  SiSemrush,
+  SiHubspot,
+  SiMeta,
+  SiZapier,
+  SiPython,
 } from "react-icons/si";
 
 const techStack = [
   { icon: SiWordpress, name: "WordPress" },
   { icon: SiShopify, name: "Shopify" },
+  { icon: SiWebflow, name: "Webflow" },
+  { icon: SiFramer, name: "Framer" },
+  { icon: SiWoocommerce, name: "WooCommerce" },
   { icon: SiReact, name: "React" },
   { icon: SiNextdotjs, name: "Next.js" },
-  { icon: SiTailwindcss, name: "Tailwind" },
-
-  { icon: SiJavascript, name: "JavaScript" },
   { icon: SiTypescript, name: "TypeScript" },
-
+  { icon: SiJavascript, name: "JavaScript" },
+  { icon: SiTailwindcss, name: "Tailwind" },
   { icon: SiNodedotjs, name: "Node.js" },
-  { icon: SiExpress, name: "Express" },
-
-  { icon: SiMongodb, name: "MongoDB" },
   { icon: SiPostgresql, name: "PostgreSQL" },
   { icon: SiSupabase, name: "Supabase" },
-  { icon: SiFirebase, name: "Firebase" },
-
-  { icon: SiGithub, name: "GitHub" },
-
   { icon: SiVercel, name: "Vercel" },
-  { icon: SiNetlify, name: "Netlify" },
-
+  { icon: SiGithub, name: "GitHub" },
+  { icon: SiCloudflare, name: "Cloudflare" },
   { icon: SiFigma, name: "Figma" },
   { icon: SiCanva, name: "Canva" },
-
   { icon: SiGoogleanalytics, name: "Analytics" },
+  { icon: SiGoogleads, name: "Google Ads" },
+  { icon: SiGoogletagmanager, name: "Tag Manager" },
+  { icon: SiGooglesearchconsole, name: "Search Console" },
+  { icon: SiSemrush, name: "Semrush" },
+  { icon: SiHubspot, name: "HubSpot" },
   { icon: SiMeta, name: "Meta Ads" },
-
-  { icon: SiOpenai, name: "ChatGPT" },
-
+  { icon: SiZapier, name: "Zapier" },
   { icon: SiPython, name: "Python" },
 ];
 
@@ -76,19 +77,14 @@ const services = [
     desc: "Improve rankings on Google and AI-driven search platforms.",
   },
   {
+    icon: "https://cdn-icons-png.flaticon.com/512/8637/8637099.png",
+    title: "AI-Powered Tools & Applications",
+    desc: "Custom AI tools, automation, and intelligent workflows.",
+  },
+  {
     icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
     title: "Lead Generation & Conversion",
     desc: "High-converting funnels that turn traffic into qualified leads.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3281/3281289.png",
-    title: "Brand Identity & Design",
-    desc: "Strategic branding that builds trust and lasting recognition.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
-    title: "Performance Marketing",
-    desc: "Data-driven ad campaigns focused on ROI and conversions.",
   },
   {
     icon: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
@@ -101,9 +97,14 @@ const services = [
     desc: "SEO-focused content that drives traffic and builds authority.",
   },
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/8637/8637099.png",
-    title: "AI-Powered Tools & Applications",
-    desc: "Custom AI tools, automation, and intelligent workflows.",
+    icon: "https://cdn-icons-png.flaticon.com/512/3281/3281289.png",
+    title: "Brand Identity & Design",
+    desc: "Strategic branding that builds trust and lasting recognition.",
+  },
+  {
+    icon: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
+    title: "Performance Marketing",
+    desc: "Data-driven ad campaigns focused on ROI and conversions.",
   },
 ];
 
