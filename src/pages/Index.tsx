@@ -6,8 +6,7 @@ import CustomCursor from "@/components/CustomCursor";
 import SectionSkeleton from "@/components/SectionSkeleton";
 
 /* The Kola robot hero is parked, not deleted — swap the two lines back to restore it. */
-// const HeroSection = lazy(() => import("@/components/HeroSection"));
-const MainframeHero = lazy(() => import("@/components/MainframeHero"));
+import MainframeHero from "@/components/MainframeHero";
 const ClientLogos = lazy(() => import("@/components/ClientLogos"));
 const ProjectsSection = lazy(() => import("@/components/ProjectsSection"));
 const TestimonialBanner = lazy(() => import("@/components/TestimonialBanner"));
@@ -97,9 +96,7 @@ const Index = () => {
       <div className="relative overflow-hidden">
         <ColumnGuides />
 
-        <Suspense fallback={<SectionLoader />}>
-          <MainframeHero />
-        </Suspense>
+        <MainframeHero />
 
         <Suspense fallback={<SectionLoader />}>
           <ClientLogos />
