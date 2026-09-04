@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, memo, useCallback } from "react";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import { Plus } from "lucide-react";
 
 /* ---------------- DATA ---------------- */
@@ -240,15 +239,15 @@ const ServicesSection = () => {
   }, []);
 
   return (
-    <section id="services" className="min-h-[90vh] flex items-center py-20 content-visibility-auto">
+    <section id="services" className="min-h-[90vh] flex items-center py-12 content-visibility-auto">
       <div className="section-container w-full p-4 md:p-10">
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
-          {/* ================= LEFT ================= */}
-          <div>
-            <AnimatedHeading
-              lines={["Services that", "supercharge your", "business."]}
-              className="text-[clamp(2.5rem,6vw,4rem)] leading-[1.05] tracking-[-0.02em]"
-            />
+          {/* ================= LEFT COLUMN (Sticky) ================= */}
+          <div className="lg:sticky lg:top-32 space-y-8">
+            <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-12 md:mb-16">
+              <span className="text-muted-foreground font-medium">Services that </span>
+              <span className="text-foreground font-semibold">supercharge your business.</span>
+            </h2>
 
             {/* TECH STACK */}
             <motion.div

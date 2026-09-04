@@ -64,7 +64,7 @@ const MainframeHero = () => {
     <>
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
 
-      <section className="relative overflow-hidden bg-white text-black min-h-[90vh] flex items-center pt-28 sm:pt-36 pb-16">
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-28 sm:pt-36 pb-12">
         <div className="section-container w-full max-w-[1080px] mx-auto px-4 md:px-10">
           <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-12 items-center">
             {/* ================= LEFT: TYPOGRAPHY & CTA ================= */}
@@ -77,25 +77,14 @@ const MainframeHero = () => {
                 </span>
               </div>
 
-              {/* MAIN HEADLINE */}
-              <h1 className="mb-6 text-[clamp(2.2rem,4.4vw,3.8rem)] leading-[1.1] tracking-[-0.03em]">
-                <span className="block text-black/40 font-medium mb-1">
-                  We Are Your
-                </span>
-
-                <span className="flex flex-wrap items-center justify-center lg:justify-start gap-x-[0.25em] gap-y-2 text-black font-semibold">
-                  <span className="inline-block px-3 py-0.5 rounded-xl bg-black text-white font-semibold shadow-sm">
-                    Digital Growth
-                  </span>
-                  <span className="inline-flex items-center justify-center shrink-0 rounded-full w-[0.92em] h-[0.92em] bg-black text-white">
-                    <Megaphone className="w-[0.52em] h-[0.52em] -rotate-12" />
-                  </span>
-                  <span>Partner.</span>
-                </span>
+              <h1 className="mb-6 text-[clamp(2.2rem,4vw,3.8rem)] leading-[1.05] tracking-[-0.02em]">
+                <span className="text-foreground font-semibold">We are your </span>
+                <span className="text-muted-foreground font-medium">digital growth </span>
+                <span className="text-foreground font-semibold">partner.</span>
               </h1>
 
               {/* SUB-HEADLINE */}
-              <p className="text-base sm:text-[17px] text-black/60 max-w-[480px] mx-auto lg:mx-0 leading-[1.65] mb-8">
+              <p className="text-lg text-muted-foreground max-w-[480px] mx-auto lg:mx-0 leading-[1.65] mb-8">
                 From custom-coded web architectures and generative AI discovery (AEO) to precision lead funnels — we build digital platforms that dominate.
               </p>
 

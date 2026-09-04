@@ -62,7 +62,7 @@ const ClientLogos = () => {
   });
 
   return (
-    <section className="py-10 border-t border-b border-border overflow-hidden">
+    <section className="py-12 border-t border-b border-border overflow-hidden">
       <div className="section-container p-10">
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
 

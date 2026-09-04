@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, memo } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import { setCachedSlugType } from "@/pages/SlugResolver";
 
 /* ══════════════════════════════════════════
@@ -252,16 +251,16 @@ const BlogSection = () => {
   }, []);
 
   return (
-    <section className="py-16 md:py-24 section-container">
+    <section className="py-12 section-container">
       <div className="max-w-[1140px] mx-auto p-4 md:p-8">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
           <div>
-            <AnimatedHeading
-              lines={["From our blog,", "design insights."]}
-              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] font-semibold"
-            />
+            <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
+              <span className="text-muted-foreground font-medium">From our blog, </span>
+              <span className="text-foreground font-semibold">design insights.</span>
+            </h2>
           </div>
         </div>
 

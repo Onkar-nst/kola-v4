@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { Plus, ArrowUpRight, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
-import AnimatedHeading from "@/components/AnimatedHeading";
 
 const aboutImage =
   "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL0u810.jpg?scale-down-to=4096";
@@ -64,31 +63,13 @@ const AboutSection = () => {
   return (
     <section
       id="about"
-      className="pt-10 md:pt-14 pb-24 border-t border-border section-container px-6 md:px-10"
+      className="py-12 border-t border-border section-container px-6 md:px-10"
     >
       <div className="mx-auto max-w-[1080px]">
-        {/* ================= TITLE — full width, above the split ========= */}
-        <AnimatedHeading
-          lines={["Helping brands grow in a", "digital-first world."]}
-          className="
-            hidden md:block
-            text-[clamp(2.6rem,5vw,4rem)]
-            leading-[1.05]
-            tracking-[-0.02em]
-            mb-16
-            max-w-[820px]
-          "
-        />
-        <AnimatedHeading
-          lines={["Helping brands", "grow in a", "digital-first world."]}
-          className="
-            md:hidden
-            text-[clamp(2.2rem,7vw,3rem)]
-            leading-[1.05]
-            tracking-[-0.02em]
-            mb-12
-          "
-        />
+        <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-12 md:mb-16 max-w-[820px]">
+          <span className="text-muted-foreground font-medium">Helping brands grow in a </span>
+          <span className="text-foreground font-semibold">digital-first world.</span>
+        </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-10 lg:gap-14 items-stretch">
           {/* ================= IMAGE =================
@@ -131,7 +112,7 @@ const AboutSection = () => {
 
           {/* ================= COPY ================= */}
           <div>
-            <div className="space-y-4 text-lg leading-[1.65] text-muted-foreground mb-8">
+            <div className="space-y-4 text-lg text-muted-foreground leading-[1.65] mb-8">
               {paragraphs.map((para, i) => (
                 <p key={i}>{para}</p>
               ))}

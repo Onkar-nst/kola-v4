@@ -33,20 +33,19 @@ const fadeUp = {
 };
 
 const CTAFooter = () => (
-  <footer id="contact" className="bg-[#0a0a0a] text-white pt-20 relative overflow-hidden">
+  <footer id="contact" className="bg-[#0a0a0a] text-white pt-12 relative overflow-hidden">
     <div className="max-w-[1200px] mx-auto px-6 md:px-10">
 
-      {/* HERO */}
       <motion.h2
         initial="hidden"
         whileInView="show"
         viewport={{ once: true }}
         variants={fadeUp}
         custom={0}
-        className="text-[clamp(2.4rem,6vw,4.8rem)] font-bold leading-[1.05] tracking-[-0.03em] mb-16"
+        className="text-[clamp(2.2rem,4vw,3.2rem)] font-semibold leading-[1.05] tracking-[-0.02em] mb-16"
       >
-        Let's create<br />
-        <span className="text-white/20">incredible work together.</span>
+        <span className="text-white/50 font-medium">Let's create </span>
+        <span className="text-white font-semibold">incredible work together.</span>
       </motion.h2>
 
       {/* GRID */}

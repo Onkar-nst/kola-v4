@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { setCachedSlugType } from "@/pages/SlugResolver";
 
@@ -376,14 +375,11 @@ const ProjectsSection = () => {
   };
 
   return (
-    <section id="projects-section" className="py-24 md:mb-10 section-container p-4 md:p-10">
-      <AnimatedHeading
-        lines={["Projects", "we're proud of."]}
-        className="text-[clamp(2.2rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em] max-w-[640px] mb-16 md:mb-20 md:mt-10"
-        stagger={0.07}
-        duration={0.7}
-        blur={10}
-      />
+    <section id="projects-section" className="py-12 section-container px-4 md:px-10">
+      <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-16 md:mb-20 max-w-[640px]">
+        <span className="text-muted-foreground font-medium">Projects </span>
+        <span className="text-foreground font-semibold">we're proud of.</span>
+      </h2>
 
       <AnimatePresence mode="wait">
         <motion.div
