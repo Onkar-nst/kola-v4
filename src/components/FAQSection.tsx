@@ -122,14 +122,15 @@ const FAQSection = () => {
                   >
                     <button
                       onClick={() => setOpenIndex(isOpen ? -1 : index)}
-                      className="w-full flex items-center justify-between px-5 py-4"
+                      className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-1 min-w-0 items-center gap-4">
                         <span className="text-[14px] font-medium text-[#111]">
                           {faq.q}
                         </span>
                       </div>
                       <motion.div
+                        className="shrink-0"
                         animate={{ rotate: isOpen ? 180 : 0 }}
                         transition={{ duration: 0.2 }}
                       >

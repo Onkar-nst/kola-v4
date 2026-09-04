@@ -24,6 +24,7 @@ const SlugResolver = lazy(() => import("./pages/SlugResolver"));
 
 import SectionSkeleton from "./components/SectionSkeleton";
 import ScrollToTopWrapper from "@/components/ScrollToTopWrapper";
+import { useTextBlockSelection } from "@/hooks/useTextBlockSelection";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,10 @@ const SmoothScroll = ({ children }) => {
 };
 
 const App = () => {
+  // Triple-click selects the whole heading/paragraph on every page, whatever
+  // its internal markup (line spans, <br>, animated word spans).
+  useTextBlockSelection();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
