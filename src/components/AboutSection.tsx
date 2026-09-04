@@ -1,12 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, ArrowUpRight, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
-import AnimatedHeading from "@/components/AnimatedHeading";
 
 const aboutImage =
   "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL0u810.jpg?scale-down-to=4096";
+
+const socials = [
+  {
+    icon: Instagram,
+    href: "https://www.instagram.com/p/DG5c5GTPtgh/",
+  },
+  {
+    icon: Linkedin,
+    href: "https://in.linkedin.com/company/kolacommunications",
+  },
+];
 
 /* ---------------- DATA ---------------- */
 
@@ -32,8 +41,10 @@ const values = [
 /* The three original paragraphs, condensed to the one the layout has
    room for: where the agency came from, what it does now, and the habit
    it credits for keeping clients. */
-const summary =
-  "Kola Communications grew out of a simple belief \u2014 that every business, whatever its size, deserves a powerful digital presence. What began as a passion for creative problem-solving is now a full-service digital marketing agency trusted by brands across India, Australia, the US, Europe and the Middle East. We go beyond aesthetics: from high-performance websites to targeted SEO and lead generation, everything we build is designed to deliver measurable impact. We\u2019re detail-obsessed, and we think that\u2019s exactly what sets us apart.";
+const paragraphs = [
+  "Kola Communications grew out of a simple belief — that every business, whatever its size, deserves a powerful digital presence. What began as a passion for creative problem-solving is now a full-service digital marketing agency trusted by brands across India, Australia, the US, Europe and the Middle East.",
+  "We go beyond aesthetics: from high-performance websites to targeted SEO and lead generation, everything we build is designed to deliver measurable impact. We’re detail-obsessed, and we think that’s exactly what sets us apart.",
+];
 
 /* ---------------- COMPONENT ---------------- */
 
@@ -52,31 +63,13 @@ const AboutSection = () => {
   return (
     <section
       id="about"
-      className="pt-10 md:pt-14 pb-24 border-t border-border section-container px-6 md:px-10"
+      className="py-12 border-t border-border section-container px-6 md:px-10"
     >
       <div className="mx-auto max-w-[1080px]">
-        {/* ================= TITLE — full width, above the split ========= */}
-        <AnimatedHeading
-          lines={["Helping brands grow in a", "digital-first world."]}
-          className="
-            hidden md:block
-            text-[clamp(2.6rem,5vw,4rem)]
-            leading-[1.05]
-            tracking-[-0.02em]
-            mb-16
-            max-w-[820px]
-          "
-        />
-        <AnimatedHeading
-          lines={["Helping brands", "grow in a", "digital-first world."]}
-          className="
-            md:hidden
-            text-[clamp(2.2rem,7vw,3rem)]
-            leading-[1.05]
-            tracking-[-0.02em]
-            mb-12
-          "
-        />
+        <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-12 md:mb-16 max-w-[820px]">
+          <span className="text-muted-foreground font-medium">Helping brands grow in a </span>
+          <span className="text-foreground font-semibold">digital-first world.</span>
+        </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-10 lg:gap-14 items-stretch">
           {/* ================= IMAGE =================
@@ -85,7 +78,7 @@ const AboutSection = () => {
               values open and close and the column grows. The photograph
               eases in a little at the same time, so the extra height reads
               as intentional rather than as the frame merely getting taller. */}
-          <div className="relative w-full h-full min-h-[360px] lg:min-h-[520px] rounded-2xl overflow-hidden">
+          <div className="relative w-full h-full min-h-[360px] lg:min-h-[520px] rounded-xl overflow-hidden">
             <img
               src={aboutImage}
               alt="The Kola Communications team at work"
@@ -93,16 +86,40 @@ const AboutSection = () => {
               style={{ transform: open.length ? "scale(1.06)" : "scale(1)" }}
               loading="lazy"
             />
+
+            {/* SOCIAL BAR OVER IMAGE */}
+            <div className="absolute bottom-4 left-4 flex gap-2 z-10">
+              {socials.map(({ icon: Icon, href }, i) => (
+                <a
+                  key={i}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="
+                    w-8 h-8 rounded-full
+                    bg-black/70 backdrop-blur-md
+                    flex items-center justify-center
+                    text-white
+                    transition-all duration-300
+                    hover:scale-110 hover:bg-black
+                  "
+                >
+                  <Icon size={14} />
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* ================= COPY ================= */}
           <div>
-            <p className="text-lg leading-[1.65] text-muted-foreground mb-12">
-              {summary}
-            </p>
+            <div className="space-y-4 text-lg text-muted-foreground leading-[1.65] mb-8">
+              {paragraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
 
-          {/* ===== VALUES ===== */}
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-10">
+            {/* ===== VALUES ===== */}
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-6">
               {values.map((value) => {
                 const expanded = open.includes(value.title);
                 const panelId = `about-value-${value.title
@@ -119,7 +136,7 @@ const AboutSection = () => {
                       aria-expanded={expanded}
                       aria-controls={panelId}
                       onClick={() => toggle(value.title)}
-                      className="w-full flex items-center gap-3 py-4 text-left"
+                      className="w-full flex items-center gap-3 py-3.5 text-left"
                     >
                       <motion.span
                         animate={{ rotate: expanded ? 45 : 0 }}
@@ -148,7 +165,7 @@ const AboutSection = () => {
                           transition={{ duration: 0.28, ease: "easeInOut" }}
                           className="overflow-hidden"
                         >
-                          <p className="pb-5 pl-9 pr-2 text-[14px] leading-[1.6] text-muted-foreground">
+                          <p className="pb-4 pl-9 pr-2 text-[14px] leading-[1.6] text-muted-foreground">
                             {value.text}
                           </p>
                         </motion.div>
@@ -163,7 +180,7 @@ const AboutSection = () => {
             <Link
               to="/about"
               className="
-                group mt-8 inline-flex items-center gap-2
+                group inline-flex items-center gap-2
                 rounded-full bg-foreground text-background
                 px-5 py-2.5 text-[15px] font-medium
                 hover:opacity-90 transition-opacity

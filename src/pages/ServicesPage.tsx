@@ -320,15 +320,10 @@ const ServicesPage = () => {
         <section className="py-20 border-t border-border bg-[#fafafa]">
           <div className="max-w-[1080px] mx-auto px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                Our Capabilities
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-                Engineered for end-to-end execution.
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                We handle strategy, design, development, and scaling under one roof.
-              </p>
+              <AnimatedHeading
+                lines={["Engineered for", "end-to-end execution."]}
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -392,12 +387,11 @@ const ServicesPage = () => {
            ══════════════════════════════════════════ */}
         <section className="py-24 section-container px-6 md:px-10">
           <div className="max-w-[1080px] mx-auto text-center">
-            <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-              Modern Tooling
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2 mb-12">
-              Technologies we build and scale with
-            </h2>
+
+            <AnimatedHeading
+              lines={["Technologies we build", "and scale with."]}
+              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] mb-12"
+            />
 
             <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 max-w-4xl mx-auto">
               {techStack.map(({ icon: Icon, name }) => (
@@ -424,12 +418,11 @@ const ServicesPage = () => {
         <section className="py-20 border-t border-border bg-[#fafafa]">
           <div className="max-w-[1080px] mx-auto px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                Engagement Models
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-                Transparent ways to collaborate.
-              </h2>
+
+              <AnimatedHeading
+                lines={["Transparent ways", "to collaborate."]}
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -527,12 +520,11 @@ const ServicesPage = () => {
         <section className="py-24 section-container px-6 md:px-10">
           <div className="max-w-[900px] mx-auto">
             <div className="text-center max-w-xl mx-auto mb-14">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                Got Questions?
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight mt-2">
-                Frequently Asked Questions
-              </h2>
+
+              <AnimatedHeading
+                lines={["Frequently Asked", "Questions."]}
+                className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em]"
+              />
             </div>
 
             <div className="space-y-3">
@@ -583,12 +575,11 @@ const ServicesPage = () => {
         <section className="py-16 border-t border-border text-black">
           <div className="max-w-[1080px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <p className="text-xs uppercase tracking-widest text-black/50 mb-1">
-                Start your project
-              </p>
-              <h3 className="text-2xl md:text-3xl font-bold tracking-tight">
-                Ready to supercharge your digital growth?
-              </h3>
+
+              <AnimatedHeading
+                lines={["Ready to supercharge", "your digital growth?"]}
+                className="text-[clamp(1.9rem,4vw,3rem)] leading-[1.05] tracking-[-0.02em]"
+              />
             </div>
             <button
               onClick={() => setContactOpen(true)}

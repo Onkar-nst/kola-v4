@@ -112,7 +112,7 @@ const ProjectCTA: React.FC = () => {
             transition={{ delay: 0.52, duration: 0.5 }}
             className="flex items-center gap-5 mt-8 pt-6 border-t border-white/8"
           >
-            {[["99+", "happy clients"], ["3×", "avg. traffic growth"], ["5+", "countries"]].map(([val, label], i) => (
+            {[["199+", "Global Founders & Clients"], ["3×", "avg. traffic growth"], ["5+", "countries"]].map(([val, label], i) => (
               <motion.div
                 key={label}
                 initial={{ opacity: 0, y: 6 }}

@@ -103,8 +103,6 @@ const formatDate = (iso: string): string => {
     return new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(new Date(iso));
   } catch { return iso; }
 };
-const estimateReadTime = (html: string): number =>
-  Math.max(1, Math.ceil(stripHtml(html).split(/\s+/).length / 200));
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
   for (const node of schema["@graph"]) {
@@ -443,7 +441,7 @@ const ProjectSidebarCard = memo(({ project, index }: { project: NormalizedProjec
               key={t}
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                navigate(`/projects/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
               }}
               className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
             >
@@ -643,7 +641,7 @@ const BlogPage = () => {
   // ── Fetch 3 sidebar projects ──
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/projects?per_page=3&_embed=1`)
+    fetch(`${WP_API_BASE}/project?per_page=3&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => { if (!cancelled) setSidebarProjects(data.map(normalizeProject)); })
       .catch(() => {});
@@ -663,7 +661,6 @@ const BlogPage = () => {
   /* ── Derived ── */
   const displayTitle  = decodeHtmlEntities(post.title.rendered);
   const formattedDate = formatDate(post.date);
-  const readTime      = estimateReadTime(post.content.rendered);
   const categories    = post._embedded?.["wp:term"]?.[0]?.map((t) => ({
     id: t.id, name: decodeHtmlEntities(t.name), slug: t.slug,
   })) ?? [];
@@ -715,7 +712,7 @@ const BlogPage = () => {
                     <div className="flex flex-wrap gap-2 mb-3">
                       {categories.map((cat) => (
                         <Link key={cat.id}
-                          to={`/category/${cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                          to={`/blogs/category/${cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                           style={{ textDecoration: "none" }}>
                           <motion.span whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.15 }}
                             className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 transition-colors duration-150 cursor-pointer">
@@ -799,7 +796,7 @@ const BlogPage = () => {
                         {articleTags.map((tag) => (
                           <Link
                             key={tag}
-                            to={`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`}
+                            to={`/blogs/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`}
                             style={{ textDecoration: "none" }}
                           >
                             <motion.span
@@ -851,7 +848,7 @@ const BlogPage = () => {
                                   key={t}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                    navigate(`/projects/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
                                   }}
                                   className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
                                 >

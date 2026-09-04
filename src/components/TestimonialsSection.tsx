@@ -120,7 +120,7 @@ const TestimonialsSection = () => {
             </div>
             <div>
               <div className="text-sm">★★★★★</div>
-              <div className="text-xs text-[#777]">99+ Happy clients</div>
+              <div className="text-xs text-[#777]">199+ Global Founders & Clients</div>
             </div>
           </div> */}
         </div>

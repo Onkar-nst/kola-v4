@@ -23,6 +23,20 @@ const PER_PAGE = 6;
    TYPES
 ══════════════════════════════════════════ */
 
+export interface WPTaxonomyItem {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+export interface PostTaxonomyItem {
+  id?: number;
+  name: string;
+  slug: string;
+  taxonomy?: string;
+}
+
 interface AioseoSchema {
   "@graph"?: Array<{
     "@type": string;
@@ -42,6 +56,7 @@ interface WPPost {
   date: string;
   featured_media: number;
   categories: number[];
+  tags?: number[];
   aioseo_head_json?: {
     title?: string;
     description?: string;
@@ -50,15 +65,8 @@ interface WPPost {
   };
   _embedded?: {
     "wp:featuredmedia"?: Array<{ source_url: string; alt_text?: string }>;
-    "wp:term"?: Array<Array<{ id: number; name: string; slug: string }>>;
+    "wp:term"?: Array<Array<{ id: number; name: string; slug: string; taxonomy: string }>>;
   };
-}
-
-interface WPCategory {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
 }
 
 interface NormalizedPost {
@@ -70,10 +78,10 @@ interface NormalizedPost {
   formattedDate: string;
   img: string;
   imgAlt: string;
-  categories: string[];
-  categoryIds: number[];
-  articleTags: string[];   // from aioseo articleSection
-  readTime: number;        // estimated from full content word count
+  categories: PostTaxonomyItem[];
+  tags: PostTaxonomyItem[];
+  allTerms: PostTaxonomyItem[];
+  articleTags: string[];
 }
 
 interface FetchState {
@@ -105,21 +113,6 @@ const formatDate = (iso: string): string => {
   } catch { return iso; }
 };
 
-/**
- * FIX: estimate read time from the FULL content word count,
- * not just the excerpt. WP _embed doesn't include content on
- * listing endpoints, so we fall back to excerpt × 8 as a
- * multiplier (excerpts are ~12% of full article length).
- * Average reading speed = 200 wpm.
- */
-const estimateReadTime = (excerpt: string, content?: string): number => {
-  const source = content ? stripHtml(content) : stripHtml(excerpt);
-  const wordCount = content
-    ? source.split(/\s+/).length
-    : Math.round(source.split(/\s+/).length * 8); // excerpt heuristic
-  return Math.max(1, Math.round(wordCount / 200));
-};
-
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   if (!schema?.["@graph"]) return "";
   for (const node of schema["@graph"]) {
@@ -132,11 +125,6 @@ const getSchemaImageUrl = (schema?: AioseoSchema): string => {
   return "";
 };
 
-/**
- * Extract articleSection tags from AIOSEO @graph.
- * "SEO &amp; AEO, Website Development, React JS"
- * → ["SEO & AEO", "Website Development", "React JS"]
- */
 const getArticleTagsFromSchema = (schema?: AioseoSchema): string[] => {
   if (!schema?.["@graph"]) return [];
   const article = schema["@graph"].find(
@@ -160,10 +148,58 @@ const normalizePost = (p: WPPost): NormalizedPost => {
   const imgAlt =
     p._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ??
     decodeHtmlEntities(p.title.rendered);
-  const categories =
-    p._embedded?.["wp:term"]?.[0]?.map((t) => decodeHtmlEntities(t.name)).slice(0, 2) ?? [];
-  const excerpt = decodeHtmlEntities(stripHtml(p.excerpt.rendered));
+
+  const categories: PostTaxonomyItem[] = [];
+  const tags: PostTaxonomyItem[] = [];
+  const seenSlugs = new Set<string>();
+
+  if (Array.isArray(p._embedded?.["wp:term"])) {
+    p._embedded["wp:term"].forEach((group) => {
+      if (Array.isArray(group)) {
+        group.forEach((term) => {
+          if (term?.name) {
+            const decodedName = decodeHtmlEntities(term.name);
+            const slug = term.slug || decodedName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+            const item: PostTaxonomyItem = {
+              id: term.id,
+              name: decodedName,
+              slug,
+              taxonomy: term.taxonomy,
+            };
+            if (term.taxonomy === "category") {
+              categories.push(item);
+            } else if (term.taxonomy === "post_tag") {
+              tags.push(item);
+            } else {
+              tags.push(item);
+            }
+          }
+        });
+      }
+    });
+  }
+
   const articleTags = getArticleTagsFromSchema(p.aioseo_head_json?.schema);
+  if (tags.length === 0 && articleTags.length > 0) {
+    articleTags.forEach((t) => {
+      const decoded = decodeHtmlEntities(t);
+      tags.push({
+        name: decoded,
+        slug: decoded.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+        taxonomy: "post_tag",
+      });
+    });
+  }
+
+  const allTerms: PostTaxonomyItem[] = [];
+  [...categories, ...tags].forEach((t) => {
+    if (!seenSlugs.has(t.slug)) {
+      seenSlugs.add(t.slug);
+      allTerms.push(t);
+    }
+  });
+
+  const excerpt = decodeHtmlEntities(stripHtml(p.excerpt.rendered));
 
   return {
     id: p.id,
@@ -175,9 +211,9 @@ const normalizePost = (p: WPPost): NormalizedPost => {
     img,
     imgAlt,
     categories,
-    categoryIds: p.categories ?? [],
+    tags,
+    allTerms,
     articleTags,
-    readTime: estimateReadTime(p.excerpt.rendered, p.content?.rendered),
   };
 };
 
@@ -186,19 +222,20 @@ const normalizePost = (p: WPPost): NormalizedPost => {
 ══════════════════════════════════════════ */
 
 const useCategories = () => {
-  const [categories, setCategories] = useState<WPCategory[]>([]);
+  const [categories, setCategories] = useState<WPTaxonomyItem[]>([]);
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/categories?per_page=50&hide_empty=true`)
-      .then((r) => r.json() as Promise<WPCategory[]>)
+    fetch(`${WP_API_BASE}/categories?per_page=100&hide_empty=true`)
+      .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
       .then((data) => {
-        if (!cancelled)
+        if (!cancelled && Array.isArray(data)) {
           setCategories(
             data
               .map((c) => ({ ...c, name: decodeHtmlEntities(c.name) }))
               .filter((c) => c.count > 0)
               .sort((a, b) => b.count - a.count)
           );
+        }
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -206,24 +243,21 @@ const useCategories = () => {
   return categories;
 };
 
-/**
- * Fetch all posts (lightweight, no embed) to build the complete tag list
- * from articleSection across all posts.
- */
-const useAllArticleTags = (): string[] => {
-  const [tags, setTags] = useState<string[]>([]);
+const useTags = () => {
+  const [tags, setTags] = useState<WPTaxonomyItem[]>([]);
   useEffect(() => {
     let cancelled = false;
-    // Fetch without _embed to keep it fast; we only need aioseo_head_json
-    fetch(`${WP_API_BASE}/posts?per_page=100&_fields=id,aioseo_head_json`)
-      .then((r) => r.json() as Promise<WPPost[]>)
+    fetch(`${WP_API_BASE}/tags?per_page=100&hide_empty=true`)
+      .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
       .then((data) => {
-        if (cancelled) return;
-        const tagSet = new Set<string>();
-        for (const p of data) {
-          getArticleTagsFromSchema(p.aioseo_head_json?.schema).forEach((t) => tagSet.add(t));
+        if (!cancelled && Array.isArray(data)) {
+          setTags(
+            data
+              .map((t) => ({ ...t, name: decodeHtmlEntities(t.name) }))
+              .filter((t) => t.count > 0)
+              .sort((a, b) => b.count - a.count)
+          );
         }
-        setTags(Array.from(tagSet).sort());
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -231,26 +265,22 @@ const useAllArticleTags = (): string[] => {
   return tags;
 };
 
-/**
- * Fetch posts with optional category filter (server-side) and
- * optional tag filter (client-side — WP REST has no schema tag filter).
- *
- * When a tag is active we fetch all posts (100 max) and filter locally,
- * then paginate the filtered result. Category filter uses WP's native
- * ?categories= param for efficiency.
- */
 const usePosts = (
   page: number,
   categoryId: number | null,
-  activeTag: string | null
+  categorySlug: string | null,
+  tagId: number | null,
+  tagSlug: string | null
 ): FetchState => {
   const [state, setState] = useState<FetchState>(() => {
     if (
       typeof window !== "undefined" &&
       (window as any).__INITIAL_DATA__?.blogs &&
       page === 1 &&
-      categoryId === null &&
-      activeTag === null
+      !categoryId &&
+      !tagId &&
+      !categorySlug &&
+      !tagSlug
     ) {
       return {
         posts: (window as any).__INITIAL_DATA__.blogs.posts,
@@ -263,26 +293,11 @@ const usePosts = (
   });
 
   useEffect(() => {
-    if (
-      typeof window !== "undefined" &&
-      (window as any).__INITIAL_DATA__?.blogs &&
-      page === 1 &&
-      categoryId === null &&
-      activeTag === null &&
-      state.posts.length > 0
-    ) {
-      return;
-    }
     let cancelled = false;
     setState((s) => ({ ...s, loading: true }));
 
-    if (!activeTag) {
-      // ── Server-side category pagination ──
-      const url = categoryId
-        ? `${WP_API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&categories=${categoryId}&_embed=1&orderby=date&order=desc`
-        : `${WP_API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&_embed=1&orderby=date&order=desc`;
-
-      fetch(url)
+    if (categoryId) {
+      fetch(`${WP_API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&categories=${categoryId}&_embed=1&orderby=date&order=desc`)
         .then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const totalPages = Number(r.headers.get("X-WP-TotalPages") ?? 1);
@@ -292,30 +307,48 @@ const usePosts = (
             setState({ posts: data.map(normalizePost), loading: false, totalPages, totalItems });
         })
         .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
-
-    } else {
-      // ── Client-side tag filter (fetch all, filter by articleSection tag) ──
-      const baseUrl = categoryId
-        ? `${WP_API_BASE}/posts?per_page=100&categories=${categoryId}&_embed=1&orderby=date&order=desc`
-        : `${WP_API_BASE}/posts?per_page=100&_embed=1&orderby=date&order=desc`;
-
-      fetch(baseUrl)
+    } else if (tagId) {
+      fetch(`${WP_API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&tags=${tagId}&_embed=1&orderby=date&order=desc`)
+        .then(async (r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const totalPages = Number(r.headers.get("X-WP-TotalPages") ?? 1);
+          const totalItems = Number(r.headers.get("X-WP-Total") ?? 0);
+          const data: WPPost[] = await r.json();
+          if (!cancelled)
+            setState({ posts: data.map(normalizePost), loading: false, totalPages, totalItems });
+        })
+        .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
+    } else if (categorySlug || tagSlug) {
+      fetch(`${WP_API_BASE}/posts?per_page=100&_embed=1&orderby=date&order=desc`)
         .then(async (r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const data: WPPost[] = await r.json();
           if (cancelled) return;
-
-          const filtered = data
-            .map(normalizePost)
-            .filter((p) =>
-              p.articleTags.some((t) => t.toLowerCase() === activeTag.toLowerCase())
-            );
-
+          const normalized = data.map(normalizePost);
+          const filtered = normalized.filter((p) => {
+            if (categorySlug) {
+              return p.categories.some(
+                (c) =>
+                  c.slug.toLowerCase() === categorySlug.toLowerCase() ||
+                  c.name.toLowerCase() === categorySlug.toLowerCase()
+              );
+            }
+            if (tagSlug) {
+              return (
+                p.tags.some(
+                  (t) =>
+                    t.slug.toLowerCase() === tagSlug.toLowerCase() ||
+                    t.name.toLowerCase() === tagSlug.toLowerCase()
+                ) ||
+                p.articleTags.some((t) => t.toLowerCase() === tagSlug.toLowerCase())
+              );
+            }
+            return true;
+          });
           const totalItems = filtered.length;
           const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
           const safePage = Math.min(page, totalPages);
           const start = (safePage - 1) * PER_PAGE;
-
           setState({
             posts: filtered.slice(start, start + PER_PAGE),
             loading: false,
@@ -324,10 +357,21 @@ const usePosts = (
           });
         })
         .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
+    } else {
+      fetch(`${WP_API_BASE}/posts?per_page=${PER_PAGE}&page=${page}&_embed=1&orderby=date&order=desc`)
+        .then(async (r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const totalPages = Number(r.headers.get("X-WP-TotalPages") ?? 1);
+          const totalItems = Number(r.headers.get("X-WP-Total") ?? 0);
+          const data: WPPost[] = await r.json();
+          if (!cancelled)
+            setState({ posts: data.map(normalizePost), loading: false, totalPages, totalItems });
+        })
+        .catch(() => { if (!cancelled) setState((s) => ({ ...s, loading: false })); });
     }
 
     return () => { cancelled = true; };
-  }, [page, categoryId, activeTag]);
+  }, [page, categoryId, categorySlug, tagId, tagSlug]);
 
   return state;
 };
@@ -376,8 +420,8 @@ const GlitchOverlay = memo(() => (
 interface BlogCardProps {
   post: NormalizedPost;
   index: number;
-  onCategoryClick: (id: number, name: string) => void;
-  onTagClick: (tag: string) => void;
+  onCategoryClick: (item: PostTaxonomyItem) => void;
+  onTagClick: (item: PostTaxonomyItem) => void;
 }
 
 const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardProps) => {
@@ -392,55 +436,71 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
       initial={{ opacity: 0, y: 28 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ delay: index * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="group overflow-hidden border border-black/10 bg-white relative flex flex-col"
+      className="group overflow-hidden rounded-xl border border-black/10 bg-white relative flex flex-col"
       onMouseEnter={() => { setHovered(true); trigger(); }}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Header — fixed min-height so all cards in a row align */}
-      <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} tabIndex={-1}>
-        <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3"
-          style={{ minHeight: "80px" }}>
-          <div className="min-w-0 flex-1">
-            <span className="text-[14.5px] text-black font-medium leading-snug block mb-2">
-              {post.title}
-            </span>
-            {/* Category + tag pills in single non-wrapping scrollable row */}
-            {(post.categories.length > 0 || post.articleTags.length > 0) && (
-              <div
-                className="flex gap-1.5 overflow-x-auto"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-                onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}
-              >
-                {post.categories.map((cat, i) => {
-                  const catId = post.categoryIds[i];
-                  return (
-                    <button key={`cat-${cat}`}
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (catId) onCategoryClick(catId, cat); }}
-                      className="text-[10px] px-2 py-0.5 text-black/45 border border-black/10 whitespace-nowrap hover:border-black/30 hover:text-black transition-colors duration-150 shrink-0 cursor-pointer">
-                      {cat}
-                    </button>
-                  );
-                })}
-                {post.articleTags.slice(0, 3).map((tag) => (
-                  <button key={`tag-${tag}`}
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTagClick(tag); }}
-                    className="text-[10px] px-2 py-0.5 text-black/35 border border-black/[0.07] whitespace-nowrap hover:border-black/25 hover:text-black/60 transition-colors duration-150 shrink-0 cursor-pointer bg-black/[0.01]">
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5">
-            <motion.span animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }} transition={{ duration: 0.18 }} className="absolute">
-              <ArrowUpRight size={16} className="text-black/50" />
-            </motion.span>
-            <motion.span animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }} transition={{ duration: 0.18 }} className="absolute">
-              <ArrowUpRight size={16} className="text-black" />
-            </motion.span>
-          </div>
+      {/* Header */}
+      <div className="flex justify-between items-start px-5 py-4 border-b border-black/10 gap-3"
+        style={{ minHeight: "80px" }}>
+        <div className="min-w-0 flex-1">
+          <Link
+            to={`/${post.slug}`}
+            className="text-[14.5px] text-black font-medium leading-snug block mb-2 hover:text-black/70 transition-colors"
+          >
+            {post.title}
+          </Link>
+          {/* Category + tag pills */}
+          {post.allTerms.length > 0 && (
+            <div
+              className="flex gap-1.5 overflow-x-auto"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              onWheel={(e) => { e.currentTarget.scrollLeft += e.deltaY; }}
+            >
+              {post.categories.map((cat) => (
+                <button
+                  key={`cat-${cat.slug || cat.name}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onCategoryClick(cat);
+                  }}
+                  className="text-[10px] px-2.5 py-0.5 text-black/55 border border-black/15 whitespace-nowrap hover:border-black/40 hover:text-black transition-colors duration-150 shrink-0 cursor-pointer rounded-xl"
+                >
+                  {cat.name}
+                </button>
+              ))}
+              {post.tags.slice(0, 3).map((tag) => (
+                <button
+                  key={`tag-${tag.slug || tag.name}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onTagClick(tag);
+                  }}
+                  className="text-[10px] px-2.5 py-0.5 text-black/40 border border-black/[0.08] whitespace-nowrap hover:border-black/30 hover:text-black/70 transition-colors duration-150 shrink-0 cursor-pointer bg-black/[0.02] rounded-xl"
+                >
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-      </Link>
+        <Link
+          to={`/${post.slug}`}
+          className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5"
+          tabIndex={-1}
+        >
+          <motion.span animate={hovered ? { x: 16, y: -16, opacity: 0 } : { x: 0, y: 0, opacity: 1 }} transition={{ duration: 0.18 }} className="absolute">
+            <ArrowUpRight size={16} className="text-black/50" />
+          </motion.span>
+          <motion.span animate={hovered ? { x: 0, y: 0, opacity: 1 } : { x: -16, y: 16, opacity: 0 }} transition={{ duration: 0.18 }} className="absolute">
+            <ArrowUpRight size={16} className="text-black" />
+          </motion.span>
+        </Link>
+      </div>
 
       {/* Image + meta */}
       <Link to={`/${post.slug}`} style={{ textDecoration: "none" }} className="flex-1 flex flex-col">
@@ -448,39 +508,27 @@ const BlogCard = memo(({ post, index, onCategoryClick, onTagClick }: BlogCardPro
           <motion.img src={post.img} alt={post.imgAlt}
             className="absolute inset-0 w-full h-full object-cover"
             animate={{ opacity: hovered && glitching ? 0 : 1 }} loading="lazy" />
-          <motion.img src={post.img} alt={post.imgAlt}
-            className="absolute inset-0 w-full h-full object-cover"
-            initial={{ opacity: 0, scale: 1.06 }}
-            animate={{ opacity: hovered && !glitching ? 1 : 0, scale: hovered ? 1 : 1.06 }}
-            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} loading="lazy" />
           <AnimatePresence>{glitching && <GlitchOverlay />}</AnimatePresence>
         </div>
-        <div className="px-5 py-3 flex items-center gap-2 border-t border-black/[0.06]">
-          <span className="text-[11px] text-black/30">{post.formattedDate}</span>
+        <div className="px-5 py-3 border-t border-black/10 flex items-center justify-between text-[11px] text-black/40">
+          <span>{post.formattedDate}</span>
         </div>
       </Link>
     </motion.div>
   );
 });
 
-/* ══════════════════════════════════════════
-   BLOG CARD ROW  (pair-level equal height)
-══════════════════════════════════════════ */
-
 interface BlogCardRowProps {
   pair: NormalizedPost[];
   rowIndex: number;
-  onCategoryClick: (id: number, name: string) => void;
-  onTagClick: (tag: string) => void;
+  onCategoryClick: (item: PostTaxonomyItem) => void;
+  onTagClick: (item: PostTaxonomyItem) => void;
 }
 
 const BlogCardRow = memo(({ pair, rowIndex, onCategoryClick, onTagClick }: BlogCardRowProps) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
     {pair.map((post, i) => (
-      <BlogCard
-        key={post.slug}
-        post={post}
-        index={rowIndex * 2 + i}
+      <BlogCard key={post.slug} post={post} index={rowIndex * 2 + i}
         onCategoryClick={onCategoryClick}
         onTagClick={onTagClick}
       />
@@ -488,25 +536,27 @@ const BlogCardRow = memo(({ pair, rowIndex, onCategoryClick, onTagClick }: BlogC
   </div>
 ));
 
-/* ══════════════════════════════════════════
-   SKELETON
-══════════════════════════════════════════ */
-
 const SkeletonCard = memo(({ index }: { index: number }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
     transition={{ delay: index * 0.05, duration: 0.3 }}
-    className="border border-black/10 overflow-hidden animate-pulse flex flex-col">
-    <div className="px-5 py-4 border-b border-black/10 space-y-2" style={{ minHeight: "80px" }}>
-      <div className="h-4 bg-black/[0.06] rounded-sm w-3/4" />
-      <div className="flex gap-1.5">{[60, 80].map((w, i) => <div key={i} className="h-4 bg-black/[0.04] rounded-sm" style={{ width: w }} />)}</div>
+    className="border border-black/10 rounded-xl overflow-hidden bg-white flex flex-col">
+    <div className="p-5 border-b border-black/10 space-y-2">
+      <div className="h-4 bg-black/[0.06] rounded-sm w-3/4 animate-pulse" />
+      <div className="flex gap-2">
+        <div className="h-3.5 bg-black/[0.04] rounded-sm w-16 animate-pulse" />
+        <div className="h-3.5 bg-black/[0.04] rounded-sm w-12 animate-pulse" />
+      </div>
     </div>
-    <div className="aspect-[16/9] bg-black/[0.04] flex-1" />
-    <div className="px-5 py-3 flex gap-2 border-t border-black/[0.06]"><div className="h-3 w-20 bg-black/[0.04] rounded-sm" /></div>
+    <div className="aspect-[16/9] bg-black/[0.04] animate-pulse" />
+    <div className="p-3 border-t border-black/10 flex justify-between">
+      <div className="h-3 bg-black/[0.04] rounded-sm w-16 animate-pulse" />
+      <div className="h-3 bg-black/[0.04] rounded-sm w-16 animate-pulse" />
+    </div>
   </motion.div>
 ));
 
 /* ══════════════════════════════════════════
-   FILTER TABS — switching between Category / Tag mode
+   FILTER TABS & BARS
 ══════════════════════════════════════════ */
 
 type FilterMode = "category" | "tag";
@@ -526,76 +576,45 @@ const FilterModeTabs = memo(({ mode, onSwitch }: { mode: FilterMode; onSwitch: (
   </div>
 ));
 
-/* ══════════════════════════════════════════
-   DESKTOP FILTER BAR  (Categories OR Tags)
-══════════════════════════════════════════ */
-
-interface CategoryFilterProps {
-  categories: WPCategory[];
-  activeCategoryId: number | null;
-  activeCategoryName: string | null;
-  onSelect: (id: number | null, name: string | null) => void;
+interface TaxonomyFilterBarProps {
+  items: WPTaxonomyItem[];
+  activeId: number | null;
+  activeSlug: string | null;
+  onSelect: (item: WPTaxonomyItem | null) => void;
 }
 
-const DesktopCategoryBar = memo(({ categories, activeCategoryId, onSelect }: CategoryFilterProps) => {
-  if (!categories.length) return null;
-  return (
-    <div className="hidden md:flex flex-wrap gap-2">
-      <motion.button onClick={() => onSelect(null, null)} whileTap={{ scale: 0.95 }}
-        className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${!activeCategoryId ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
-        All
-      </motion.button>
-      {categories.map((cat) => (
-        <motion.button key={cat.id}
-          onClick={() => onSelect(cat.id === activeCategoryId ? null : cat.id, cat.id === activeCategoryId ? null : cat.name)}
-          whileTap={{ scale: 0.95 }}
-          className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${activeCategoryId === cat.id ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
-          {cat.name}
-        </motion.button>
-      ))}
-    </div>
-  );
-});
-
-interface TagFilterBarProps {
-  tags: string[];
-  activeTag: string | null;
-  onSelect: (tag: string | null) => void;
-}
-
-const DesktopTagBar = memo(({ tags, activeTag, onSelect }: TagFilterBarProps) => {
-  if (!tags.length) return null;
+const DesktopFilterBar = memo(({ items, activeId, activeSlug, onSelect }: TaxonomyFilterBarProps) => {
+  if (!items.length) return null;
   return (
     <div className="hidden md:flex flex-wrap gap-2">
       <motion.button onClick={() => onSelect(null)} whileTap={{ scale: 0.95 }}
-        className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${!activeTag ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
+        className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${(!activeId && !activeSlug) ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
         All
       </motion.button>
-      {tags.map((tag) => (
-        <motion.button key={tag}
-          onClick={() => onSelect(tag === activeTag ? null : tag)}
-          whileTap={{ scale: 0.95 }}
-          className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${activeTag === tag ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
-          {tag}
-        </motion.button>
-      ))}
+      {items.map((item) => {
+        const isActive = (activeId && item.id === activeId) || (activeSlug && item.slug.toLowerCase() === activeSlug.toLowerCase());
+        return (
+          <motion.button key={item.id}
+            onClick={() => onSelect(isActive ? null : item)}
+            whileTap={{ scale: 0.95 }}
+            className={`px-4 py-1.5 text-[12px] font-medium border rounded-full transition-all duration-200 whitespace-nowrap ${isActive ? "bg-black text-white border-black" : "text-black/50 border-black/[0.12] hover:border-black/30 hover:text-black"}`}>
+            {item.name}
+          </motion.button>
+        );
+      })}
     </div>
   );
 });
 
-/* ══════════════════════════════════════════
-   MOBILE FILTER DROPDOWN  (portal-based)
-   Handles both category and tag lists.
-══════════════════════════════════════════ */
-
 interface MobileDropdownProps {
-  items: Array<{ id: string; label: string }>;
-  activeId: string | null;
+  items: WPTaxonomyItem[];
+  activeId: number | null;
+  activeSlug: string | null;
   placeholder: string;
-  onSelect: (id: string | null, label: string | null) => void;
+  onSelect: (item: WPTaxonomyItem | null) => void;
 }
 
-const MobileDropdown = memo(({ items, activeId, placeholder, onSelect }: MobileDropdownProps) => {
+const MobileDropdown = memo(({ items, activeId, activeSlug, placeholder, onSelect }: MobileDropdownProps) => {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null);
@@ -623,7 +642,7 @@ const MobileDropdown = memo(({ items, activeId, placeholder, onSelect }: MobileD
     return () => { clearTimeout(timer); document.removeEventListener("mousedown", handler); };
   }, [open]);
 
-  const activeLabel = items.find((i) => i.id === activeId)?.label ?? null;
+  const activeItem = items.find((i) => (activeId && i.id === activeId) || (activeSlug && i.slug.toLowerCase() === activeSlug.toLowerCase()));
 
   const panel =
     open && triggerRect
@@ -647,19 +666,36 @@ const MobileDropdown = memo(({ items, activeId, placeholder, onSelect }: MobileD
               className="bg-white border border-black/[0.12] rounded-xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto"
             >
               <button
-                onClick={() => { onSelect(null, null); setOpen(false); }}
-                className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] border-b border-black/[0.07] transition-colors ${!activeId ? "text-black font-semibold bg-black/[0.04]" : "text-black/55 hover:bg-black/[0.02] hover:text-black"}`}>
-                <span>All</span>
-                {!activeId && <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />}
+                onClick={() => { onSelect(null); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] border-b border-black/[0.07] transition-colors duration-100 ${
+                  !activeItem
+                    ? "text-black font-semibold bg-black/[0.04]"
+                    : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                }`}
+              >
+                <span>{placeholder}</span>
+                {!activeItem && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
               </button>
-              {items.map((item, i) => (
-                <button key={item.id}
-                  onClick={() => { onSelect(item.id === activeId ? null : item.id, item.id === activeId ? null : item.label); setOpen(false); }}
-                  className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] transition-colors ${i < items.length - 1 ? "border-b border-black/[0.05]" : ""} ${activeId === item.id ? "text-black font-semibold bg-black/[0.04]" : "text-black/55 hover:bg-black/[0.02] hover:text-black"}`}>
-                  <span>{item.label}</span>
-                  {activeId === item.id && <span className="w-1.5 h-1.5 rounded-full bg-black shrink-0" />}
-                </button>
-              ))}
+
+              {items.map((item, i) => {
+                const isSelected = activeItem?.id === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { onSelect(isSelected ? null : item); setOpen(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-3.5 text-[13px] transition-colors duration-100 ${
+                      i < items.length - 1 ? "border-b border-black/[0.05]" : ""
+                    } ${
+                      isSelected
+                        ? "text-black font-semibold bg-black/[0.04]"
+                        : "text-black/55 hover:bg-black/[0.02] hover:text-black"
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-black flex-shrink-0" />}
+                  </button>
+                );
+              })}
             </motion.div>
           </AnimatePresence>,
           document.body
@@ -668,17 +704,22 @@ const MobileDropdown = memo(({ items, activeId, placeholder, onSelect }: MobileD
 
   return (
     <div className="md:hidden">
-      <motion.button ref={triggerRef}
+      <motion.button
+        ref={triggerRef}
         onClick={() => { syncRect(); setOpen((o) => !o); }}
         whileTap={{ scale: 0.98 }}
-        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.15] rounded-lg text-[13px] bg-white shadow-sm">
-        <span className={activeLabel ? "text-black font-medium" : "text-black/45"}>
-          {activeLabel ?? placeholder}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3 border border-black/[0.15] rounded-lg text-[13px] bg-white shadow-sm"
+      >
+        <span className={activeItem ? "text-black font-medium" : "text-black/45"}>
+          {activeItem?.name ?? placeholder}
         </span>
-        <div className="flex items-center gap-2 shrink-0">
-          {activeId && (
-            <button onClick={(e) => { e.stopPropagation(); onSelect(null, null); setOpen(false); }}
-              className="text-black/30 hover:text-black/60 transition-colors p-0.5">
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {activeItem && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onSelect(null); setOpen(false); }}
+              className="text-black/30 hover:text-black/60 transition-colors p-0.5"
+              aria-label="Clear filter"
+            >
               <X size={12} strokeWidth={2} />
             </button>
           )}
@@ -692,40 +733,44 @@ const MobileDropdown = memo(({ items, activeId, placeholder, onSelect }: MobileD
   );
 });
 
-/* ══════════════════════════════════════════
-   ACTIVE FILTER BADGE + RESULTS COUNT
-══════════════════════════════════════════ */
-
 const ActiveFilterBadge = memo(({ name, onClear }: { name: string; onClear: () => void }) => (
-  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+  <motion.div initial={{ opacity: 0, scale: 0.9, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+    exit={{ opacity: 0, scale: 0.9, y: -4 }} transition={{ duration: 0.2 }}
     className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white text-[11.5px] rounded-full font-medium">
     <span>{name}</span>
-    <button onClick={onClear} className="hover:opacity-70 transition-opacity"><X size={10} strokeWidth={2} /></button>
+    <button onClick={onClear} className="hover:opacity-70 transition-opacity" aria-label="Remove filter">
+      <X size={10} strokeWidth={2} />
+    </button>
   </motion.div>
 ));
 
-const ResultsCount = memo(({ total, loading, label }: { total: number; loading: boolean; label: string | null }) => {
+const ResultsCount = memo(({ total, loading, label }: {
+  total: number; loading: boolean; label: string | null;
+}) => {
   if (loading) return null;
   return (
     <motion.p key={`${total}-${label}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       className="text-[11.5px] text-black/30 tracking-wide">
-      {total} {total === 1 ? "article" : "articles"}{label ? ` in "${label}"` : ""}
+      {total} {total === 1 ? "article" : "articles"}
+      {label ? ` in "${label}"` : ""}
     </motion.p>
   );
 });
 
-/* ══════════════════════════════════════════
-   PAGINATION
-══════════════════════════════════════════ */
-
-const PaginationBtn = memo(({ onClick, disabled, active, children }: { onClick: () => void; disabled?: boolean; active?: boolean; children: React.ReactNode }) => (
+const PaginationBtn = memo(({ onClick, disabled, active, children }: {
+  onClick: () => void; disabled?: boolean; active?: boolean; children: React.ReactNode;
+}) => (
   <motion.button onClick={onClick} disabled={disabled} whileTap={!disabled ? { scale: 0.9 } : {}}
-    className={`inline-flex items-center justify-center w-9 h-9 text-sm border transition-colors duration-150 ${active ? "border-black bg-black text-white" : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"} disabled:opacity-30 disabled:cursor-not-allowed`}>
+    className={`inline-flex items-center justify-center w-9 h-9 text-sm border transition-colors duration-150 ${
+      active ? "border-black bg-black text-white" : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"
+    } disabled:opacity-30 disabled:cursor-not-allowed`}>
     {children}
   </motion.button>
 ));
 
-const Pagination = memo(({ page, totalPages, onPageChange }: { page: number; totalPages: number; onPageChange: (p: number) => void }) => {
+const Pagination = memo(({ page, totalPages, onPageChange }: {
+  page: number; totalPages: number; onPageChange: (p: number) => void;
+}) => {
   if (totalPages <= 1) return null;
   const getPages = (): (number | "…")[] => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -737,21 +782,26 @@ const Pagination = memo(({ page, totalPages, onPageChange }: { page: number; tot
     return pages;
   };
   return (
-    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-      className="mt-16 flex items-center justify-center gap-2">
-      <PaginationBtn onClick={() => onPageChange(page - 1)} disabled={page === 1}><ChevronLeft size={14} /></PaginationBtn>
-      {getPages().map((p, i) => p === "…"
-        ? <span key={`e-${i}`} className="w-9 text-center text-black/30 text-sm">…</span>
-        : <PaginationBtn key={p} onClick={() => onPageChange(p as number)} active={p === page}>{p}</PaginationBtn>
+    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }} className="mt-16 flex items-center justify-center gap-2">
+      <PaginationBtn onClick={() => onPageChange(page - 1)} disabled={page === 1}>
+        <ChevronLeft size={14} />
+      </PaginationBtn>
+      {getPages().map((p, i) =>
+        p === "…" ? (
+          <span key={`e-${i}`} className="w-9 text-center text-black/30 text-sm">…</span>
+        ) : (
+          <PaginationBtn key={p} onClick={() => onPageChange(p as number)} active={p === page}>
+            {p}
+          </PaginationBtn>
+        )
       )}
-      <PaginationBtn onClick={() => onPageChange(page + 1)} disabled={page === totalPages}><ChevronRight size={14} /></PaginationBtn>
+      <PaginationBtn onClick={() => onPageChange(page + 1)} disabled={page === totalPages}>
+        <ChevronRight size={14} />
+      </PaginationBtn>
     </motion.div>
   );
 });
-
-/* ══════════════════════════════════════════
-   EMPTY STATE
-══════════════════════════════════════════ */
 
 const EmptyState = memo(({ label, onClear }: { label: string; onClear: () => void }) => (
   <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -771,119 +821,152 @@ const BlogDisplay = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const isCategoryRoute = location.pathname.startsWith("/category");
-  const isTagRoute = location.pathname.startsWith("/tag");
+  const isCategoryRoute = location.pathname.startsWith("/blogs/category") || location.pathname.startsWith("/category");
+  const isTagRoute = location.pathname.startsWith("/blogs/tag") || location.pathname.startsWith("/tag");
 
   const categoryParam = searchParams.get("category");
-  const categoryNameParam = searchParams.get("categoryName");
   const tagParam = searchParams.get("tag");
   const pageParam = Math.max(1, Number(searchParams.get("page") ?? 1));
 
-  const [filterMode, setFilterMode] = useState<FilterMode>(
+  const categories = useCategories();
+  const tags = useTags();
+
+  const [filterMode, setFilterMode] = useState<FilterMode>(() =>
     isTagRoute || tagParam ? "tag" : "category"
   );
 
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(
-    categoryParam ? Number(categoryParam) : null
-  );
-  const [activeCategoryName, setActiveCategoryName] = useState<string | null>(categoryNameParam);
-  const [activeTag, setActiveTag] = useState<string | null>(
-    isTagRoute && routeSlug ? decodeURIComponent(routeSlug).replace(/-/g, " ") : tagParam
-  );
-
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [activeCategorySlug, setActiveCategorySlug] = useState<string | null>(categoryParam);
+  const [activeTagId, setActiveTagId] = useState<number | null>(null);
+  const [activeTagSlug, setActiveTagSlug] = useState<string | null>(tagParam);
   const [page, setPage] = useState(pageParam);
-
-  const categories = useCategories();
-  const allTags = useAllArticleTags();
 
   useEffect(() => {
     if (isCategoryRoute && routeSlug) {
       setFilterMode("category");
+      setActiveCategorySlug(routeSlug);
+      setActiveTagSlug(null);
+      setActiveTagId(null);
       const found = categories.find((c) => c.slug.toLowerCase() === routeSlug.toLowerCase());
       if (found) {
         setActiveCategoryId(found.id);
-        setActiveCategoryName(found.name);
       } else {
         fetch(`${WP_API_BASE}/categories?slug=${encodeURIComponent(routeSlug)}`)
-          .then((r) => r.json() as Promise<WPCategory[]>)
+          .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
           .then((data) => {
-            if (data && data.length > 0) {
-              setActiveCategoryId(data[0].id);
-              setActiveCategoryName(decodeHtmlEntities(data[0].name));
-            }
+            if (data && data.length > 0) setActiveCategoryId(data[0].id);
           })
           .catch(() => {});
       }
-      setActiveTag(null);
     } else if (isTagRoute && routeSlug) {
       setFilterMode("tag");
-      const decoded = decodeURIComponent(routeSlug).replace(/-/g, " ");
-      const matchingTag = allTags.find(
-        (t) => t.toLowerCase() === decoded.toLowerCase() ||
-               t.toLowerCase().replace(/[^a-z0-9]+/g, "-") === routeSlug.toLowerCase()
-      );
-      setActiveTag(matchingTag || decoded);
+      setActiveTagSlug(routeSlug);
+      setActiveCategorySlug(null);
       setActiveCategoryId(null);
-      setActiveCategoryName(null);
+      const found = tags.find((t) => t.slug.toLowerCase() === routeSlug.toLowerCase());
+      if (found) {
+        setActiveTagId(found.id);
+      } else {
+        fetch(`${WP_API_BASE}/tags?slug=${encodeURIComponent(routeSlug)}`)
+          .then((r) => r.json() as Promise<WPTaxonomyItem[]>)
+          .then((data) => {
+            if (data && data.length > 0) setActiveTagId(data[0].id);
+          })
+          .catch(() => {});
+      }
     } else {
       if (categoryParam) {
-        setActiveCategoryId(Number(categoryParam));
-        setActiveCategoryName(categoryNameParam);
         setFilterMode("category");
+        setActiveCategorySlug(categoryParam);
+        setActiveTagSlug(null);
+        setActiveTagId(null);
+        const found = categories.find((c) => c.slug.toLowerCase() === categoryParam.toLowerCase() || String(c.id) === categoryParam);
+        setActiveCategoryId(found ? found.id : null);
       } else if (tagParam) {
-        setActiveTag(tagParam);
         setFilterMode("tag");
+        setActiveTagSlug(tagParam);
+        setActiveCategorySlug(null);
+        setActiveCategoryId(null);
+        const found = tags.find((t) => t.slug.toLowerCase() === tagParam.toLowerCase() || String(t.id) === tagParam);
+        setActiveTagId(found ? found.id : null);
       } else {
         setActiveCategoryId(null);
-        setActiveCategoryName(null);
-        setActiveTag(null);
+        setActiveCategorySlug(null);
+        setActiveTagId(null);
+        setActiveTagSlug(null);
       }
     }
     setPage(pageParam);
-  }, [isCategoryRoute, isTagRoute, routeSlug, categories, allTags, categoryParam, categoryNameParam, tagParam, pageParam]);
+  }, [isCategoryRoute, isTagRoute, routeSlug, categories, tags, categoryParam, tagParam, pageParam]);
 
-  const effectiveTag = filterMode === "tag" ? activeTag : null;
-  const effectiveCategoryId = filterMode === "category" ? activeCategoryId : null;
-
-  const { posts, loading, totalPages, totalItems } = usePosts(page, effectiveCategoryId, effectiveTag);
+  const { posts, loading, totalPages, totalItems } = usePosts(
+    page,
+    filterMode === "category" ? activeCategoryId : null,
+    filterMode === "category" ? activeCategorySlug : null,
+    filterMode === "tag" ? activeTagId : null,
+    filterMode === "tag" ? activeTagSlug : null
+  );
 
   const scrollToTop = useCallback(() => {
     setTimeout(() => document.getElementById("blog-display")?.scrollIntoView({ behavior: "smooth", block: "start" }), 60);
   }, []);
 
-  const handleCategorySelect = useCallback((id: number | null, name: string | null) => {
-    if (id) {
-      const cat = categories.find((c) => c.id === id);
-      const catSlug = cat ? cat.slug : (name ? name.toLowerCase().replace(/[^a-z0-9]+/g, "-") : String(id));
-      setActiveCategoryId(id);
-      setActiveCategoryName(name);
+  const handleCategorySelect = useCallback((item: WPTaxonomyItem | null) => {
+    if (item) {
+      setActiveCategoryId(item.id);
+      setActiveCategorySlug(item.slug);
       setPage(1);
-      navigate(`/category/${catSlug}`);
+      navigate(`/blogs/category/${item.slug}`);
     } else {
       setActiveCategoryId(null);
-      setActiveCategoryName(null);
-      setPage(1);
-      navigate("/blogs");
-    }
-    scrollToTop();
-  }, [categories, navigate, scrollToTop]);
-
-  const handleTagSelect = useCallback((tag: string | null) => {
-    if (tag) {
-      setActiveTag(tag);
-      setPage(1);
-      const tagSlug = tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      navigate(`/tag/${encodeURIComponent(tagSlug)}`);
-    } else {
-      setActiveTag(null);
+      setActiveCategorySlug(null);
       setPage(1);
       navigate("/blogs");
     }
     scrollToTop();
   }, [navigate, scrollToTop]);
 
+  const handleTagSelect = useCallback((item: WPTaxonomyItem | null) => {
+    if (item) {
+      setActiveTagId(item.id);
+      setActiveTagSlug(item.slug);
+      setPage(1);
+      navigate(`/blogs/tag/${item.slug}`);
+    } else {
+      setActiveTagId(null);
+      setActiveTagSlug(null);
+      setPage(1);
+      navigate("/blogs");
+    }
+    scrollToTop();
+  }, [navigate, scrollToTop]);
+
+  const handleCardCategoryClick = useCallback((item: PostTaxonomyItem) => {
+    setFilterMode("category");
+    const matched = categories.find((c) => (item.id && c.id === item.id) || c.slug === item.slug);
+    if (matched) {
+      handleCategorySelect(matched);
+    } else {
+      navigate(`/blogs/category/${item.slug}`);
+    }
+  }, [categories, handleCategorySelect, navigate]);
+
+  const handleCardTagClick = useCallback((item: PostTaxonomyItem) => {
+    setFilterMode("tag");
+    const matched = tags.find((t) => (item.id && t.id === item.id) || t.slug === item.slug);
+    if (matched) {
+      handleTagSelect(matched);
+    } else {
+      navigate(`/blogs/tag/${item.slug}`);
+    }
+  }, [tags, handleTagSelect, navigate]);
+
   const handleFilterModeSwitch = useCallback((m: FilterMode) => {
     setFilterMode(m);
+    setActiveCategoryId(null);
+    setActiveCategorySlug(null);
+    setActiveTagId(null);
+    setActiveTagSlug(null);
     setPage(1);
     navigate("/blogs");
     scrollToTop();
@@ -897,19 +980,16 @@ const BlogDisplay = () => {
   }, [location.pathname, navigate, scrollToTop]);
 
   const activeFilterLabel =
-    filterMode === "tag" ? activeTag :
-    filterMode === "category" ? activeCategoryName : null;
+    filterMode === "category"
+      ? (categories.find((c) => (activeCategoryId && c.id === activeCategoryId) || (activeCategorySlug && c.slug === activeCategorySlug))?.name ?? activeCategorySlug)
+      : (tags.find((t) => (activeTagId && t.id === activeTagId) || (activeTagSlug && t.slug === activeTagSlug))?.name ?? activeTagSlug);
 
-  const gridKey = `${filterMode}-${activeCategoryId ?? "all"}-${activeTag ?? "all"}-${page}`;
+  const gridKey = `${filterMode}-${activeCategoryId ?? activeCategorySlug ?? "all"}-${activeTagId ?? activeTagSlug ?? "all"}-${page}`;
 
   const postRows = Array.from(
     { length: Math.ceil(posts.length / 2) },
     (_, i) => posts.slice(i * 2, i * 2 + 2)
   );
-
-  // Mobile dropdown items
-  const categoryItems = categories.map((c) => ({ id: String(c.id), label: c.name }));
-  const tagItems = allTags.map((t) => ({ id: t, label: t }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -941,33 +1021,43 @@ const BlogDisplay = () => {
               transition={{ delay: 0.18, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               className="mb-8 space-y-4">
 
-              {/* Desktop filter bar — categories, unless a tag deep-link
-                  brought the reader here */}
+              <div className="flex items-center justify-between">
+                <FilterModeTabs mode={filterMode} onSwitch={handleFilterModeSwitch} />
+              </div>
+
+              {/* Desktop filter bar */}
               {filterMode === "category" ? (
-                <DesktopCategoryBar
-                  categories={categories}
-                  activeCategoryId={activeCategoryId}
-                  activeCategoryName={activeCategoryName}
+                <DesktopFilterBar
+                  items={categories}
+                  activeId={activeCategoryId}
+                  activeSlug={activeCategorySlug}
                   onSelect={handleCategorySelect}
                 />
               ) : (
-                <DesktopTagBar tags={allTags} activeTag={activeTag} onSelect={handleTagSelect} />
+                <DesktopFilterBar
+                  items={tags}
+                  activeId={activeTagId}
+                  activeSlug={activeTagSlug}
+                  onSelect={handleTagSelect}
+                />
               )}
 
               {/* Mobile dropdown */}
               {filterMode === "category" ? (
                 <MobileDropdown
-                  items={categoryItems}
-                  activeId={activeCategoryId ? String(activeCategoryId) : null}
+                  items={categories}
+                  activeId={activeCategoryId}
+                  activeSlug={activeCategorySlug}
                   placeholder="All categories"
-                  onSelect={(id, label) => handleCategorySelect(id ? Number(id) : null, label)}
+                  onSelect={handleCategorySelect}
                 />
               ) : (
                 <MobileDropdown
-                  items={tagItems}
-                  activeId={activeTag}
+                  items={tags}
+                  activeId={activeTagId}
+                  activeSlug={activeTagSlug}
                   placeholder="All tags"
-                  onSelect={(id, _label) => handleTagSelect(id)}
+                  onSelect={handleTagSelect}
                 />
               )}
 
@@ -977,7 +1067,7 @@ const BlogDisplay = () => {
                   {activeFilterLabel && (
                     <ActiveFilterBadge
                       name={activeFilterLabel}
-                      onClear={() => filterMode === "tag" ? handleTagSelect(null) : handleCategorySelect(null, null)}
+                      onClear={() => filterMode === "tag" ? handleTagSelect(null) : handleCategorySelect(null)}
                     />
                   )}
                 </AnimatePresence>
@@ -1001,13 +1091,13 @@ const BlogDisplay = () => {
                   </div>
                 ) : posts.length === 0 && activeFilterLabel ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <EmptyState label={activeFilterLabel} onClear={() => filterMode === "tag" ? handleTagSelect(null) : handleCategorySelect(null, null)} />
+                    <EmptyState label={activeFilterLabel} onClear={() => filterMode === "tag" ? handleTagSelect(null) : handleCategorySelect(null)} />
                   </div>
                 ) : (
                   postRows.map((pair, rowIdx) => (
                     <BlogCardRow key={rowIdx} pair={pair} rowIndex={rowIdx}
-                      onCategoryClick={(id, name) => { setFilterMode("category"); handleCategorySelect(id, name); }}
-                      onTagClick={(tag) => { setFilterMode("tag"); handleTagSelect(tag); }}
+                      onCategoryClick={handleCardCategoryClick}
+                      onTagClick={handleCardTagClick}
                     />
                   ))
                 )}

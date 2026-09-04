@@ -41,7 +41,7 @@ const SlugResolver = () => {
 
     // Fetch projects and posts in parallel to quickly determine content type
     Promise.allSettled([
-      fetch(`${WP_API_BASE}/projects?slug=${encodeURIComponent(normalizedSlug)}&_fields=id,slug`),
+      fetch(`${WP_API_BASE}/project?slug=${encodeURIComponent(normalizedSlug)}&_fields=id,slug`),
       fetch(`${WP_API_BASE}/posts?slug=${encodeURIComponent(normalizedSlug)}&_fields=id,slug`),
     ])
       .then(async ([projRes, blogRes]) => {

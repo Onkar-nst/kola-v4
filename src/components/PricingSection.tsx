@@ -8,7 +8,7 @@ import {
 import { motion } from "framer-motion";
 import { useState } from "react";
 import pricingBg from "@/assets/pricing-card-bg.jpg";
-import AnimatedHeading from "@/components/AnimatedHeading";
+import { Layout, Smartphone } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
 
 /* ---------------- DATA ---------------- */
@@ -87,15 +87,11 @@ const PricingSection = () => {
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="mx-auto max-w-[1100px] p-2 md:p-10">
         {/* ================= HEADER ================= */}
-        <div className="grid lg:grid-cols-2 gap-12 mb-20 items-center">
-          <AnimatedHeading
-            lines={["Transparent pricing.", "Real results, no surprises."]}
-            className="hidden md:block text-[clamp(2.6rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]"
-          />
-          <AnimatedHeading
-            lines={["Transparent", "pricing.", "Real results", "no surprises."]}
-            className="md:hidden text-[clamp(2.6rem,5vw,4rem)] leading-[1.05] tracking-[-0.02em]"
-          />
+        <div className="grid lg:grid-cols-2 gap-12 mb-16 md:mb-20 items-center">
+          <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
+            <span className="text-muted-foreground font-medium">Transparent pricing. </span>
+            <span className="text-foreground font-semibold">Real results, no surprises.</span>
+          </h2>
         </div>
 
         {/* ================= STEPS ================= */}

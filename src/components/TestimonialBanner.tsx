@@ -26,7 +26,7 @@ const testimonials = [
   },
 ];
 
-const AUTO_SLIDE_INTERVAL = 5500;
+const AUTO_SLIDE_INTERVAL = 3000;
 
 /* ══════════════════════════════════════════
    COMPONENT
@@ -34,7 +34,6 @@ const AUTO_SLIDE_INTERVAL = 5500;
 
 const TestimonialBanner = () => {
   const [current, setCurrent] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const nextSlide = useCallback(() => {
@@ -42,11 +41,6 @@ const TestimonialBanner = () => {
   }, []);
 
   useEffect(() => {
-    if (isPaused) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      return;
-    }
-
     timerRef.current = setInterval(() => {
       nextSlide();
     }, AUTO_SLIDE_INTERVAL);
@@ -54,13 +48,11 @@ const TestimonialBanner = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isPaused, nextSlide]);
+  }, [nextSlide]);
 
   return (
     <section
-      className="py-24 border-border border-b border-t"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      className="py-12 border-border border-b border-t"
     >
       <div className="section-container px-10">
         <blockquote className="text-center max-w-3xl mx-auto">

@@ -58,14 +58,18 @@ interface WPProject {
   featured_media: number;
   aioseo_head_json?: AioseoHeadJson;
   acf?: {
+    client_requirement_solution?: string;
+    project_link?: string;
     live_url?: string;
     liveUrl?: string;
     hover_img?: string;
     tags?: string[];
     images?: string[];
+    [key: string]: any;
   };
   _embedded?: {
     "wp:featuredmedia"?: Array<{ source_url: string; alt_text?: string }>;
+    "wp:term"?: Array<Array<{ id: number; name: string; slug: string; taxonomy: string }>>;
   };
 }
 
@@ -201,17 +205,33 @@ const normalizeBlog = (p: any): NormalizedBlog => {
 };
 
 const extractContentLiveUrl = (html: string): string => {
-  const pRegex =
-    /<p[^>]*>\s*<a\s+href="([^"]+)"[^>]*>[^<]*live[^<]*<\/a>\s*<\/p>/gi;
-  const match = pRegex.exec(html);
+  const match = /<a\s+[^>]*href="([^"]+)"[^>]*>[^<]*live[^<]*<\/a>/i.exec(html);
   return match ? match[1].trim() : "";
 };
 
 const removeContentLiveParagraph = (html: string): string =>
-  html.replace(
-    /<p[^>]*>\s*<a\s+href="[^"]+"[^>]*>[^<]*live[^<]*<\/a>\s*<\/p>/gi,
-    ""
-  );
+  html
+    .replace(/<p[^>]*>\s*<a\s+[^>]*href="[^"]+"[^>]*>[^<]*live[^<]*<\/a>\s*<\/p>/gi, "")
+    .replace(/<a\s+[^>]*href="[^"]+"[^>]*>[^<]*live[^<]*<\/a>/gi, "");
+
+const formatBodyHtml = (html: string): string => {
+  let formatted = html;
+  if (!/<(p|div|ul|ol|table|blockquote|details)/i.test(formatted)) {
+    formatted = formatted
+      .split(/\r?\n\r?\n/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => `<p>${p.replace(/\r?\n/g, "<br />")}</p>`)
+      .join("");
+  }
+  return formatted.replace(/<a\s+([^>]*href="[^"]+"[^>]*)>/gi, (match, attrs) => {
+    let newAttrs = attrs;
+    if (!/target=/i.test(newAttrs)) {
+      newAttrs += ' target="_blank" rel="noopener noreferrer"';
+    }
+    return `<a ${newAttrs}>`;
+  });
+};
 
 const parseContentSections = (html: string): ContentSection[] => {
   const normalised = html.replace(/>\s+</g, "><").trim();
@@ -249,13 +269,10 @@ const parseFaqItems = (html: string): FaqItem[] => {
     const question = decodeHtmlEntities(
       summaryMatch[1].replace(/<[^>]+>/g, "").trim()
     );
-    const answer = decodeHtmlEntities(
-      inner
-        .replace(/<summary[^>]*>[\s\S]*?<\/summary>/i, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim()
-    );
+    const rawAnswer = inner
+      .replace(/<summary[^>]*>[\s\S]*?<\/summary>/i, "")
+      .trim();
+    const answer = formatBodyHtml(decodeHtmlEntities(rawAnswer));
     if (question) items.push({ question, answer });
   }
 
@@ -265,9 +282,7 @@ const parseFaqItems = (html: string): FaqItem[] => {
       const question = decodeHtmlEntities(
         match[1].replace(/<[^>]+>/g, "").trim()
       );
-      const answer = decodeHtmlEntities(
-        match[2].replace(/<[^>]+>/g, "").trim()
-      );
+      const answer = formatBodyHtml(decodeHtmlEntities(match[2].trim()));
       if (question) items.push({ question, answer });
     }
   }
@@ -488,8 +503,8 @@ const FaqAccordion = memo(({ items }: { items: FaqItem[] }) => {
 const ViewLiveButton = memo(({ href }: { href: string }) => {
   if (!href) return null;
   return (
-    <FadeUp delay={0.05}>
-      <div className="mt-8">
+    <FadeUp delay={0.06}>
+      <div className="mt-10 mb-4">
         <motion.a
           href={href}
           target="_blank"
@@ -497,23 +512,23 @@ const ViewLiveButton = memo(({ href }: { href: string }) => {
           initial="rest"
           whileHover="hover"
           animate="rest"
-          className="group bg-black rounded-full p-4 text-white inline-flex items-center gap-2 text-sm font-medium transition-colors duration-200"
+          className="group inline-flex items-center gap-2.5 px-6 py-3.5 bg-black text-white text-[13.5px] font-medium rounded-full shadow-sm hover:shadow-md hover:bg-black/90 transition-all duration-200 cursor-pointer"
         >
           <span>View live site</span>
-          <span className="relative w-[13px] h-[13px] overflow-hidden">
+          <span className="relative w-3.5 h-3.5 overflow-hidden">
             <motion.span
-              variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: 13, y: -13, opacity: 0 } }}
+              variants={{ rest: { x: 0, y: 0, opacity: 1 }, hover: { x: 14, y: -14, opacity: 0 } }}
               transition={{ duration: 0.18 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <ExternalLink size={12} strokeWidth={1.6} />
+              <ArrowUpRight size={14} strokeWidth={2} />
             </motion.span>
             <motion.span
-              variants={{ rest: { x: -13, y: 13, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }}
+              variants={{ rest: { x: -14, y: 14, opacity: 0 }, hover: { x: 0, y: 0, opacity: 1 } }}
               transition={{ duration: 0.18 }}
               className="absolute inset-0 flex items-center justify-center"
             >
-              <ExternalLink size={12} strokeWidth={1.6} />
+              <ArrowUpRight size={14} strokeWidth={2} />
             </motion.span>
           </span>
         </motion.a>
@@ -645,10 +660,7 @@ const ContentSectionBlock = memo(({
         )}
 
         {isFAQ && faqItems.length > 0 ? (
-          <>
-            <FaqAccordion items={faqItems} />
-            <ViewLiveButton href={liveUrl} />
-          </>
+          <FaqAccordion items={faqItems} />
         ) : (
           <div
             className="
@@ -666,7 +678,7 @@ const ContentSectionBlock = memo(({
               [&_a]:text-black [&_a]:underline [&_a]:underline-offset-2
               [&_a:hover]:text-black/55
             "
-            dangerouslySetInnerHTML={{ __html: section.bodyHtml }}
+            dangerouslySetInnerHTML={{ __html: formatBodyHtml(section.bodyHtml) }}
           />
         )}
       </article>
@@ -745,13 +757,20 @@ const ProjectPage = () => {
 
   const featuredImg =
     project?._embedded?.["wp:featuredmedia"]?.[0]?.source_url ??
+    project?.acf?.hover_img ??
+    project?.acf?.images?.[0] ??
     getSchemaImageUrl(project?.aioseo_head_json) ??
-    "/placeholder.jpg";
+    "";
   const altText =
     project?._embedded?.["wp:featuredmedia"]?.[0]?.alt_text ??
     (project ? decodeHtmlEntities(project.title.rendered) : "");
   const plainDesc = project
-    ? stripHtml(project.content.rendered).slice(0, 160)
+    ? stripHtml(
+        project.content?.rendered ||
+        project.acf?.client_requirement_solution ||
+        project.acf?.content ||
+        ""
+      ).slice(0, 160)
     : "";
 
   useProjectSEO(project, featuredImg, plainDesc);
@@ -765,7 +784,7 @@ const ProjectPage = () => {
     let cancelled = false;
     setLoading(true); setNotFound(false); setProject(null);
 
-    fetch(`${WP_API_BASE}/projects?slug=${encodeURIComponent(slug)}&_embed=1`)
+    fetch(`${WP_API_BASE}/project?slug=${encodeURIComponent(slug)}&_embed=1`)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() as Promise<WPProject[]>; })
       .then((data) => { if (cancelled) return; if (!data.length) setNotFound(true); else setProject(data[0]); })
       .catch(() => { if (!cancelled) setNotFound(true); })
@@ -778,7 +797,7 @@ const ProjectPage = () => {
     if (!slug) return;
     let cancelled = false;
 
-    fetch(`${WP_API_BASE}/projects?per_page=6&_embed=1`)
+    fetch(`${WP_API_BASE}/project?per_page=6&_embed=1`)
       .then((r) => r.json() as Promise<WPProject[]>)
       .then((data) => {
         if (!cancelled && Array.isArray(data))
@@ -820,24 +839,59 @@ const ProjectPage = () => {
       </div>
     );
 
-  const rawContent = project.content.rendered;
+  const rawContent =
+    (project.content?.rendered && project.content.rendered.trim().length > 0)
+      ? project.content.rendered
+      : (project.acf?.client_requirement_solution || project.acf?.content || "");
 
   const liveUrl =
     project.acf?.live_url ??
     project.acf?.liveUrl ??
+    project.acf?.project_link ??
     extractContentLiveUrl(rawContent) ??
     "";
 
   const cleanedContent = removeContentLiveParagraph(rawContent);
 
   const articleSection = getArticleSection(project.aioseo_head_json);
-  const termTags = (project as any)._embedded?.["wp:term"]?.flat()?.map((t: any) => decodeHtmlEntities(t?.name ?? "")).filter(Boolean) ?? [];
-  const acfTags = project.acf?.tags?.map(decodeHtmlEntities) ?? [];
-  const sectionTags = articleSection
-    ? articleSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
-    : [];
+  const termCategories: Array<{ name: string; slug: string }> =
+    (project as any)._embedded?.["wp:term"]?.[0]
+      ?.map((t: any) => ({
+        name: decodeHtmlEntities(t?.name ?? ""),
+        slug: t?.slug ?? String(t?.name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      }))
+      .filter((t: any) => Boolean(t.name)) ?? [];
 
-  const tags: string[] = Array.from(new Set([...sectionTags, ...termTags, ...acfTags])).filter(Boolean);
+  const termTags: Array<{ name: string; slug: string }> =
+    (project as any)._embedded?.["wp:term"]?.[1]
+      ?.map((t: any) => ({
+        name: decodeHtmlEntities(t?.name ?? ""),
+        slug: t?.slug ?? String(t?.name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      }))
+      .filter((t: any) => Boolean(t.name)) ?? [];
+
+  const acfTags: Array<{ name: string; slug: string }> =
+    (project.acf?.tags?.map(decodeHtmlEntities) ?? []).map((t: string) => ({
+      name: t,
+      slug: t.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    }));
+
+  const sectionTags: Array<{ name: string; slug: string }> = (articleSection
+    ? articleSection.split(",").map((t) => decodeHtmlEntities(t.trim())).filter(Boolean)
+    : []).map((t: string) => ({
+      name: t,
+      slug: t.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    }));
+
+  const categories: Array<{ name: string; slug: string }> = termCategories.length > 0
+    ? termCategories
+    : (sectionTags.length > 0 ? sectionTags : acfTags);
+
+  const tags: Array<{ name: string; slug: string }> = Array.from(
+    new Map(
+      [...termTags, ...termCategories, ...sectionTags, ...acfTags].map((item) => [item.slug, item])
+    ).values()
+  );
 
   const hoverImg = project.acf?.hover_img ?? featuredImg;
   const extraImages: string[] = project.acf?.images ?? [];
@@ -897,19 +951,20 @@ const ProjectPage = () => {
                 </div>
 
                 {/* CATEGORIES / TAGS (BELOW TITLE) */}
-                {tags.length > 0 && (
+                {categories.length > 0 && (
                   <FadeUp delay={0.08}>
                     <div className="flex flex-wrap gap-2 pb-6">
-                      {tags.slice(0, 3).map((tag) => (
+                      {categories.slice(0, 3).map((cat) => (
                         <motion.button
-                          key={tag}
-                          onClick={() => navigate(`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`)}
+                          key={cat.slug}
+                          type="button"
+                          onClick={() => navigate(`/projects/category/${encodeURIComponent(cat.slug)}`)}
                           whileHover={{ scale: 1.04 }}
                           whileTap={{ scale: 0.96 }}
                           transition={{ duration: 0.15 }}
                           className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.12] rounded-full text-black/40 tracking-wide hover:border-black/30 hover:text-black/70 hover:bg-black/[0.03] transition-colors duration-150 cursor-pointer"
                         >
-                          {tag}
+                          {cat.name}
                         </motion.button>
                       ))}
                     </div>
@@ -917,35 +972,51 @@ const ProjectPage = () => {
                 )}
 
                 {/* DESKTOP HERO IMAGE */}
-                <motion.div
-                  className="hidden md:block overflow-hidden mb-8 w-full rounded-2xl border border-black/[0.08]"
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <motion.img src={featuredImg} alt={altText}
-                    style={{ y: imgY, scale: imgScale }}
-                    className="w-full h-[400px] lg:h-[460px] object-cover"
-                    loading="eager" />
-                </motion.div>
+                {featuredImg && featuredImg !== "/placeholder.jpg" && (
+                  <motion.div
+                    className="hidden md:block overflow-hidden mb-8 w-full rounded-2xl border border-black/[0.08]"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <motion.img
+                      src={featuredImg}
+                      alt={altText}
+                      style={{ y: imgY, scale: imgScale }}
+                      className="w-full h-[400px] lg:h-[460px] object-cover"
+                      loading="eager"
+                      onError={(e) => {
+                        (e.currentTarget.parentElement as HTMLElement)?.remove();
+                      }}
+                    />
+                  </motion.div>
+                )}
 
                 {/* MOBILE CAROUSEL */}
-                <div className="md:hidden mb-6">
-                  <DragCarousel>
-                    {allImages.map((src, i) => (
-                      <motion.div key={i}
-                        initial={{ opacity: 0, y: 18, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                        style={{ width: "82vw", flexShrink: 0 }}
-                        className="overflow-hidden rounded-[18px]">
-                        <img src={src} alt={`${displayTitle} ${i + 1}`}
-                          className="w-full h-[240px] object-cover"
-                          loading={i === 0 ? "eager" : "lazy"} />
-                      </motion.div>
-                    ))}
-                  </DragCarousel>
-                </div>
+                {allImages.filter((img) => img && img !== "/placeholder.jpg").length > 0 && (
+                  <div className="md:hidden mb-6">
+                    <DragCarousel>
+                      {allImages.filter((img) => img && img !== "/placeholder.jpg").map((src, i) => (
+                        <motion.div key={i}
+                          initial={{ opacity: 0, y: 18, scale: 0.97 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ delay: i * 0.07, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                          style={{ width: "82vw", flexShrink: 0 }}
+                          className="overflow-hidden rounded-[18px]">
+                          <img
+                            src={src}
+                            alt={`${displayTitle} ${i + 1}`}
+                            className="w-full h-[240px] object-cover"
+                            loading={i === 0 ? "eager" : "lazy"}
+                            onError={(e) => {
+                              (e.currentTarget.parentElement as HTMLElement)?.remove();
+                            }}
+                          />
+                        </motion.div>
+                      ))}
+                    </DragCarousel>
+                  </div>
+                )}
 
                 {/* CONTENT SECTIONS */}
                 <div className="pt-2">
@@ -968,7 +1039,7 @@ const ProjectPage = () => {
                     </FadeUp>
                   )}
 
-                  {!hasFaqSection && liveUrl && (
+                  {liveUrl && (
                     <ViewLiveButton href={liveUrl} />
                   )}
 
@@ -982,16 +1053,17 @@ const ProjectPage = () => {
                         <div className="flex flex-wrap gap-2">
                           {tags.map((tag) => (
                             <motion.button
-                              key={tag}
+                              key={tag.slug}
+                              type="button"
                               onClick={() =>
-                                navigate(`/tag/${encodeURIComponent(tag.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`)
+                                navigate(`/projects/tag/${encodeURIComponent(tag.slug)}`)
                               }
                               whileHover={{ scale: 1.04 }}
                               whileTap={{ scale: 0.96 }}
                               transition={{ duration: 0.15 }}
                               className="inline-block px-3 py-1 text-[11.5px] border border-black/[0.1] rounded-full text-black/55 bg-black/[0.02] tracking-wide hover:border-black/25 hover:text-black hover:bg-black/[0.04] transition-colors duration-150 cursor-pointer"
                             >
-                              #{tag}
+                              #{tag.name}
                             </motion.button>
                           ))}
                         </div>
@@ -1035,7 +1107,7 @@ const ProjectPage = () => {
                                     key={t}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                      navigate(`/projects/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
                                     }}
                                     className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
                                   >
@@ -1139,7 +1211,7 @@ const ProjectPage = () => {
                                     key={t}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      navigate(`/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
+                                      navigate(`/projects/tag/${encodeURIComponent(t.toLowerCase().replace(/[^a-z0-9]+/g, "-"))}`);
                                     }}
                                     className="inline-block px-2 py-0.5 text-[10.5px] border border-black/[0.1] rounded-full text-black/45 hover:border-black/30 hover:text-black hover:bg-black/[0.04] transition-colors cursor-pointer"
                                   >

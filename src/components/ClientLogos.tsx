@@ -1,6 +1,5 @@
 import { useAnimationFrame } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { useRef, useEffect } from "react";
 
 const clientAvatars = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
@@ -12,9 +11,15 @@ const clientAvatars = [
 
 const SPEED = 100;
 
-/* Shipped with the site so the marquee never depends on a network round-trip.
-   Supabase rows, when present, take over — see the fetch below. */
-const FALLBACK_LOGOS = [
+interface ClientLogo {
+  id?: string | number;
+  type?: string;
+  image_url?: string;
+  alt?: string;
+  label?: string;
+}
+
+const LOGOS: ClientLogo[] = [
   { type: "image", image_url: "/logos/veena-developers.svg", alt: "Veena Developers" },
   { type: "image", image_url: "/logos/vayu-valves.svg", alt: "Vayu Valves" },
   { type: "image", image_url: "/logos/tazaari.svg", alt: "Tazaari" },
@@ -25,26 +30,9 @@ const FALLBACK_LOGOS = [
 
 const ClientLogos = () => {
   const x = useRef(0);
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const halfWidthRef = useRef(0);
-  const [logos, setLogos] = useState(FALLBACK_LOGOS);
-
-  // FETCH FROM SUPABASE
-  useEffect(() => {
-    const fetchLogos = async () => {
-      const { data, error } = await supabase
-        .from("client_logos")
-        .select("*")
-        .order("label", { ascending: false });
-
-      if (error) {
-        console.error("ClientLogos fetch error:", error.message, error);
-      } else if (data?.length) {
-        setLogos(data);
-      }
-    };
-    fetchLogos();
-  }, []);
+  const logos = LOGOS;
 
 
   useEffect(() => {
@@ -74,7 +62,7 @@ const ClientLogos = () => {
   });
 
   return (
-    <section className="py-10 border-t border-b border-border overflow-hidden">
+    <section className="py-12 border-t border-b border-border overflow-hidden">
       <div className="section-container p-10">
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
 
@@ -101,7 +89,7 @@ const ClientLogos = () => {
                 ))}
               </div>
               <span className="text-xs text-muted-foreground font-medium">
-                99+ Happy clients
+                199+ Global Founders & Clients
               </span>
             </div>
           </div>

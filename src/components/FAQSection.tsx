@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus, Calendar } from "lucide-react";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import ContactForm from "@/components/ContactForm";
 
 /* ─── Data ─── */
@@ -93,23 +92,17 @@ const FAQSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="py-24 border-t border-b border-border section-container relative"
+      className="py-12 border-t border-b border-border section-container relative"
     >
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
       <div className="max-w-[1100px] mx-auto px-4 md:px-10">
         <div className="flex flex-col lg:flex-row gap-14">
           {/* ═══ LEFT — FAQ list ═══ */}
           <div className="flex-1 min-w-0">
-            <AnimatedHeading
-              lines={["Your questions", "answered."]}
-              className="
-                text-[clamp(2.4rem,5vw,3.5rem)]
-                leading-[1.1]
-                tracking-[-0.02em]
-                font-semibold
-                mb-12
-              "
-            />
+            <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-12 md:mb-16">
+              <span className="text-muted-foreground font-medium">Your questions </span>
+              <span className="text-foreground font-semibold">answered.</span>
+            </h2>
 
             <div className="space-y-3">
               {faqs.map((faq, index) => {

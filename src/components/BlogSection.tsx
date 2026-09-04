@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, memo } from "react";
 import { Link } from "react-router-dom";
 import { motion, useInView } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import { setCachedSlugType } from "@/pages/SlugResolver";
 
 /* ══════════════════════════════════════════
@@ -56,7 +55,6 @@ interface NormalizedPost {
   img: string;
   imgAlt: string;
   categories: string[];
-  readTime: number;
 }
 
 /* ══════════════════════════════════════════
@@ -83,14 +81,6 @@ const formatDate = (iso: string): string => {
   } catch {
     return iso;
   }
-};
-
-const estimateReadTime = (excerpt: string, content?: string): number => {
-  const source = content ? stripHtml(content) : stripHtml(excerpt);
-  const wordCount = content
-    ? source.split(/\s+/).length
-    : Math.round(source.split(/\s+/).length * 8);
-  return Math.max(1, Math.round(wordCount / 200));
 };
 
 const getSchemaImageUrl = (schema?: AioseoSchema): string => {
@@ -136,7 +126,6 @@ const normalizePost = (p: WPPost): NormalizedPost => {
     img,
     imgAlt,
     categories,
-    readTime: estimateReadTime(p.excerpt.rendered, p.content?.rendered),
   };
 };
 
@@ -175,7 +164,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
         <motion.div
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          className="group overflow-hidden rounded-2xl border border-black/10 bg-white h-full flex flex-col transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:border-black/20"
+          className="group overflow-hidden rounded-xl border border-black/10 bg-white h-full flex flex-col transition-all duration-300 hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] hover:border-black/20"
         >
           {/* Image */}
           <div className="relative overflow-hidden aspect-[16/10] bg-black/[0.03]">
@@ -230,7 +219,7 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
 ══════════════════════════════════════════ */
 
 const CardSkeleton = () => (
-  <div className="border border-black/10 rounded-2xl overflow-hidden animate-pulse bg-white">
+  <div className="border border-black/10 rounded-xl overflow-hidden animate-pulse bg-white">
     <div className="aspect-[16/10] bg-black/[0.05]" />
     <div className="p-6 space-y-3">
       <div className="h-4 w-16 bg-black/[0.04] rounded-full" />
@@ -262,19 +251,16 @@ const BlogSection = () => {
   }, []);
 
   return (
-    <section className="py-16 md:py-24 section-container">
+    <section className="py-12 section-container">
       <div className="max-w-[1140px] mx-auto p-4 md:p-8">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-black/35 font-semibold mb-3">
-              Journal & Insights
-            </p>
-            <AnimatedHeading
-              lines={["From our blog,", "design insights."]}
-              className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] font-semibold"
-            />
+            <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
+              <span className="text-muted-foreground font-medium">From our blog, </span>
+              <span className="text-foreground font-semibold">design insights.</span>
+            </h2>
           </div>
         </div>
 
