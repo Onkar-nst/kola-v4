@@ -3,26 +3,23 @@ import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
-import ContactForm from "@/components/ContactForm";
 import logo from "/KolaFavicon.jpg"
 
 const avatarImg = "/logos/kola-logo.png";
 // const logo = "https://kolacommunications.com/favicon.png";
 
 const navLinks = [
-  { label: "Services", to: "/services", type: "link" },
   { label: "About", to: "/about", type: "link" },
+  { label: "Services", to: "/services", type: "link" },
   { label: "Our Work", to: "/projects", type: "link" },
   { label: "Blogs", to: "/blogs", type: "link" },
 ];
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <>
-      <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
 
       <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-[calc(100%-48px)] md:w-auto">
         <motion.div
@@ -72,12 +69,12 @@ const Navbar = () => {
             animate={{ opacity: 1, width: "auto" }}
             className="hidden md:inline-flex"
           >
-            <button
-              onClick={() => setContactOpen(true)}
+            <Link
+              to="/contact"
               className="rounded-full -mr-14 bg-black text-white px-5 py-2 text-sm font-medium whitespace-nowrap hover:opacity-90 transition"
             >
               Contact
-            </button>
+            </Link>
           </motion.div>
 
           {/* DESKTOP DOTS */}
@@ -175,15 +172,13 @@ const Navbar = () => {
                 </div>
 
                 <div className="px-5 pb-5 pt-1">
-                  <button
-                    onClick={() => {
-                      setContactOpen(true);
-                      setMobileOpen(false);
-                    }}
+                  <Link
+                    to="/contact"
+                    onClick={() => setMobileOpen(false)}
                     className="flex items-center justify-center rounded-full bg-black text-white py-3 text-sm font-medium w-full"
                   >
                     Contact
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             </>

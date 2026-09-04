@@ -71,7 +71,7 @@ const MainframeHero = () => {
             <div className="text-center lg:text-left">
               {/* EYEBROW BADGE */}
               <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-black/10 bg-black/[0.02] mb-6">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-black/70 animate-pulse" />
                 <span className="text-[11.5px] font-medium tracking-wide uppercase text-black/70">
                   199+ Brands Scaled Across 6 Markets
                 </span>
@@ -85,7 +85,7 @@ const MainframeHero = () => {
 
               {/* SUB-HEADLINE */}
               <p className="text-lg text-muted-foreground max-w-[480px] mx-auto lg:mx-0 leading-[1.65] mb-8">
-                From custom-coded web architectures and generative AI discovery (AEO) to precision lead funnels — we build digital platforms that dominate.
+                From WordPress and Shopify to custom-coded websites, SEO, and AI discovery (AEO), we build digital experiences that get you found and get you chosen.
               </p>
 
               {/* CTA BUTTON */}

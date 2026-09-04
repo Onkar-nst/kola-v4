@@ -12,9 +12,6 @@ import CTAFooter from "@/components/CTAFooter";
 import ContactForm from "@/components/ContactForm";
 import AnimatedHeading from "@/components/AnimatedHeading";
 
-/* The brand blue, as the homepage hero uses it. */
-const BRAND = "#3A3ABE";
-
 /* ══════════════════════════════════════════
    ANIMATED COUNTER
    ══════════════════════════════════════════ */
@@ -91,11 +88,11 @@ const stats = [
     sub: "month-3 campaign returns",
   },
   {
-    target: 99,
+    target: 150,
     prefix: "",
     suffix: "+",
     decimals: 0,
-    label: "Global Founders & Clients",
+    label: "Websites delivered",
     sub: "across 6 markets",
   },
 ];
@@ -108,8 +105,8 @@ const capabilities = [
   },
   {
     num: "02",
-    title: "SEO & Answer Engine Optimisation",
-    desc: "Dominate Google organic rankings and establish clear authority across AI search engines like ChatGPT and Perplexity.",
+    title: "SEO, AEO & GEO",
+    desc: "Dominate Google organic rankings and establish clear authority across AI search engines and generative platforms like ChatGPT, Google AI, Claude, Perplexity and more.",
   },
   {
     num: "03",
@@ -224,15 +221,15 @@ const AboutPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, delay: i * 0.07 }}
-                  className="group rounded-xl border border-border bg-card p-8 transition-all duration-300 hover:border-foreground/25 hover:shadow-sm"
+                  className="group relative overflow-hidden rounded-xl border border-border bg-card p-8 transition-all duration-300 hover:border-foreground/25 hover:shadow-sm"
                 >
                   <span
-                    className="text-[12px] font-semibold tracking-[0.1em]"
-                    style={{ color: BRAND }}
+                    aria-hidden
+                    className="pointer-events-none select-none absolute -top-2 right-4 text-[64px] font-bold leading-none tracking-[-0.04em] text-foreground/[0.06] transition-colors duration-300 group-hover:text-foreground/[0.1]"
                   >
                     {cap.num}
                   </span>
-                  <h3 className="text-[19px] font-semibold tracking-[-0.01em] mt-3 mb-2.5">
+                  <h3 className="relative text-[19px] font-semibold tracking-[-0.01em] mb-2.5">
                     {cap.title}
                   </h3>
                   <p className="text-[15px] text-muted-foreground leading-[1.6]">
@@ -265,13 +262,7 @@ const AboutPage = () => {
                   transition={{ duration: 0.5, delay: i * 0.1 }}
                   className=" pt-6"
                 >
-                  <span
-                    className="text-[12px] font-semibold tracking-[0.1em]"
-                    
-                  >
-                    {item.step}
-                  </span>
-                  <h3 className="text-[19px] font-semibold tracking-[-0.01em] mt-3 mb-2.5">
+                  <h3 className="text-[19px] font-semibold tracking-[-0.01em] mb-2.5">
                     {item.title}
                   </h3>
                   <p className="text-[15px] text-muted-foreground leading-[1.6]">

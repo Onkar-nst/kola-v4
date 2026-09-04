@@ -15,12 +15,12 @@ const socials = [
 const services = [
   "Website Development",
   "SEO & AEO",
+  "AI-Powered Tools & Applications",
   "Lead Generation & Conversion",
-  "Brand Identity & Design",
-  "Performance Marketing",
   "Social Media Marketing",
   "Content Creation & Strategy",
-  "AI-Powered Tools & Applications",
+  "Brand Identity & Design",
+  "Performance Marketing",
 ];
 
 const fadeUp = {
@@ -53,9 +53,15 @@ const CTAFooter = () => (
 
         {/* BRAND */}
         <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={1}>
-          <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Kola Communications</p>
+          <img
+            src="/logos/kola-logo.png"
+            alt="Kola Communications"
+            className="h-8 w-auto brightness-0 invert mb-5"
+          />
           <p className="text-[13px] text-white/45 leading-relaxed mb-5 max-w-[280px]">
-            Experience the future of business with intelligent, scalable solutions tailored to your needs.
+            We build websites, run SEO and social media, and create AI-powered tools that help businesses
+            grow online. From strategy to execution, everything we do is designed around real results,
+            not just good looks.
           </p>
 
           <div className="flex gap-2">
@@ -90,6 +96,7 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Company</p>
           <div className="flex flex-col gap-2.5">
             {[
+              { label: "About", href: "/about" },
               { label: "Contact Us", href: "/contact" },
               { label: "Blog", href: "/blogs" },
               { label: "Our work", href: "/projects" },
@@ -120,20 +127,11 @@ const CTAFooter = () => (
 
             {/* ADDRESS */}
             <div className="flex items-start gap-2">
-              <MapPin size={32} className="" />
+              <MapPin size={16} className="mt-0.5 shrink-0" />
               <span>
-                36, BK Housing Society, Shankar Lane,
-                Kandivali West, Mumbai - 400067
+                23, 2nd Floor, Sharda Bhavan, Opposite Gala Provision Store,
+                Fatak Road / Narayan Joshi Road, Kandivali West, Mumbai – 400067
               </span>
-            </div>
-
-            {/* MAP */}
-            <div className="mt-3 rounded-lg overflow-hidden border border-white/10">
-              <iframe
-                src="https://maps.google.com/maps?q=Kandivali%20West%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                className="w-full h-[140px] "
-                loading="lazy"
-              />
             </div>
 
           </div>

@@ -42,7 +42,7 @@ const values = [
    room for: where the agency came from, what it does now, and the habit
    it credits for keeping clients. */
 const paragraphs = [
-  "Kola Communications grew out of a simple belief — that every business, whatever its size, deserves a powerful digital presence. What began as a passion for creative problem-solving is now a full-service digital marketing agency trusted by brands across India, Australia, the US, Europe and the Middle East.",
+  "Kola Communications was built on one belief: every business, whatever its size, deserves a powerful digital presence. What started as a passion for solving problems creatively has grown into a full-service digital agency trusted by brands across India, Australia, the US, Europe and the Middle East.",
   "We go beyond aesthetics: from high-performance websites to targeted SEO and lead generation, everything we build is designed to deliver measurable impact. We’re detail-obsessed, and we think that’s exactly what sets us apart.",
 ];
 

@@ -1,5 +1,5 @@
 import { motion, type Variants } from "framer-motion";
-import { memo, useMemo } from "react";
+import { Fragment, memo, useMemo } from "react";
 
 /**
  * Props:
@@ -66,24 +66,25 @@ const AnimatedHeading = ({
       className={className}
     >
       {splitLines.map((line, lineIndex) => (
-        <div
-          key={lineIndex}
-          className={`block whitespace-nowrap ${
-            lineIndex === 0
-              ? "text-muted-foreground font-medium"
-              : "text-foreground font-semibold"
-          }`}
-        >
-          {line.map((wordText, i) => (
-            <motion.span
-              key={i}
-              variants={word}
-              className="inline-block mr-3"
-            >
-              {wordText}
-            </motion.span>
-          ))}
-        </div>
+        <Fragment key={lineIndex}>
+          {lineIndex > 0 && <br />}
+          <span
+            className={`whitespace-nowrap ${
+              lineIndex === 0
+                ? "text-muted-foreground font-medium"
+                : "text-foreground font-semibold"
+            }`}
+          >
+            {line.map((wordText, i) => (
+              <Fragment key={i}>
+                {i > 0 && " "}
+                <motion.span variants={word} className="inline-block">
+                  {wordText}
+                </motion.span>
+              </Fragment>
+            ))}
+          </span>
+        </Fragment>
       ))}
     </motion.h2>
   );

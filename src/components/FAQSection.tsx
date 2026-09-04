@@ -8,7 +8,7 @@ import ContactForm from "@/components/ContactForm";
 const faqs = [
   {
     q: "What services does Kola Communications offer?",
-    a: "We offer a full suite of digital marketing services including website development, SEO & AEO, lead generation, performance marketing, social media marketing, content creation, brand identity design, and AI-powered tools and applications.",
+    a: "We offer a full suite of digital marketing services including website development, SEO, AEO & GEO, lead generation, performance marketing, social media marketing, content creation, brand identity design, and AI-powered tools and applications.",
   },
   {
     q: "Do you work with businesses outside of India?",

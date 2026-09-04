@@ -110,7 +110,7 @@ const PricingSection = () => {
             {
               icon: Send,
               title: "Grow",
-              desc: "Watch your brand gain visibility, leads, and revenue — results you can measure.",
+              desc: "Watch your brand gain visibility, leads and revenue, all backed by results you can measure.",
             },
           ].map(({ icon: Icon, title, desc }) => (
             <div key={title}>

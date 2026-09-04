@@ -13,16 +13,16 @@ const avatarJoseph = "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL
 
 const paragraphs = [
   {
-    bold: "Kola Communications was born from a simple belief that every business,",
-    text: "regardless of size, deserves a powerful digital presence. What started as a passion for creative problem-solving has grown into a full-service digital marketing agency trusted by brands across India, Australia, US, Europe, and Middle East.",
+    bold: "Kola Communications started with a small team and one simple observation:",
+    text: "most digital marketing looked impressive in a pitch deck but rarely moved the needle where it actually mattered. We set out to build something different, an agency that treats every website, campaign and piece of content as a business investment, not a checkbox. Today we work with brands across India, Australia, the US, Europe and the Middle East.",
   },
   {
-    bold: "We go beyond aesthetics.",
-    text: "From building high-performance websites to running targeted SEO campaigns and lead generation strategies, everything we do is designed to deliver measurable impact. Our team brings together creativity, data, and strategy to craft digital experiences that don't just look great they work hard for your business",
+    bold: "Our work spans web development, social media marketing, SEO, AEO and GEO, paid media, content and AI-powered tools, but our focus never shifts.",
+    text: "Every project starts with a clear goal and ends with a result we can point to. Design, data and strategy come together so nothing we build is just decoration, it is built to perform.",
   },
   {
-    bold: "We're detail-obsessed, and we think that's exactly what sets us apart.",
-    text: "It's what keeps our clients coming back and what drives us to treat every project with the same dedication and care we'd want for our own brand.",
+    bold: "We care about the details most agencies skip:",
+    text: "how a page loads on a slow connection, how a headline reads on a phone screen, how a campaign performs in week eight, not just week one. That care is what keeps our clients with us long after the first project ends.",
   },
 ];
 
@@ -66,7 +66,7 @@ const AboutPageHero = () => {
       <div className="mx-auto max-w-[1080px]">
         {/* ===== HEADING ===== */}
         <AnimatedHeading
-          lines={["Helping brands grow in a", "digital-first world."]}
+          lines={["Our story, our team,", "our obsession with results."]}
           className="
             hidden md:block
             text-[clamp(2.6rem,5vw,4rem)]
@@ -77,7 +77,7 @@ const AboutPageHero = () => {
           "
         />
         <AnimatedHeading
-          lines={["Helping brands", "grow in a", "digital-first world"]}
+          lines={["Our story, our team,", "our obsession", "with results."]}
           className="
             md:hidden
             text-[clamp(2.6rem,5vw,4rem)]
@@ -145,7 +145,7 @@ const AboutPageHero = () => {
             {/* ===== WORK HISTORY ===== */}
             <div className="mt-14">
               <p className="text-[15px] font-medium mb-6">
-                Built on Unshakeable Values
+                Built on unshakeable values
               </p>
 
               <div className="max-w-[420px]">

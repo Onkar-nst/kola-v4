@@ -86,7 +86,7 @@ const ContactPage = () => {
               <Sparkles size={13} className="text-primary" />
               <span>Let's collaborate</span>
               <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">Response within 24h</span>
+              <span className="text-muted-foreground">Response within 3–4 hours</span>
             </div>
 
             <AnimatedHeading
@@ -122,9 +122,9 @@ const ContactPage = () => {
            ══════════════════════════════════════════ */}
         <section className="pb-24 section-container px-6 md:px-10">
           <div className="max-w-[1080px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-16 items-stretch">
               {/* LEFT: STATIC FORM (CONNECTED TO /api/contact) */}
-              <div className="p-7 md:p-10 rounded-3xl border border-border bg-card shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
+              <div className="h-full p-7 md:p-10 rounded-3xl border border-border bg-card shadow-[0_4px_30px_rgba(0,0,0,0.03)]">
                 <AnimatePresence mode="wait">
                   {status === "success" ? (
                     <motion.div
@@ -256,9 +256,9 @@ const ContactPage = () => {
               </div>
 
               {/* RIGHT: DIRECT INFO & ADDRESS */}
-              <div className="space-y-8">
+              <div className="h-full">
                 {/* Contact Card */}
-                <div className="p-7 md:p-8 rounded-3xl border border-border bg-[#fafafa]">
+                <div className="h-full p-7 md:p-8 rounded-3xl border border-border bg-[#fafafa]">
                   <h3 className="text-lg font-bold mb-6">Direct Information</h3>
 
                   <div className="space-y-5 text-sm">
@@ -302,7 +302,7 @@ const ContactPage = () => {
                       <div>
                         <p className="text-xs text-muted-foreground font-medium">Business Hours</p>
                         <p className="font-medium text-foreground">
-                          Mon – Fri: 9:30 AM – 7:00 PM IST
+                          Mon – Fri: 9:30 AM – 9:00 PM IST
                         </p>
                         <p className="text-xs text-muted-foreground">
                           (Flexible timezone coverage for US, UK, Australia & UAE)
@@ -318,8 +318,9 @@ const ContactPage = () => {
                       <div>
                         <p className="text-xs text-muted-foreground font-medium">Headquarters</p>
                         <p className="font-medium text-foreground leading-relaxed">
-                          36, BK Housing Society, Shankar Lane, <br />
-                          Kandivali West, Mumbai - 400067, Maharashtra, India
+                          23, 2nd Floor, Sharda Bhavan, Opposite Gala Provision Store, <br />
+                          Fatak Road / Narayan Joshi Road, Kandivali West, <br />
+                          Mumbai – 400067, Maharashtra, India
                         </p>
                       </div>
                     </div>
@@ -348,16 +349,6 @@ const ContactPage = () => {
                       <ArrowUpRight size={12} />
                     </a>
                   </div>
-                </div>
-
-                {/* Interactive Map */}
-                <div className="rounded-3xl overflow-hidden border border-border h-[220px]">
-                  <iframe
-                    title="Kola Communications Location"
-                    src="https://maps.google.com/maps?q=Kandivali%20West%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                    className="w-full h-full"
-                    loading="lazy"
-                  />
                 </div>
               </div>
             </div>

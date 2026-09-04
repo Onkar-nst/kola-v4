@@ -49,6 +49,16 @@ import {
   SiNetlify,
   SiFigma,
   SiCanva,
+  SiWebflow,
+  SiFramer,
+  SiWoocommerce,
+  SiCloudflare,
+  SiGoogleads,
+  SiGoogletagmanager,
+  SiGooglesearchconsole,
+  SiSemrush,
+  SiHubspot,
+  SiZapier,
 } from "react-icons/si";
 
 /* ══════════════════════════════════════════
@@ -62,7 +72,7 @@ const detailedServices = [
     num: "01",
     title: "Website Development",
     tagline: "High-speed, SEO-engineered digital platforms.",
-    desc: "We engineer lightning-fast, conversion-focused websites that position your brand as a market leader. Whether you require a custom WordPress theme, an optimized Shopify store, or a bespoke React / Next.js web application, our builds prioritize performance, clean code, and zero technical debt.",
+    desc: "We build websites that load fast, rank well and convert visitors into customers. Whether that means a custom-coded platform, a WordPress site or a Shopify store, every build is designed around your business goals, not a template. Speed, structure and search visibility are built in from day one.",
     deliverables: [
       "Custom WordPress & WooCommerce Development",
       "Shopify & Shopify Plus Store Architecture",
@@ -76,12 +86,13 @@ const detailedServices = [
     id: "seo-aeo",
     icon: Search,
     num: "02",
-    title: "SEO & Answer Engine Optimization (AEO)",
-    tagline: "Own search rankings across Google and AI search engines.",
-    desc: "Search is evolving rapidly. We optimize your digital presence not only for traditional search engines like Google and Bing, but also for generative AI answer engines (ChatGPT, Perplexity, Google Gemini). We build enduring organic authority that turns searchers into qualified buyers.",
+    title: "SEO, AEO & GEO",
+    tagline: "Search, Answer & Generative Engine Optimization — visibility across Google and every AI answer engine.",
+    desc: "Search is no longer just Google. We optimise your brand for traditional search, AI answer engines and generative search results, so you show up wherever your customers are looking. Technical SEO, structured content and ongoing optimisation keep you visible as search itself evolves.",
     deliverables: [
       "Technical SEO Audits & Core Web Vitals Remediation",
-      "Answer Engine Optimization (AEO) for LLMs & AI Search",
+      "Answer & Generative Engine Optimization (AEO & GEO) for LLMs & AI Search",
+      "Generative Engine Optimization (GEO) for AI Overviews",
       "High-Intent Keyword Strategy & Content Topic Clusters",
       "Structured Schema Markup & Rich Snippet Engineering",
       "High-Quality White-Hat Editorial Link Acquisition",
@@ -92,9 +103,9 @@ const detailedServices = [
     id: "lead-gen",
     icon: Target,
     num: "03",
-    title: "Lead Generation & Conversion Funnels",
+    title: "Lead Generation & Conversion",
     tagline: "Systematic inbound pipelines that turn traffic into revenue.",
-    desc: "Traffic is meaningless without conversion. We construct multi-step lead generation funnels, high-converting landing pages, and automated nurture sequences that capture high-intent prospects and deliver sales-ready leads straight into your CRM.",
+    desc: "Traffic without conversion is wasted spend. We build landing pages, forms and follow-up systems designed to turn visitors into qualified leads. Every funnel is tested and refined against real numbers, so your cost per lead keeps dropping while quality goes up.",
     deliverables: [
       "High-Converting Landing Page Design & Copywriting",
       "Multi-Step Lead Qualification Funnels",
@@ -108,9 +119,9 @@ const detailedServices = [
     id: "brand-identity",
     icon: Palette,
     num: "04",
-    title: "Brand Identity & Visual Design",
+    title: "Brand Identity & Design",
     tagline: "Memorable design systems that command authority and trust.",
-    desc: "We define brand aesthetics that captivate modern audiences. From cohesive design tokens and logos to comprehensive UI/UX guidelines and marketing collateral, we ensure every touchpoint conveys premium quality and credibility.",
+    desc: "We define brand aesthetics that captivate modern audiences. From cohesive design systems and visual identity to comprehensive UI/UX guidelines and marketing collateral, we ensure every touchpoint conveys premium quality and credibility.",
     deliverables: [
       "Complete Visual Brand Identity & Logo Systems",
       "Design Systems & Component Libraries in Figma",
@@ -124,9 +135,9 @@ const detailedServices = [
     id: "performance-marketing",
     icon: BarChart3,
     num: "05",
-    title: "Performance Marketing & Paid Ads",
+    title: "Performance Marketing",
     tagline: "ROI-driven acquisition campaigns tuned for maximum ROAS.",
-    desc: "Stop burning ad budget on vanity impressions. We structure, manage, and scale data-backed paid advertising campaigns across Meta Ads, Google Ads, and LinkedIn with relentless focus on customer acquisition cost (CAC) and verified ROAS.",
+    desc: "We run paid campaigns on Google, Meta and LinkedIn built around results you can measure, not impressions that look nice in a report. Creative, targeting and budget are optimised continuously, so every rupee spent works toward qualified leads.",
     deliverables: [
       "Full-Funnel Meta Ads (Facebook & Instagram) Management",
       "Google Search, Performance Max & Shopping Campaigns",
@@ -142,7 +153,7 @@ const detailedServices = [
     num: "06",
     title: "Social Media Marketing",
     tagline: "Build a loyal, engaged community around your brand.",
-    desc: "We turn social channels into brand growth engines. Our strategic content calendars, video reel concepts, and community engagement tactics ensure your brand stays top-of-mind and builds compounding social proof.",
+    desc: "We turn social channels into brand growth engines. Our content strategy, video reel & carousel concepts, and community engagement tactics ensure your brand stays top-of-mind and builds compounding social proof.",
     deliverables: [
       "Cross-Platform Social Media Strategy & Positioning",
       "Monthly Content Calendars (Reels, Carousels, Stories)",
@@ -158,7 +169,7 @@ const detailedServices = [
     num: "07",
     title: "Content Creation & Strategy",
     tagline: "Authority-building editorial that ranks and converts.",
-    desc: "Content is the bedrock of modern digital authority. We write compelling, deeply researched editorial pieces, case studies, and website copy that educate your prospective buyers and solidify your market dominance.",
+    desc: "Good content starts with what your audience is searching for, not what is easy to write. We plan and create blog posts, campaigns and website copy built around real search intent and genuine business goals, so every piece works toward a result.",
     deliverables: [
       "SEO-Optimized Pillar Articles & Thought Leadership",
       "Website Copywriting & Conversion Sales Pages",
@@ -172,9 +183,9 @@ const detailedServices = [
     id: "ai-tools",
     icon: Cpu,
     num: "08",
-    title: "AI-Powered Tools & Intelligent Workflows",
+    title: "AI-Powered Tools & Applications",
     tagline: "Automate operations and build smart digital tools.",
-    desc: "Leverage the power of generative AI to work smarter. We build custom conversational AI chatbots, internal process automations, and intelligent tools that eliminate manual tasks and provide seamless 24/7 client interactions.",
+    desc: "We turn AI ideas into working products. From internal tools that save your team hours to customer-facing applications, we build with secure integrations, clean data handling and dashboards that show real impact, not just a demo that looks good once.",
     deliverables: [
       "Custom AI Chatbots & Customer Support Assistants",
       "Intelligent Lead Qualification & Automated Routing",
@@ -189,27 +200,38 @@ const detailedServices = [
 const techStack = [
   { icon: SiWordpress, name: "WordPress" },
   { icon: SiShopify, name: "Shopify" },
+  { icon: SiWebflow, name: "Webflow" },
+  { icon: SiFramer, name: "Framer" },
+  { icon: SiWoocommerce, name: "WooCommerce" },
   { icon: SiReact, name: "React" },
   { icon: SiNextdotjs, name: "Next.js" },
-  { icon: SiTailwindcss, name: "Tailwind" },
-  { icon: SiJavascript, name: "JavaScript" },
   { icon: SiTypescript, name: "TypeScript" },
+  { icon: SiJavascript, name: "JavaScript" },
+  { icon: SiTailwindcss, name: "Tailwind" },
   { icon: SiNodedotjs, name: "Node.js" },
   { icon: SiExpress, name: "Express" },
   { icon: SiMongodb, name: "MongoDB" },
   { icon: SiPostgresql, name: "PostgreSQL" },
   { icon: SiSupabase, name: "Supabase" },
   { icon: SiFirebase, name: "Firebase" },
-  { icon: SiGithub, name: "GitHub" },
   { icon: SiVercel, name: "Vercel" },
   { icon: SiNetlify, name: "Netlify" },
+  { icon: SiGithub, name: "GitHub" },
+  { icon: SiCloudflare, name: "Cloudflare" },
   { icon: SiFigma, name: "Figma" },
   { icon: SiCanva, name: "Canva" },
   { icon: SiGoogleanalytics, name: "Analytics" },
+  { icon: SiGoogleads, name: "Google Ads" },
+  { icon: SiGoogletagmanager, name: "Tag Manager" },
+  { icon: SiGooglesearchconsole, name: "Search Console" },
+  { icon: SiSemrush, name: "Semrush" },
+  { icon: SiHubspot, name: "HubSpot" },
   { icon: SiMeta, name: "Meta Ads" },
+  { icon: SiZapier, name: "Zapier" },
   { icon: SiOpenai, name: "ChatGPT / AI" },
   { icon: SiPython, name: "Python" },
 ];
+
 
 const serviceFaqs = [
   {
@@ -244,7 +266,7 @@ const ServicesPage = () => {
         <title>Services | Kola Communications — Website & Digital Marketing Agency</title>
         <meta
           name="description"
-          content="Explore Kola Communications' full suite of digital marketing and web development services: WordPress, Shopify, Custom Next.js, SEO & AEO, Lead Generation, and AI Tools."
+          content="Explore Kola Communications' full suite of digital marketing and web development services: WordPress, Shopify, Custom Next.js, SEO, AEO & GEO, Lead Generation, and AI Tools."
         />
         <link rel="canonical" href="https://www.kolacommunications.com/services" />
       </Helmet>
@@ -433,20 +455,20 @@ const ServicesPage = () => {
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Continuous Scaling
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                    <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
                       Most Popular
                     </span>
                   </div>
                   <h3 className="text-2xl font-bold mb-3">Monthly Growth Retainer</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-6">
-                    A fully managed engagement covering end-to-end strategy, web development sprints, SEO, paid acquisition, and reporting so you can focus on running your business.
+                    A fully managed monthly engagement covering strategy, execution and reporting, so you can focus on running your business.
                   </p>
 
                   <div className="space-y-3 mb-8">
                     {[
                       "Dedicated account manager & weekly sprints",
                       "Full-stack web maintenance & CRO tuning",
-                      "SEO & Answer Engine Optimization",
+                      "SEO, AEO & GEO for Google and AI search engines",
                       "Paid ads structuring & ROAS scaling",
                       "Monthly executive analytics reports",
                     ].map((f, i) => (
@@ -486,7 +508,7 @@ const ServicesPage = () => {
                     {[
                       "Clearly defined scope & fixed timeline",
                       "Dedicated project manager & milestone reviews",
-                      "Complete code handover & full ownership",
+                      "Complete code ownership, zero lock-in",
                       "Post-launch 30-day warranty & training",
                       "Strict adherence to budgets & deliverables",
                     ].map((f, i) => (

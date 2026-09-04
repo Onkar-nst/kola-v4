@@ -80,7 +80,7 @@ const ClientLogos = () => {
               ))}
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2.5">
               <div className="flex gap-0.5 text-foreground">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <svg key={i} className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
