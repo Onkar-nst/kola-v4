@@ -252,7 +252,7 @@ const BlogSection = () => {
 
   return (
     <section className="py-12 section-container">
-      <div className="max-w-[1140px] mx-auto p-4 md:p-8">
+      <div className="max-w-[1400px] mx-auto p-4 md:p-8">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">

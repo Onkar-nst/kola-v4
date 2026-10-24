@@ -280,8 +280,8 @@ const ServicesPage = () => {
         {/* ══════════════════════════════════════════
             HERO SECTION
            ══════════════════════════════════════════ */}
-        <section className="pt-36 pb-16 md:pt-44 md:pb-24 section-container px-6 md:px-10">
-          <div className="max-w-[1080px] mx-auto">
+        <section className="pt-24 sm:pt-28 md:pt-32 lg:pt-44 pb-10 md:pb-14 lg:pb-24 section-container px-4 sm:px-6 md:px-8 lg:px-10">
+          <div className="max-w-[1400px] mx-auto">
             {/* <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-border bg-muted/60 backdrop-blur-md text-xs font-medium mb-8">
               <Sparkles size={13} className="text-primary" />
               <span>Full-Spectrum Digital Services</span>
@@ -293,40 +293,40 @@ const ServicesPage = () => {
               lines={["Services that supercharge", "your business growth."]}
               className="
                 hidden md:block
-                text-[clamp(2.6rem,5vw,4.2rem)]
+                text-[clamp(2.3rem,4.2vw,4.2rem)] lg:text-[clamp(2.6rem,5vw,4.2rem)]
                 leading-[1.05]
                 tracking-[-0.025em]
                 max-w-[850px]
-                mb-6
+                mb-4 md:mb-6
               "
             />
             <AnimatedHeading
               lines={["Services that", "supercharge your", "business growth."]}
               className="
                 md:hidden
-                text-[clamp(2.4rem,6vw,3.5rem)]
+                text-[clamp(2rem,6vw,2.8rem)]
                 leading-[1.08]
                 tracking-[-0.025em]
-                mb-6
+                mb-4
               "
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-8 items-start pt-4 ">
-              <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+            <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.4fr_1fr] gap-6 md:gap-8 items-start pt-2 md:pt-4">
+              <p className="text-base md:text-[17px] lg:text-lg text-muted-foreground leading-relaxed">
                 From high-performance web engineering and search supremacy (SEO & AEO) to high-converting lead pipelines and bespoke AI tools—everything we engineer is designed to deliver measurable commercial returns.
               </p>
 
-              <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
+              <div className="flex flex-col sm:flex-row md:flex-col gap-3">
                 <button
                   onClick={() => setContactOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-black text-white px-7 py-3.5 text-sm font-medium hover:opacity-90 transition shadow-md"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-black text-white px-6 md:px-7 py-3 md:py-3.5 text-sm font-medium hover:opacity-90 transition shadow-md"
                 >
                   <Calendar size={16} />
                   Book a Free Strategy Call
                 </button>
                 <Link
                   to="/projects"
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white text-black px-7 py-3.5 text-sm font-medium hover:bg-muted transition"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-white text-black px-6 md:px-7 py-3 md:py-3.5 text-sm font-medium hover:bg-muted transition"
                 >
                   Explore Our Work
                   <ArrowRight size={16} />
@@ -339,8 +339,8 @@ const ServicesPage = () => {
         {/* ══════════════════════════════════════════
             DEEP-DIVE SERVICES GRID
            ══════════════════════════════════════════ */}
-        <section className="py-20 border-t border-border bg-[#fafafa]">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10">
+        <section className="py-12 md:py-16 lg:py-20 border-t border-border bg-[#fafafa]">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
               <AnimatedHeading
                 lines={["Engineered for", "end-to-end execution."]}
@@ -407,8 +407,8 @@ const ServicesPage = () => {
         {/* ══════════════════════════════════════════
             INTERACTIVE TECH STACK
            ══════════════════════════════════════════ */}
-        <section className="py-24 section-container px-6 md:px-10">
-          <div className="max-w-[1080px] mx-auto text-center">
+        <section className="py-16 lg:py-24 section-container px-6 md:px-10">
+          <div className="max-w-[1400px] mx-auto text-center">
 
             <AnimatedHeading
               lines={["Technologies we build", "and scale with."]}
@@ -438,7 +438,7 @@ const ServicesPage = () => {
             ENGAGEMENT MODELS (FROM PRICING)
            ══════════════════════════════════════════ */}
         <section className="py-20 border-t border-border bg-[#fafafa]">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10">
             <div className="text-center max-w-2xl mx-auto mb-16">
 
               <AnimatedHeading
@@ -595,7 +595,7 @@ const ServicesPage = () => {
             FINAL CTA
            ══════════════════════════════════════════ */}
         <section className="py-16 border-t border-border text-black">
-          <div className="max-w-[1080px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
 
               <AnimatedHeading

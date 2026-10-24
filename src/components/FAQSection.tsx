@@ -95,7 +95,7 @@ const FAQSection = () => {
       className="py-12 border-t border-b border-border section-container relative"
     >
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
-      <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-10">
         <div className="flex flex-col lg:flex-row gap-14">
           {/* ═══ LEFT — FAQ list ═══ */}
           <div className="flex-1 min-w-0">
@@ -213,7 +213,7 @@ const FAQSection = () => {
       </div>
 
       {/* ─── Mobile ─── */}
-      <div className="lg:hidden max-w-[1100px] mx-auto px-4 md:px-10 mt-10">
+      <div className="lg:hidden max-w-[1400px] mx-auto px-4 md:px-10 mt-10">
         <div className="rounded-[22px] border border-gray-300 bg-[#fafafa] p-8">
           {/* <img src={avatarJoseph} className="w-14 h-14 rounded-full mb-6" /> */}
           <p className="text-[#8a8a8a] text-lg">Still not sure?</p>

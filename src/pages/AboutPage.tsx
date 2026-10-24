@@ -163,15 +163,15 @@ const AboutPage = () => {
         <ColumnGuides />
 
         {/* WHO WE ARE — dedicated About page component */}
-        <div className="pt-16 md:pt-24">
+        <div className="lg:pt-24">
           <AboutPageHero />
         </div>
 
         <SectionDivider />
 
         {/* THE NUMBERS */}
-        <section className="py-20 section-container p-6 md:p-10">
-          <div className="max-w-[1080px] mx-auto">
+        <section className="py-16 md:py-20 section-container p-6 md:p-10 lg:p-10">
+          <div className="max-w-[1400px] mx-auto">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-10 gap-x-6 text-center">
               {stats.map((s, i) => (
                 <motion.div
@@ -203,8 +203,8 @@ const AboutPage = () => {
         <SectionDivider />
 
         {/* WHAT WE DO */}
-        <section className="py-24 section-container p-6 md:pt-12 md:p-10">
-          <div className="max-w-[1080px] mx-auto">
+        <section className="py-16 md:py-20 section-container p-6 md:pt-12 md:p-10 lg:p-10 lg:pt-12">
+          <div className="max-w-[1400px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-8 lg:gap-14 items-end mb-16">
               <AnimatedHeading
                 lines={["What we do,", "engineered for impact."]}
@@ -244,8 +244,8 @@ const AboutPage = () => {
         <SectionDivider />
 
         {/* HOW WE WORK */}
-        <section className="py-24 section-container p-6 md:p-10">
-          <div className="max-w-[1080px] mx-auto">
+        <section className="py-16 md:py-24 section-container p-6 md:p-10 lg:p-10">
+          <div className="max-w-[1400px] mx-auto">
             <AnimatedHeading
               lines={["How we work,", "start to scale."]}
               className="text-[clamp(2.2rem,5vw,3.6rem)] leading-[1.05] tracking-[-0.02em] mb-4"
@@ -278,7 +278,7 @@ const AboutPage = () => {
 
         {/* CTA */}
         <section className="py-20 border-t border-border section-container p-6 md:p-10">
-          <div className="max-w-[1080px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
+          <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
              
               <AnimatedHeading
