@@ -240,12 +240,11 @@ const ProjectCard = ({
 
             {project.categories.length > 0 && (
               <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                {project.categories.slice(0, 2).map((cat) => (
+                {project.categories.slice(0, 3).map((cat) => (
                   <span
                     key={`${cat.taxonomy || "cat"}-${cat.slug}`}
                     data-slug={cat.slug}
-                    className="text-[10px] sm:text-[11.5px] font-normal px-2 py-[2px] sm:px-2.5 sm:py-[4px] whitespace-nowrap
-                               border border-border text-foreground/75 bg-background rounded-xl truncate max-w-full"
+                    className="text-[10px] sm:text-[11.5px] font-normal px-2 py-[2px] sm:px-2.5 sm:py-[4px] whitespace-nowrap border border-border text-foreground/75 bg-background rounded-xl truncate max-w-full sm:max-w-none"
                   >
                     {cat.name}
                   </span>
@@ -256,7 +255,7 @@ const ProjectCard = ({
 
           {/* Arrow — plain, and it travels on hover */}
           <motion.span
-            className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors hidden xs:block"
+            className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors hidden sm:block"
             animate={{ x: hovered ? 2 : 0, y: hovered ? -2 : 0 }}
             transition={{ duration: 0.3 }}
           >
@@ -388,7 +387,7 @@ const ProjectsSection = () => {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.35 }}
-          className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6"
+          className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6"
         >
           {loading
             ? Array.from({ length: PER_PAGE }).map((_, i) => (

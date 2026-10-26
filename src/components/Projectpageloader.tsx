@@ -77,7 +77,7 @@ const ProjectPageLoader = () => {
 
         {/* ═══════ HERO ═══════ */}
         <section className="section-container pt-24 pb-0 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
 
             {/* Back button */}
             <StaggerIn delay={0} className="mb-10">
@@ -114,7 +114,7 @@ const ProjectPageLoader = () => {
 
         {/* ═══════ CONTENT ═══════ */}
         <section className="section-container pt-14 pb-28 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 lg:gap-16">
 
               {/* LEFT */}

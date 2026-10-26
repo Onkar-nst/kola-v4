@@ -388,7 +388,7 @@ const InlineCTA = memo(({ onOpenContact }: { onOpenContact: () => void }) => (
 ══════════════════════════════════════════ */
 const BlogPageSkeleton = () => (
   <div className="min-h-screen bg-white animate-pulse">
-    <div className="max-w-[1100px] mx-auto px-4 md:px-10 pt-24 pb-28">
+    <div className="max-w-[1400px] mx-auto px-4 md:px-10 pt-24 pb-28">
       <div className="h-4 w-12 bg-black/[0.06] rounded mb-10" />
       <div className="w-full h-[480px] bg-black/[0.05] rounded-[20px] mb-10" />
       <div className="flex gap-2 mb-5">
@@ -657,7 +657,7 @@ const BlogPage = () => {
 
         {/* ═══════════════ MAIN 2-COLUMN SECTION ═══════════════ */}
         <section ref={heroRef} className="section-container pt-24 pb-28 relative z-10">
-          <div className="max-w-[1140px] mx-auto px-4 md:px-8">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_290px] items-start gap-8 lg:gap-14">
 
               {/* ── LEFT COLUMN: ARTICLE CONTENT ── */}

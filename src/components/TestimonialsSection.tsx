@@ -99,7 +99,7 @@ const TestimonialsSection = () => {
 
   return (
     <section className="py-24 md:-my-10 section-container">
-      <div className="max-w-[1100px] p-2 md:p-10">
+      <div className="max-w-[1400px] p-2 md:p-10">
 
         {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-6">

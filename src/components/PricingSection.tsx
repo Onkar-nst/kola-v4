@@ -83,19 +83,19 @@ const PricingSection = () => {
   const [contactOpen, setContactOpen] = useState(false);
 
   return (
-    <section id="pricing" className="py-10 md:py-14 lg:py-16 section-container">
+    <section id="pricing" className="py-10 md:py-14 lg:py-12 section-container">
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
-      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 md:px-8 lg:px-10">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 md:px-8 lg:p-10">
         {/* ================= HEADER ================= */}
-        <div className="max-w-[760px] mb-10 md:mb-12 lg:mb-16">
-          <h2 className="text-[clamp(2rem,3.8vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
+        <div className="grid lg:grid-cols-2 gap-12 mb-10 md:mb-12 lg:mb-20 items-center">
+          <h2 className="text-[clamp(2rem,3.8vw,3.2rem)] lg:text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
             <span className="text-muted-foreground font-medium">Transparent pricing. </span>
             <span className="text-foreground font-semibold">Real results, no surprises.</span>
           </h2>
         </div>
 
         {/* ================= STEPS ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-14 lg:mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-14 lg:mb-20">
           {[
             {
               icon: RefreshCw,
@@ -118,31 +118,24 @@ const PricingSection = () => {
                 <Icon size={18} />
                 <span className="font-medium text-base">{title}</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed lg:leading-normal">{desc}</p>
             </div>
           ))}
         </div>
 
-        {/* ================= BACKGROUND CONTAINER ================= */}
-        <div className="rounded-2xl md:rounded-[22px] border border-[#e8e8e8] bg-[#f7f7f7] p-3 sm:p-4 md:p-6">
+        {/* ================= BACKGROUND CONTAINER (IMPORTANT) ================= */}
+        <div className="rounded-2xl md:rounded-[22px] lg:rounded-xl border border-[#e8e8e8] bg-[#f7f7f7] p-3 sm:p-4 md:p-6 lg:p-4">
           {/* ================= MAIN ================= */}
           <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr] lg:grid-cols-[0.95fr_1.05fr] gap-4 sm:gap-6 mb-4 sm:mb-6">
             {/* LEFT */}
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4 lg:space-y-3">
               <FloatingCard />
 
               <div
-                className="
-                rounded-xl
-                border border-border
-                bg-white
-                p-5 md:p-6
-                shadow-[0_1px_2px_rgba(0,0,0,0.04),
-                        0_6px_20px_rgba(0,0,0,0.06)]
-              "
+                className="rounded-xl border border-border bg-white p-5 md:p-6 shadow-[0_1px_2px_rgba(0,0,0,0.04), 0_6px_20px_rgba(0,0,0,0.06)]"
               >
-                <div className="flex items-center gap-2 text-xs mb-3 md:mb-4 font-medium text-emerald-600">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                <div className="flex items-center gap-2 text-xs mb-3 md:mb-4">
+                  <span className="w-2 h-2 bg-green-500 rounded-full" />
                   Limited slots available
                 </div>
 
@@ -150,7 +143,7 @@ const PricingSection = () => {
                   Partner with us today
                 </h3>
 
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed lg:leading-normal">
                   Work directly with a dedicated team that treats your growth as
                   their own.
                 </p>
@@ -159,29 +152,19 @@ const PricingSection = () => {
 
             {/* RIGHT */}
             <div
-              className="
-              rounded-xl
-              border border-border
-              bg-white
-              p-5 sm:p-6 md:p-8
-              flex flex-col justify-between
-              shadow-[0_1px_2px_rgba(0,0,0,0.04),
-                      0_10px_30px_rgba(0,0,0,0.08)]
-            "
+              className="rounded-xl border border-border bg-white p-5 sm:p-6 md:p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04), 0_10px_30px_rgba(0,0,0,0.08)]"
             >
-              <div>
-                <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">Monthly Retainer</h3>
+              <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">Monthly Retainer</h3>
 
-                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                  <span className="font-semibold text-foreground">
-                    A fully managed monthly engagement covering strategy,
-                    execution, and reporting —
-                  </span>{" "}
-                  so you can focus on running your business.
-                </p>
-              </div>
+              <p className="text-sm text-muted-foreground mb-6 leading-relaxed lg:leading-normal">
+                <span className="font-semibold text-foreground">
+                  A fully managed monthly engagement covering strategy,
+                  execution, and reporting —
+                </span>{" "}
+                so you can focus on running your business.
+              </p>
 
-              <div className="border-t border-border pt-6 mt-auto">
+              <div className="border-t border-border pt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-6 md:mb-8">
                   {features.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-sm text-foreground/85">
@@ -213,14 +196,14 @@ const PricingSection = () => {
                 <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">
                   One-Time Project
                 </h3>
-                <p className="text-sm text-white/70 leading-relaxed">
+                <p className="text-sm text-white/70 leading-relaxed lg:leading-normal">
                   End-to-end digital marketing execution for a specific campaign
                   or launch. Perfect for businesses with a defined goal and
                   timeline.
                 </p>
               </div>
 
-              <div className="flex flex-row items-start sm:items-center justify-start md:justify-end gap-6">
+              <div className="flex flex-row items-start sm:items-center justify-start md:justify-end lg:justify-between gap-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {singleFeatures.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-white/90">
@@ -240,12 +223,7 @@ const PricingSection = () => {
                 initial="rest"
                 animate="rest"
                 onClick={() => setContactOpen(true)}
-                className="
-                  flex items-center gap-2
-                  bg-white text-black
-                  px-6 py-3 rounded-full
-                  font-medium text-sm
-                "
+                className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-medium text-sm lg:text-base"
               >
                 Request Proposal
                 <motion.span
