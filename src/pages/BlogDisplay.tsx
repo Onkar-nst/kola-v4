@@ -944,7 +944,7 @@ const BlogDisplay = () => {
 
         {/* ═══════ HEADER ═══════ */}
         <section id="blog-display" className="section-container pt-28 pb-0 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
             <motion.button onClick={() => navigate(-1)}
               initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -1018,7 +1018,7 @@ const BlogDisplay = () => {
 
         {/* ═══════ GRID ═══════ */}
         <section className="section-container pt-2 pb-28 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
             <AnimatePresence mode="wait">
               <motion.div key={gridKey}
                 initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}

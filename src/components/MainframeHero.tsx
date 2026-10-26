@@ -64,8 +64,8 @@ const MainframeHero = () => {
     <>
       <ContactForm open={contactOpen} onClose={() => setContactOpen(false)} />
 
-      <section className="relative overflow-hidden min-h-0 lg:min-h-[88vh] flex items-center pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-8 md:pb-12">
-        <div className="section-container w-full max-w-[1080px] mx-auto px-4 md:px-8 lg:px-10">
+      <section className="relative overflow-hidden min-h-0 lg:min-h-[90vh] flex items-center pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-8 md:pb-12">
+        <div className="section-container w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-10">
           <div className="grid grid-cols-1 md:grid-cols-[1.05fr_0.95fr] lg:grid-cols-[1.1fr_0.9fr] gap-8 md:gap-8 lg:gap-12 items-center">
             {/* ================= LEFT: TYPOGRAPHY & CTA ================= */}
             <div className="text-center md:text-left">
@@ -77,7 +77,7 @@ const MainframeHero = () => {
                 </span>
               </div>
 
-              <h1 className="mb-4 md:mb-6 text-[clamp(2.1rem,3.8vw,3.8rem)] leading-[1.05] tracking-[-0.02em]">
+              <h1 className="mb-4 md:mb-6 text-[clamp(2.1rem,3.8vw,3.8rem)] lg:text-[clamp(2.2rem,4vw,3.8rem)] leading-[1.05] tracking-[-0.02em]">
                 <span className="text-foreground font-semibold">We are your </span>
                 <span className="text-muted-foreground font-medium">digital growth </span>
                 <span className="text-foreground font-semibold">partner.</span>
@@ -89,7 +89,7 @@ const MainframeHero = () => {
               </p>
 
               {/* CTA BUTTON */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3.5 md:gap-4 mb-6 md:mb-8">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3.5 md:gap-4 mb-6 md:mb-8 lg:mb-10">
                 <button
                   type="button"
                   onClick={() => setContactOpen(true)}
@@ -120,7 +120,7 @@ const MainframeHero = () => {
             </div>
 
             {/* ================= RIGHT: HIGH-PERFORMANCE 3D STAGE ================= */}
-            <div className="relative h-[320px] sm:h-[380px] md:h-[420px] lg:h-[480px] rounded-3xl overflow-hidden bg-gradient-to-b from-[#F3F4F6] to-[#E5E7EB] border border-black/10 shadow-[0_12px_36px_rgba(0,0,0,0.04)] group">
+            <div className="relative h-[320px] sm:h-[380px] md:h-[420px] lg:h-[500px] rounded-3xl overflow-hidden bg-gradient-to-b from-[#F3F4F6] to-[#E5E7EB] border border-black/10 shadow-[0_12px_36px_rgba(0,0,0,0.04)] group">
               <spline-viewer
                 ref={splineRef}
                 url={SPLINE_SCENE}

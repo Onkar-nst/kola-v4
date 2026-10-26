@@ -86,7 +86,7 @@
 
 @layer components {
   .section-container {
-    @apply max-w-[1080px] mx-auto px-5 lg:px-0;
+    @apply max-w-[1400px] mx-auto px-5 lg:px-10;
   }
 
   .heading-xl {

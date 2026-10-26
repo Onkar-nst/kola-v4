@@ -34,7 +34,7 @@ const fadeUp = {
 
 const CTAFooter = () => (
   <footer id="contact" className="bg-[#0a0a0a] text-white pt-12 relative overflow-hidden">
-    <div className="max-w-[1200px] mx-auto px-6 md:px-10">
+    <div className="max-w-[1400px] mx-auto px-6 md:px-10">
 
       <motion.h2
         initial="hidden"

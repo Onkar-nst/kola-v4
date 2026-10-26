@@ -463,7 +463,7 @@ const ProjectCardSubgrid = memo(({ project, index, onCategoryClick, onTagClick }
           {/* CATEGORY BADGES */}
           {project.categories.length > 0 && (
             <div className="flex gap-1 sm:gap-1.5 mt-1 sm:mt-2 flex-wrap">
-              {project.categories.slice(0, 2).map((cat) => (
+              {project.categories.map((cat) => (
                 <button
                   key={`${cat.taxonomy || "cat"}-${cat.slug}`}
                   type="button"
@@ -472,7 +472,7 @@ const ProjectCardSubgrid = memo(({ project, index, onCategoryClick, onTagClick }
                     e.stopPropagation();
                     onCategoryClick(cat.slug);
                   }}
-                  className="text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-xl cursor-pointer truncate max-w-full"
+                  className="text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-0.5 text-black/50 border border-black/10 whitespace-nowrap leading-snug hover:border-black/30 hover:text-black transition-colors duration-150 rounded-xl cursor-pointer truncate max-w-full sm:max-w-none"
                 >
                   {cat.name}
                 </button>
@@ -484,7 +484,7 @@ const ProjectCardSubgrid = memo(({ project, index, onCategoryClick, onTagClick }
         {/* ARROW */}
         <Link
           to={`/${project.slug}`}
-          className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5 hidden xs:block"
+          className="relative w-4 h-4 overflow-hidden shrink-0 mt-0.5 hidden sm:block"
           tabIndex={-1}
         >
           <motion.span
@@ -553,7 +553,7 @@ const SkeletonCard = memo(({ index }: { index: number }) => (
     <div className="p-3 sm:px-5 sm:py-4 border-b border-black/10 space-y-2">
       <div className="h-3.5 sm:h-4 bg-black/[0.06] rounded-sm w-3/4 animate-pulse" />
       <div className="flex gap-1.5">
-        {[40, 60].map((w, i) => (
+        {[60, 80, 70].map((w, i) => (
           <div key={i} className="h-4 sm:h-5 bg-black/[0.04] rounded-full animate-pulse" style={{ width: w }} />
         ))}
       </div>
@@ -1047,7 +1047,7 @@ const ProjectDisplay = () => {
           id="projects-display"
           className="section-container pt-28 pb-0 relative z-10"
         >
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
 
             <motion.button
               onClick={() => navigate(-1)}
@@ -1135,7 +1135,7 @@ const ProjectDisplay = () => {
 
         {/* ═══════════════ GRID ═══════════════ */}
         <section className="section-container pt-2 pb-28 relative z-10">
-          <div className="max-w-[1100px] mx-auto px-4 md:px-10">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={gridKey}
@@ -1152,7 +1152,7 @@ const ProjectDisplay = () => {
                     ))}
                   </div>
                 ) : projects.length === 0 && (activeCategorySlug || activeTagSlug) ? (
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <EmptyState
                       filterLabel={activeFilterLabel ?? "selected filter"}
                       onClear={() => {

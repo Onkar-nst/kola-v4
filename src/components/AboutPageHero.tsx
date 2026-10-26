@@ -62,17 +62,17 @@ const AboutPageHero = () => {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="pt-24 sm:pt-28 md:pt-32 lg:pt-28 pb-10 md:pb-14 lg:pb-20 border-t border-border section-container px-4 sm:px-6 md:px-8 lg:px-10">
-      <div className="mx-auto max-w-[1080px]">
+    <section className="pt-24 sm:pt-28 md:pt-32 pb-10 md:pb-14 lg:pb-32 border-t border-border section-container px-4 sm:px-6 md:px-8 lg:px-10">
+      <div className="mx-auto max-w-[1400px]">
         {/* ===== HEADING ===== */}
         <AnimatedHeading
           lines={["Our story, our team,", "our obsession with results."]}
           className="
             hidden md:block
-            text-[clamp(2.3rem,4.2vw,3.8rem)]
+            text-[clamp(2.3rem,4.2vw,3.8rem)] lg:text-[clamp(2.6rem,5vw,4rem)]
             leading-[1.05]
             tracking-[-0.025em]
-            mb-8 md:mb-12 lg:mb-16
+            mb-8 md:mb-12 lg:mb-24
             max-w-[760px]
           "
         />
@@ -89,7 +89,7 @@ const AboutPageHero = () => {
         />
 
         {/* ===== GRID ===== */}
-        <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] lg:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-10 lg:gap-16 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] lg:grid-cols-[420px_1fr] gap-8 md:gap-10 lg:gap-20 items-start lg:items-stretch">
           {/* ================= LEFT ================= */}
           <div>
             {/* IMAGE */}
@@ -130,7 +130,7 @@ const AboutPageHero = () => {
             {/* NAME */}
             <div className="mt-4 md:mt-6">
               <h3 className="text-base md:text-[17px] font-semibold">Kola Communications</h3>
-              <p className="text-xs md:text-[13px] text-muted-foreground mt-0.5">
+              <p className="text-xs md:text-[13px] text-muted-foreground mt-0.5 lg:mt-0">
                 Digital Marketing Agency
               </p>
             </div>
@@ -278,7 +278,7 @@ const AboutPageHero = () => {
 
           {/* ================= RIGHT ================= */}
           {/* hidden on mobile since paragraphs are rendered above in the left col */}
-          <div className="hidden md:block space-y-6 md:space-y-7 lg:space-y-8 max-w-[660px]">
+          <div className="hidden md:block space-y-6 md:space-y-7 lg:space-y-8 max-w-[660px] lg:max-w-[760px]">
             {paragraphs.map((p, i) => (
               <p key={i} className="text-[16px] md:text-[17.5px] lg:text-xl leading-[1.65]">
                 <span className="font-medium">{p.bold}</span>{" "}

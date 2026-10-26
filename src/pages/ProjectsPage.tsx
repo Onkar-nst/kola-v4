@@ -914,7 +914,7 @@ const ProjectPage = () => {
 
         {/* ═══════════════ MAIN 2-COLUMN SECTION ═══════════════ */}
         <section ref={heroRef} className="section-container pt-24 pb-28 relative z-10">
-          <div className="max-w-[1140px] mx-auto px-4 md:px-8">
+          <div className="max-w-[1400px] mx-auto px-4 md:px-8">
             <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] lg:grid-cols-[1fr_290px] items-start gap-8 lg:gap-14">
 
               {/* ── LEFT COLUMN ── */}
