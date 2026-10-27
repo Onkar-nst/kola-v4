@@ -113,10 +113,10 @@ const PricingSection = () => {
               desc: "Watch your brand gain visibility, leads and revenue, all backed by results you can measure.",
             },
           ].map(({ icon: Icon, title, desc }) => (
-            <div key={title}>
+            <div key={title} className="p-1">
               <div className="flex items-center gap-3 mb-2">
                 <Icon size={18} />
-                <span className="font-medium">{title}</span>
+                <span className="font-medium text-base">{title}</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed lg:leading-normal">{desc}</p>
             </div>
@@ -167,8 +167,8 @@ const PricingSection = () => {
               <div className="border-t border-border pt-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 mb-6 md:mb-8">
                   {features.map((f) => (
-                    <div key={f} className="flex items-center gap-2 text-sm">
-                      <Check size={16} />
+                    <div key={f} className="flex items-center gap-2 text-sm text-foreground/85">
+                      <Check size={16} className="text-foreground shrink-0" />
                       {f}
                     </div>
                   ))}
@@ -206,8 +206,8 @@ const PricingSection = () => {
               <div className="flex flex-row items-start sm:items-center justify-start md:justify-end lg:justify-between gap-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {singleFeatures.map((f) => (
-                    <div key={f} className="flex items-center gap-2">
-                      <Check size={16} />
+                    <div key={f} className="flex items-center gap-2 text-white/90">
+                      <Check size={16} className="shrink-0" />
                       {f}
                     </div>
                   ))}
@@ -235,7 +235,7 @@ const PricingSection = () => {
                     },
                   }}
                   transition={{
-                    duration: 0.45, 
+                    duration: 0.45,
                     ease: "easeInOut",
                   }}
                 >

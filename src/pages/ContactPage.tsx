@@ -286,10 +286,10 @@ const ContactPage = () => {
                       <div>
                         <p className="text-xs text-muted-foreground font-medium">Call / WhatsApp</p>
                         <a
-                          href="tel:+918108969630"
+                          href="tel:+918928984774"
                           className="font-medium hover:underline text-foreground"
                         >
-                          +91 81089 69630
+                          +91-8928984774
                         </a>
                       </div>
                     </div>

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import AnimatedHeading from "@/components/AnimatedHeading";
 
-const avatarJoseph = "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL0u810.jpg?scale-down-to=4096";
+const avatarJoseph = "https://framerusercontent.com/images/mgRdbBZJGPn94ft58M4tL0u810.jpg?scale-down-to=1024";
 
 /* ---------------- DATA ---------------- */
 
@@ -77,7 +77,7 @@ const AboutPageHero = () => {
           "
         />
         <AnimatedHeading
-          lines={["Our story, our team,", "our obsession", "with results."]}
+          lines={["Our story, our team,", "our obsession with results."]}
           className="
             md:hidden
             text-[clamp(2.15rem,7vw,2.6rem)]
@@ -99,6 +99,9 @@ const AboutPageHero = () => {
                 alt="Kola Communications"
                 className="w-full h-full object-cover"
                 loading="lazy"
+                decoding="async"
+                width={420}
+                height={525}
               />
 
               {/* SOCIAL BAR */}

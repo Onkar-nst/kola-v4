@@ -92,7 +92,7 @@ const Navbar = () => {
             ))}
           </motion.div>
 
-          {/* MOBILE BUTTON */}
+          {/* MOBILE & TABLET BUTTON */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             className="lg:hidden flex items-center gap-1 p-2"
@@ -114,7 +114,7 @@ const Navbar = () => {
           </button>
         </motion.div>
 
-        {/* MOBILE MENU */}
+        {/* MOBILE & TABLET MENU */}
         <AnimatePresence>
           {mobileOpen && (
             <>
