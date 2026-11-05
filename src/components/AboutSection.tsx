@@ -58,14 +58,14 @@ const AboutSection = () => {
           <span className="text-foreground font-semibold">digital-first world.</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] lg:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-8 lg:gap-14 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-10 lg:gap-14 items-stretch">
           {/* ================= IMAGE =================
               No fixed aspect ratio: the frame stretches to the row, so it
               always ends level with the copy beside it — including as the
               values open and close and the column grows. The photograph
               eases in a little at the same time, so the extra height reads
               as intentional rather than as the frame merely getting taller. */}
-          <div className="relative w-full h-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[520px] rounded-xl overflow-hidden">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[520px] overflow-hidden">
             <img
               src={aboutImage}
               alt="The Kola Communications team at work"

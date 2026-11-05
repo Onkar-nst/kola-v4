@@ -17,12 +17,6 @@ const GENERIC_CATEGORIES = new Set(["blog", "uncategorized"]);
    (featured image and categories) from a _fields response. */
 const POST_FIELDS = "id,slug,title,excerpt,date,featured_media,aioseo_head_json,_links,_embedded";
 
-interface WPCategory {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
-}
 
 /* ══════════════════════════════════════════
    TYPES
@@ -199,16 +193,6 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
           {/* Content */}
           <div className="p-6 flex flex-col flex-1 justify-between">
             <div>
-              {post.categories.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mb-3">
-                  {post.categories.slice(0, 1).map((cat) => (
-                    <span key={cat}
-                      className="text-[10.5px] px-2.5 py-0.5 rounded-full border border-black/10 text-black/45 tracking-wide bg-black/[0.02]">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              )}
               <h3 className={`text-[17px] font-semibold leading-snug tracking-[-0.02em] mb-2.5 transition-colors duration-200 line-clamp-2 ${hovered ? "text-black/65" : "text-black"}`}>
                 {post.title}
               </h3>
@@ -219,8 +203,13 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
               )}
             </div>
 
-            <div className="pt-3 border-t border-black/[0.06] text-[11.5px] text-black/35 mt-auto">
-              <span>{post.formattedDate}</span>
+            <div className="pt-3 border-t border-black/[0.06] mt-auto flex items-center justify-between gap-3 text-[11.5px] text-black/40">
+              <time dateTime={post.date} className="shrink-0">{post.formattedDate}</time>
+              {post.categories[0] && (
+                <span className="truncate border border-black/10 bg-black/[0.02] px-2 py-0.5 text-[10.5px] tracking-wide text-black/50">
+                  {post.categories[0]}
+                </span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -252,32 +241,10 @@ const CardSkeleton = () => (
 const BlogSection = () => {
   const [posts, setPosts] = useState<NormalizedPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<WPCategory[]>([]);
-  const [active, setActive] = useState<WPCategory | null>(null);
-
-  // Topic categories that actually have posts
+  // Latest 3 posts
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/categories?per_page=100&hide_empty=true&orderby=count&order=desc&_fields=id,name,slug,count`)
-      .then((r) => r.json() as Promise<WPCategory[]>)
-      .then((data) => {
-        if (cancelled || !Array.isArray(data)) return;
-        setCategories(
-          data
-            .filter((c) => c.count > 0 && !GENERIC_CATEGORIES.has(c.slug))
-            .map((c) => ({ ...c, name: decodeHtmlEntities(c.name) }))
-        );
-      })
-      .catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  // Latest 3 posts, optionally within the selected category
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    const filter = active ? `&categories=${active.id}` : "";
-    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=wp:featuredmedia,wp:term&orderby=date&order=desc${filter}&_fields=${POST_FIELDS}`)
+    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=wp:featuredmedia,wp:term&orderby=date&order=desc&_fields=${POST_FIELDS}`)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => {
         if (!cancelled && Array.isArray(data)) setPosts(data.map(normalizePost));
@@ -285,7 +252,7 @@ const BlogSection = () => {
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [active]);
+  }, []);
 
   return (
     <section className="py-12 section-container">
@@ -293,39 +260,10 @@ const BlogSection = () => {
 
         {/* Header */}
         <div className="mb-8 md:mb-12">
-          <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em] mb-6 md:mb-8">
+          <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
             <span className="text-muted-foreground font-medium">From our blog, </span>
             <span className="text-foreground font-semibold">design insights.</span>
           </h2>
-
-          {/* Category tabs — scroll sideways on small screens */}
-          {categories.length > 0 && (
-            <div
-              role="tablist"
-              aria-label="Blog categories"
-              className="-mx-4 px-4 md:mx-0 md:px-0 flex gap-2 overflow-x-auto md:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {[null, ...categories].map((cat) => {
-                const selected = (active?.id ?? null) === (cat?.id ?? null);
-                return (
-                  <button
-                    key={cat?.id ?? "all"}
-                    type="button"
-                    role="tab"
-                    aria-selected={selected}
-                    onClick={() => setActive(cat)}
-                    className={`shrink-0 whitespace-nowrap border px-4 py-2 text-[13px] font-medium transition-colors ${
-                      selected
-                        ? "bg-black text-white border-black"
-                        : "bg-white text-black/60 border-black/10 hover:border-black/30 hover:text-black"
-                    }`}
-                  >
-                    {cat ? cat.name : "All"}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {/* Grid — Single row of 3 cards */}
@@ -335,23 +273,18 @@ const BlogSection = () => {
             : posts.slice(0, 3).map((post, i) => (
                 <BlogCard key={post.slug} post={post} index={i} />
               ))}
-          {!loading && posts.length === 0 && (
-            <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
-              No articles in this category yet.
-            </p>
-          )}
         </div>
 
         {/* Big View All Blogs Button */}
         <FadeUp delay={0.2} className="flex justify-center">
-          <Link to={active ? `/category/${active.slug}` : "/blogs"} style={{ textDecoration: "none" }}>
+          <Link to="/blogs" style={{ textDecoration: "none" }}>
             <motion.button
               whileHover={{ scale: 1.025, y: -2 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.18 }}
               className="inline-flex items-center gap-3 px-7 md:px-9 py-3.5 md:py-4 text-center bg-black text-white text-[14px] font-medium rounded-full hover:bg-black/85 shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all cursor-pointer"
             >
-              <span>{active ? `View all ${active.name} articles` : "View all blogs"}</span>
+              <span>View all blogs</span>
               <ArrowUpRight size={16} />
             </motion.button>
           </Link>
