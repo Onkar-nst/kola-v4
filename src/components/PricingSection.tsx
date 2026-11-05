@@ -191,7 +191,7 @@ const PricingSection = () => {
 
           {/* ================= BOTTOM ================= */}
           <div className="rounded-[18px] md:rounded-[22px] bg-black text-white p-5 sm:p-6 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
               <div>
                 <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">
                   One-Time Project
@@ -203,7 +203,7 @@ const PricingSection = () => {
                 </p>
               </div>
 
-              <div className="flex flex-row items-start sm:items-center justify-start md:justify-end lg:justify-between gap-6">
+              <div className="flex flex-row items-start sm:items-center justify-start lg:justify-between gap-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {singleFeatures.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-white/90">
