@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Menu } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HashLink } from "react-router-hash-link";
@@ -95,22 +95,11 @@ const Navbar = () => {
           {/* MOBILE & TABLET BUTTON */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden flex items-center gap-1 p-2"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            className="lg:hidden flex items-center justify-center w-10 h-10 -mr-1"
           >
-            {mobileOpen ? (
-              <X size={20} />
-            ) : (
-              <>
-                {[0, 1, 2].map((i) => (
-                  <motion.span
-                    key={i}
-                    animate={{ y: [0, -4, 0] }}
-                    transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.1 }}
-                    className="w-1.5 h-1.5 rounded-full bg-black"
-                  />
-                ))}
-              </>
-            )}
+            {mobileOpen ? <X size={22} strokeWidth={1.75} /> : <Menu size={22} strokeWidth={1.75} />}
           </button>
         </motion.div>
 

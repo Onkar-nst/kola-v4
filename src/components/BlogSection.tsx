@@ -321,7 +321,6 @@ const BlogSection = () => {
                     }`}
                   >
                     {cat ? cat.name : "All"}
-                    {cat && <span className={`ml-1.5 tabular-nums ${selected ? "text-white/60" : "text-black/30"}`}>{cat.count}</span>}
                   </button>
                 );
               })}
