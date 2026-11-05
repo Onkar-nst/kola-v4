@@ -1,6 +1,4 @@
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { Plus, ArrowUpRight, Instagram, Linkedin } from "lucide-react";
+import { ArrowUpRight, Instagram, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const aboutImage =
@@ -49,17 +47,6 @@ const paragraphs = [
 /* ---------------- COMPONENT ---------------- */
 
 const AboutSection = () => {
-  // Any number of values can be open at once — reading one is not a reason
-  // to close another.
-  const [open, setOpen] = useState<string[]>([]);
-
-  const toggle = (title: string) =>
-    setOpen((current) =>
-      current.includes(title)
-        ? current.filter((t) => t !== title)
-        : [...current, title]
-    );
-
   return (
     <section
       id="about"
@@ -71,19 +58,18 @@ const AboutSection = () => {
           <span className="text-foreground font-semibold">digital-first world.</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-[0.85fr_1.15fr] lg:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-8 lg:gap-14 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.85fr_1.15fr] gap-8 md:gap-10 lg:gap-14 items-stretch">
           {/* ================= IMAGE =================
               No fixed aspect ratio: the frame stretches to the row, so it
               always ends level with the copy beside it — including as the
               values open and close and the column grows. The photograph
               eases in a little at the same time, so the extra height reads
               as intentional rather than as the frame merely getting taller. */}
-          <div className="relative w-full h-full min-h-[300px] sm:min-h-[360px] md:min-h-[420px] lg:min-h-[520px] rounded-xl overflow-hidden">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[520px] overflow-hidden">
             <img
               src={aboutImage}
               alt="The Kola Communications team at work"
-              className="w-full h-full object-cover transition-transform duration-500 ease-out"
-              style={{ transform: open.length ? "scale(1.06)" : "scale(1)" }}
+              className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
             />
@@ -119,62 +105,21 @@ const AboutSection = () => {
               ))}
             </div>
 
-            {/* ===== VALUES ===== */}
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-8 mb-6">
-              {values.map((value) => {
-                const expanded = open.includes(value.title);
-                const panelId = `about-value-${value.title
-                  .toLowerCase()
-                  .replace(/[^a-z]+/g, "-")}`;
-
-                return (
-                  <li
-                    key={value.title}
-                    className="border-t border-border first:border-t sm:[&:nth-child(2)]:border-t"
-                  >
-                    <button
-                      type="button"
-                      aria-expanded={expanded}
-                      aria-controls={panelId}
-                      onClick={() => toggle(value.title)}
-                      className="w-full flex items-center gap-3 py-3 md:py-3.5 text-left"
-                    >
-                      <motion.span
-                        animate={{ rotate: expanded ? 45 : 0 }}
-                        transition={{ duration: 0.25, ease: "easeInOut" }}
-                        className="
-                          shrink-0 w-6 h-6 rounded-full
-                          border border-border
-                          flex items-center justify-center
-                          text-muted-foreground
-                        "
-                      >
-                        <Plus size={13} />
-                      </motion.span>
-                      <span className="text-[14.5px] md:text-[15px] font-medium">
-                        {value.title}
-                      </span>
-                    </button>
-
-                    <AnimatePresence initial={false}>
-                      {expanded && (
-                        <motion.div
-                          id={panelId}
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.28, ease: "easeInOut" }}
-                          className="overflow-hidden"
-                        >
-                          <p className="pb-4 pl-9 pr-2 text-[13.5px] md:text-[14px] leading-[1.6] text-muted-foreground">
-                            {value.text}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </li>
-                );
-              })}
+            {/* ===== VALUES — always visible, no accordion ===== */}
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 lg:gap-x-10 mb-6">
+              {values.map((value, i) => (
+                <li key={value.title} className="border-t border-border py-4 md:py-5">
+                  <h3 className="flex items-baseline gap-3 text-[15px] md:text-base font-semibold mb-1.5">
+                    <span className="text-[11px] font-medium tabular-nums text-muted-foreground">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    {value.title}
+                  </h3>
+                  <p className="pl-[30px] text-[13.5px] md:text-[14px] leading-[1.6] text-muted-foreground">
+                    {value.text}
+                  </p>
+                </li>
+              ))}
             </ul>
 
             {/* The short version lives here; the full story is its own page. */}

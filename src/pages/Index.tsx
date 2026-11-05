@@ -75,11 +75,14 @@ const Index = () => {
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Shopify Store Development" }},
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Custom Coded Website Development" }},
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SEO" }},
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AEO" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AEO & GEO" }},
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Social Media Marketing" }},
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Lead Generation" }},
                 { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Content Writing" }},
-                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI Tools Development" }}
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AI Automation" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Mobile App Development" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Performance Marketing" }},
+                { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Brand Identity & Design" }}
               ]
             },
             "sameAs": [

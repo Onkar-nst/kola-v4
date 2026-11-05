@@ -54,12 +54,12 @@ const FloatingCard = () => {
       <div className="relative h-[220px] md:h-[260px]">
         <img
           src={pricingBg}
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
           alt="Subscription"
           loading="lazy"
         />
 
-        <div className="absolute inset-0 bg-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/60" />
 
         <div className="relative p-6 flex flex-col justify-end h-full">
           <div className="text-xs bg-white text-black px-3 py-1 rounded-full w-fit mb-3 shadow-sm">
@@ -95,7 +95,7 @@ const PricingSection = () => {
         </div>
 
         {/* ================= STEPS ================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-14 lg:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 lg:gap-10 mb-10 md:mb-14 lg:mb-20">
           {[
             {
               icon: RefreshCw,
@@ -124,9 +124,9 @@ const PricingSection = () => {
         </div>
 
         {/* ================= BACKGROUND CONTAINER (IMPORTANT) ================= */}
-        <div className="rounded-2xl md:rounded-[22px] lg:rounded-xl border border-[#e8e8e8] bg-[#f7f7f7] p-3 sm:p-4 md:p-6 lg:p-4">
+        <div className="md:border md:border-[#e8e8e8] md:bg-[#f7f7f7] md:p-6 lg:p-4">
           {/* ================= MAIN ================= */}
-          <div className="grid grid-cols-1 md:grid-cols-[0.95fr_1.05fr] lg:grid-cols-[0.95fr_1.05fr] gap-4 sm:gap-6 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-4 sm:gap-6 mb-4 sm:mb-6">
             {/* LEFT */}
             <div className="space-y-3 sm:space-y-4 lg:space-y-3">
               <FloatingCard />
@@ -191,7 +191,7 @@ const PricingSection = () => {
 
           {/* ================= BOTTOM ================= */}
           <div className="rounded-[18px] md:rounded-[22px] bg-black text-white p-5 sm:p-6 md:p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
               <div>
                 <h3 className="text-xl md:text-2xl font-semibold mb-2 md:mb-3">
                   One-Time Project
@@ -203,7 +203,7 @@ const PricingSection = () => {
                 </p>
               </div>
 
-              <div className="flex flex-row items-start sm:items-center justify-start md:justify-end lg:justify-between gap-6">
+              <div className="flex flex-row items-start sm:items-center justify-start lg:justify-between gap-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   {singleFeatures.map((f) => (
                     <div key={f} className="flex items-center gap-2 text-white/90">

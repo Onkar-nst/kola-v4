@@ -8,7 +8,7 @@ import ContactForm from "@/components/ContactForm";
 const faqs = [
   {
     q: "What services does Kola Communications offer?",
-    a: "We offer a full suite of digital marketing services including website development, SEO, AEO & GEO, lead generation, performance marketing, social media marketing, content creation, brand identity design, and AI-powered tools and applications.",
+    a: "We are a full-service digital agency offering website development, SEO, AEO & GEO, AI automation, mobile app development, performance marketing, lead generation, social media marketing, content creation and brand identity design.",
   },
   {
     q: "Do you work with businesses outside of India?",
@@ -231,7 +231,6 @@ const FAQSection = () => {
               <Calendar size={16} />
               Schedule Now
             </button>
-            <span className="text-sm text-[#999]">Cal.com</span>
           </div>
         </div>
       </div>

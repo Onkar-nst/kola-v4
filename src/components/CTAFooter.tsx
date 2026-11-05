@@ -14,8 +14,9 @@ const socials = [
 
 const services = [
   "Website Development",
-  "SEO & AEO",
-  "AI-Powered Tools & Applications",
+  "SEO, AEO & GEO",
+  "AI Automation",
+  "Mobile App Development",
   "Lead Generation & Conversion",
   "Social Media Marketing",
   "Content Creation & Strategy",
@@ -49,10 +50,10 @@ const CTAFooter = () => (
       </motion.h2>
 
       {/* GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 pb-14 border-b border-white/10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 pb-14 border-b border-white/10">
 
         {/* BRAND */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={1}>
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={1} className="col-span-2 lg:col-span-1">
           <img
             src="/logos/kola-logo.png"
             alt="Kola Communications"
@@ -109,7 +110,7 @@ const CTAFooter = () => (
         </motion.div>
 
         {/* CONTACT */}
-        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={4}>
+        <motion.div variants={fadeUp} initial="hidden" whileInView="show" custom={4} className="col-span-2 lg:col-span-1">
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Contact</p>
 
           <div className="flex flex-col gap-4 text-[13px] text-white/65">

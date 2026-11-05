@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { setCachedSlugType } from "@/pages/SlugResolver";
 
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
-const PER_PAGE = 6;
+const PER_PAGE = 6; // latest projects shown on the homepage
 
 /* ─── Types ─── */
 export interface ProjectTaxonomyItem {
@@ -295,40 +295,10 @@ const ProjectCard = ({
   );
 };
 
-/* ─── Pagination button ─── */
-const PaginationBtn = ({
-  onClick,
-  disabled,
-  active,
-  children,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  active?: boolean;
-  children: React.ReactNode;
-}) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={`
-      inline-flex items-center justify-center w-9 h-9 text-sm border rounded-full transition-colors
-      ${active
-        ? "border-black bg-black text-white"
-        : "border-black/10 text-black/60 hover:border-black/30 hover:text-black"
-      }
-      disabled:opacity-30 disabled:cursor-not-allowed
-    `}
-  >
-    {children}
-  </button>
-);
-
 /* ─── Main Component ─── */
 const ProjectsSection = () => {
   const [projects, setProjects] = useState<NormalizedProject[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -336,11 +306,10 @@ const ProjectsSection = () => {
       setLoading(true);
       try {
         const res = await fetch(
-          `${WP_API_BASE}/project?per_page=${PER_PAGE}&page=${page}&_embed=1`
+          `${WP_API_BASE}/project?per_page=${PER_PAGE}&_embed=1`
         );
         if (!res.ok) throw new Error("Failed to fetch");
         if (cancelled) return;
-        setTotalPages(Number(res.headers.get("X-WP-TotalPages") ?? 1));
         const data: WPProject[] = await res.json();
         if (!cancelled) setProjects(data.map(normalize));
       } catch (err) {
@@ -351,27 +320,7 @@ const ProjectsSection = () => {
     };
     fetchProjects();
     return () => { cancelled = true; };
-  }, [page]);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    setTimeout(() => {
-      document.getElementById("projects-section")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 100);
-  };
-
-  const getPageNumbers = (): (number | "…")[] => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
-    const pages: (number | "…")[] = [1];
-    if (page > 3) pages.push("…");
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
-    if (page < totalPages - 2) pages.push("…");
-    pages.push(totalPages);
-    return pages;
-  };
+  }, []);
 
   return (
     <section id="projects-section" className="py-12 section-container px-4 md:px-10">
@@ -380,12 +329,9 @@ const ProjectsSection = () => {
         <span className="text-foreground font-semibold">we're proud of.</span>
       </h2>
 
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={page}
+      <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.35 }}
           className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6"
         >
@@ -410,27 +356,20 @@ const ProjectsSection = () => {
                 <ProjectCard key={p.slug} project={p} index={i} />
               ))}
         </motion.div>
-      </AnimatePresence>
 
-      {totalPages > 1 && (
-        <div className="mt-12 flex items-center justify-center gap-2">
-          <PaginationBtn onClick={() => handlePageChange(page - 1)} disabled={page === 1}>
-            <ChevronLeft size={14} />
-          </PaginationBtn>
-          {getPageNumbers().map((p, i) =>
-            p === "…" ? (
-              <span key={`ellipsis-${i}`} className="w-9 text-center text-black/30 text-sm">…</span>
-            ) : (
-              <PaginationBtn key={p} onClick={() => handlePageChange(p as number)} active={p === page}>
-                {p}
-              </PaginationBtn>
-            )
-          )}
-          <PaginationBtn onClick={() => handlePageChange(page + 1)} disabled={page === totalPages}>
-            <ChevronRight size={14} />
-          </PaginationBtn>
-        </div>
-      )}
+      {/* Full portfolio lives on its own page */}
+      <div className="mt-10 md:mt-14 flex justify-center">
+        <Link
+          to="/projects"
+          className="group inline-flex items-center gap-3 px-7 md:px-9 py-3.5 md:py-4 bg-black text-white text-[14px] font-medium hover:bg-black/85 shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all"
+        >
+          <span>View all projects</span>
+          <ArrowUpRight
+            size={16}
+            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+          />
+        </Link>
+      </div>
     </section>
   );
 };

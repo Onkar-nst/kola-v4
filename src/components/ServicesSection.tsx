@@ -1,6 +1,18 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, memo, useCallback } from "react";
-import { Plus } from "lucide-react";
+import {
+  Plus,
+  Globe,
+  Search,
+  Bot,
+  Smartphone,
+  Target,
+  Magnet,
+  Megaphone,
+  PenLine,
+  Palette,
+  type LucideIcon,
+} from "lucide-react";
 
 /* ---------------- DATA ---------------- */
 
@@ -64,46 +76,69 @@ const techStack = [
   { icon: SiPython, name: "Python" },
 ];
 
-const services = [
+type Service = {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  href: string;
+};
+
+/* Order matters: the four core services come first. Descriptions stay in the
+   page even when collapsed, so search engines and AI tools can read them. */
+const services: Service[] = [
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/1006/1006771.png",
+    icon: Globe,
     title: "Website Development",
-    desc: "We build websites that load fast, rank well and convert visitors into customers. Whether that means a custom-coded platform, a WordPress site or a Shopify store, every build is designed around your business goals, not a template. Speed, structure and search visibility are built in from day one.",
+    desc: "Custom-coded, WordPress and Shopify websites built to load fast, rank on Google and turn visitors into enquiries. Every site is mobile-first, SEO-ready and designed around your business goals, not a template.",
+    href: "/services#web-dev",
   },
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/2956/2956744.png",
+    icon: Search,
     title: "SEO, AEO & GEO",
-    desc: "Search is no longer just Google. We optimise your brand for traditional search, AI answer engines and generative search results, so you show up wherever your customers are looking. Technical SEO, structured content and ongoing optimisation keep you visible as search itself evolves.",
+    desc: "Get found on Google and recommended by AI tools like ChatGPT, Gemini and Perplexity. We combine technical SEO, answer engine optimisation (AEO) and generative engine optimisation (GEO) to keep your visibility growing.",
+    href: "/services#seo-aeo",
   },
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/8637/8637099.png",
-    title: "AI-Powered Tools & Applications",
-    desc: "We turn AI ideas into working products. From internal tools that save your team hours to customer-facing applications, we build with secure integrations, clean data handling and dashboards that show real impact, not just a demo that looks good once.",
+    icon: Bot,
+    title: "AI Automation",
+    desc: "Put repetitive work on autopilot. We build AI agents, chatbots and automated workflows that connect your CRM, email, WhatsApp and internal tools, saving hours every week and replying to leads in seconds.",
+    href: "/services#ai-tools",
   },
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/3135/3135706.png",
-    title: "Lead Generation & Conversion",
-    desc: "Traffic without conversion is wasted spend. We build landing pages, forms and follow-up systems designed to turn visitors into qualified leads. Every funnel is tested and refined against real numbers, so your cost per lead keeps dropping while quality goes up.",
+    icon: Smartphone,
+    title: "Mobile App Development",
+    desc: "iOS and Android apps built for real users, from MVP to full launch. We design, develop and publish fast, intuitive apps, with the backend, analytics and App Store support you need to grow after go-live.",
+    href: "/services",
   },
   {
-    icon: "https://cdn-icons-png.flaticon.com/512/733/733547.png",
-    title: "Social Media Marketing",
-    desc: "We manage social media like a growth channel, not a checklist. Strategy, content and community management work together to build an audience that actually engages with your brand, not one that just scrolls past it. Consistency and creativity drive every post.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/4697/4697143.png",
-    title: "Content Creation & Strategy",
-    desc: "Good content starts with what your audience is searching for, not what is easy to write. We plan and create blog posts, campaigns and website copy built around real search intent and genuine business goals, so every piece works toward a result.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/3281/3281289.png",
-    title: "Brand Identity & Design",
-    desc: "Your brand is more than a logo. We build complete visual identities, from logo and colour systems to tone of voice, so your business looks consistent and credible everywhere it shows up. A strong identity is what makes people remember you.",
-  },
-  {
-    icon: "https://cdn-icons-png.flaticon.com/512/2920/2920277.png",
+    icon: Target,
     title: "Performance Marketing",
-    desc: "We run paid campaigns on Google, Meta and LinkedIn built around results you can measure, not impressions that look nice in a report. Creative, targeting and budget are optimised continuously, so every rupee spent works toward qualified leads.",
+    desc: "ROI-focused Google Ads, Meta Ads and LinkedIn campaigns built around measurable results. We handle targeting, creative and conversion tracking, then optimise budgets every week so your cost per lead keeps falling.",
+    href: "/services#performance-marketing",
+  },
+  {
+    icon: Magnet,
+    title: "Lead Generation & Conversion",
+    desc: "Turn traffic into qualified leads. We build high-converting landing pages, forms and follow-up funnels, then test every step so more visitors become enquiries and more enquiries become paying customers.",
+    href: "/services#lead-gen",
+  },
+  {
+    icon: Megaphone,
+    title: "Social Media Marketing",
+    desc: "Instagram, LinkedIn and Facebook managed as a growth channel. Strategy, content calendars, reels and community management work together to build an audience that knows, trusts and buys from your brand.",
+    href: "/services#social-media",
+  },
+  {
+    icon: PenLine,
+    title: "Content Creation & Strategy",
+    desc: "SEO blog posts, website copy and campaign content planned around what your customers actually search for. Every piece is written to rank, answer real questions and move readers closer to contacting you.",
+    href: "/services#content-strategy",
+  },
+  {
+    icon: Palette,
+    title: "Brand Identity & Design",
+    desc: "Logos, colour systems, typography and brand guidelines that make your business instantly recognisable. We create visual identities that look credible and consistent across your website, social media and print.",
+    href: "/services#brand-identity",
   },
 ];
 
@@ -138,7 +173,7 @@ const TechIcon = memo(({ icon: Icon, name }: { icon: typeof SiWordpress; name: s
 
 /* ---------------- SERVICE ROW ---------------- */
 interface ServiceRowProps {
-  service: (typeof services)[0];
+  service: Service;
   isOpen: boolean;
   onToggle: () => void;
 }
@@ -154,23 +189,19 @@ const ServiceRow = memo(({ service, isOpen, onToggle }: ServiceRowProps) => (
       <div className="flex items-center gap-3.5 md:gap-4">
         {/* ICON */}
         <div
-          className="w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center bg-black text-white grayscale shadow-md lg:shadow-lg shrink-0"
+          className="w-9 h-9 sm:w-10 sm:h-10 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-full flex items-center justify-center bg-black text-white shadow-md lg:shadow-lg shrink-0"
         >
-          <img
-            src={service.icon}
-            alt={service.title}
-            width={20}
-            height={20}
-            loading="lazy"
-            decoding="async"
-            className="w-4 h-4 md:w-[18px] md:h-[18px] lg:w-5 lg:h-5 invert"
+          <service.icon
+            aria-hidden="true"
+            strokeWidth={1.6}
+            className="w-4 h-4 md:w-[18px] md:h-[18px] lg:w-5 lg:h-5"
           />
         </div>
 
         {/* TEXT */}
-        <span className="text-[15px] sm:text-base md:text-[16.5px] lg:text-lg font-medium group-hover:text-black/75 transition-colors">
+        <h3 className="text-[15px] sm:text-base md:text-[16.5px] lg:text-lg font-medium group-hover:text-black/75 transition-colors">
           {service.title}
-        </span>
+        </h3>
       </div>
 
       {/* PLUS BUTTON */}
@@ -183,6 +214,7 @@ const ServiceRow = memo(({ service, isOpen, onToggle }: ServiceRowProps) => (
         whileTap={{ scale: 0.9 }}
         className="w-7 h-7 md:w-8 md:h-8 rounded-full border border-black/15 flex items-center justify-center hover:bg-black/[0.05] transition-colors shrink-0"
         aria-label={`Toggle ${service.title}`}
+        aria-expanded={isOpen}
       >
         <motion.div
           animate={{ rotate: isOpen ? 45 : 0 }}
@@ -193,20 +225,15 @@ const ServiceRow = memo(({ service, isOpen, onToggle }: ServiceRowProps) => (
       </motion.button>
     </div>
 
-    {/* EXPAND TEXT */}
-    <AnimatePresence initial={false}>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden pl-12 md:pl-[54px] lg:pl-[60px] pr-2 lg:pr-4 text-sm md:text-[14.5px] lg:text-base text-muted-foreground mt-2"
-        >
-          <p className="pb-2 leading-[1.6] lg:leading-normal">{service.desc}</p>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    {/* EXPAND TEXT — always rendered (collapsed to 0 height) so it stays crawlable */}
+    <motion.div
+      initial={false}
+      animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0, marginTop: isOpen ? 8 : 0 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      className="overflow-hidden pl-12 md:pl-[54px] lg:pl-[60px] pr-2 lg:pr-4 text-sm md:text-[14.5px] lg:text-base text-muted-foreground"
+    >
+      <p className="pb-2 leading-[1.6] lg:leading-normal">{service.desc}</p>
+    </motion.div>
   </div>
 ));
 

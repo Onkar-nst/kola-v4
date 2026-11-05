@@ -10,6 +10,14 @@ import { setCachedSlugType } from "@/pages/SlugResolver";
 
 const WP_API_BASE = "https://cms.kolacommunications.com/wp-json/wp/v2";
 
+/* WordPress catch-all categories that say nothing about the topic */
+const GENERIC_CATEGORIES = new Set(["blog", "uncategorized"]);
+
+/* "_links" must be requested too, otherwise WordPress drops "_embedded"
+   (featured image and categories) from a _fields response. */
+const POST_FIELDS = "id,slug,title,excerpt,date,featured_media,aioseo_head_json,_links,_embedded";
+
+
 /* ══════════════════════════════════════════
    TYPES
 ══════════════════════════════════════════ */
@@ -111,7 +119,8 @@ const normalizePost = (p: WPPost): NormalizedPost => {
 
   const categories: string[] =
     p._embedded?.["wp:term"]?.[0]
-      ?.map((t) => decodeHtmlEntities(t.name))
+      ?.filter((t) => !GENERIC_CATEGORIES.has(t.slug))
+      .map((t) => decodeHtmlEntities(t.name))
       .slice(0, 2) ?? [];
 
   const excerpt = decodeHtmlEntities(stripHtml(p.excerpt.rendered));
@@ -184,16 +193,6 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
           {/* Content */}
           <div className="p-6 flex flex-col flex-1 justify-between">
             <div>
-              {post.categories.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap mb-3">
-                  {post.categories.slice(0, 1).map((cat) => (
-                    <span key={cat}
-                      className="text-[10.5px] px-2.5 py-0.5 rounded-full border border-black/10 text-black/45 tracking-wide bg-black/[0.02]">
-                      {cat}
-                    </span>
-                  ))}
-                </div>
-              )}
               <h3 className={`text-[17px] font-semibold leading-snug tracking-[-0.02em] mb-2.5 transition-colors duration-200 line-clamp-2 ${hovered ? "text-black/65" : "text-black"}`}>
                 {post.title}
               </h3>
@@ -204,8 +203,13 @@ const BlogCard = memo(({ post, index }: { post: NormalizedPost; index: number })
               )}
             </div>
 
-            <div className="pt-3 border-t border-black/[0.06] text-[11.5px] text-black/35 mt-auto">
-              <span>{post.formattedDate}</span>
+            <div className="pt-3 border-t border-black/[0.06] mt-auto flex items-center justify-between gap-3 text-[11.5px] text-black/40">
+              <time dateTime={post.date} className="shrink-0">{post.formattedDate}</time>
+              {post.categories[0] && (
+                <span className="truncate border border-black/10 bg-black/[0.02] px-2 py-0.5 text-[10.5px] tracking-wide text-black/50">
+                  {post.categories[0]}
+                </span>
+              )}
             </div>
           </div>
         </motion.div>
@@ -237,10 +241,10 @@ const CardSkeleton = () => (
 const BlogSection = () => {
   const [posts, setPosts] = useState<NormalizedPost[]>([]);
   const [loading, setLoading] = useState(true);
-
+  // Latest 3 posts
   useEffect(() => {
     let cancelled = false;
-    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=1&orderby=date&order=desc&_fields=id,slug,title,excerpt,content,date,featured_media,aioseo_head_json,_embedded`)
+    fetch(`${WP_API_BASE}/posts?per_page=3&_embed=wp:featuredmedia,wp:term&orderby=date&order=desc&_fields=${POST_FIELDS}`)
       .then((r) => r.json() as Promise<WPPost[]>)
       .then((data) => {
         if (!cancelled && Array.isArray(data)) setPosts(data.map(normalizePost));
@@ -255,21 +259,22 @@ const BlogSection = () => {
       <div className="max-w-[1400px] mx-auto p-4 md:p-8">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-16 gap-6">
-          <div>
-            <h2 className="text-[clamp(2.2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
-              <span className="text-muted-foreground font-medium">From our blog, </span>
-              <span className="text-foreground font-semibold">design insights.</span>
-            </h2>
-          </div>
+        <div className="mb-8 md:mb-12">
+          <h2 className="text-[clamp(2rem,4vw,3.2rem)] leading-[1.05] tracking-[-0.02em]">
+            <span className="text-muted-foreground font-medium">From our blog, </span>
+            <span className="text-foreground font-semibold">design insights.</span>
+          </h2>
         </div>
 
         {/* Grid — Single row of 3 cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-10 md:mb-14 items-stretch">
           {loading
-            ? [0, 1, 2].map((i) => <CardSkeleton key={i} />)
+            ? [0, 1, 2].map((i) => <div key={i} className={i === 2 ? "sm:hidden lg:block" : ""}><CardSkeleton /></div>)
             : posts.slice(0, 3).map((post, i) => (
-                <BlogCard key={post.slug} post={post} index={i} />
+                // Tablet grid is 2 columns: hide the third card there so none sits alone
+                <div key={post.slug} className={i === 2 ? "sm:hidden lg:block h-full" : "h-full"}>
+                  <BlogCard post={post} index={i} />
+                </div>
               ))}
         </div>
 
@@ -280,7 +285,7 @@ const BlogSection = () => {
               whileHover={{ scale: 1.025, y: -2 }}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.18 }}
-              className="inline-flex items-center gap-3 px-9 py-4 bg-black text-white text-[14px] font-medium rounded-full hover:bg-black/85 shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all cursor-pointer"
+              className="inline-flex items-center gap-3 px-7 md:px-9 py-3.5 md:py-4 text-center bg-black text-white text-[14px] font-medium rounded-full hover:bg-black/85 shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] transition-all cursor-pointer"
             >
               <span>View all blogs</span>
               <ArrowUpRight size={16} />
