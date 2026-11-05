@@ -278,7 +278,11 @@ const useProjects = (
       !tagSlug
     ) {
       return {
-        projects: (window as any).__INITIAL_DATA__.projects.projects,
+        projects: ((window as any).__INITIAL_DATA__.projects.projects as NormalizedProject[]).map((p) => ({
+          ...p,
+          categories: Array.isArray(p.categories) ? p.categories : [],
+          tags: Array.isArray(p.tags) ? p.tags.filter((t) => t && typeof t === "object") : [],
+        })),
         loading: false,
         totalPages: (window as any).__INITIAL_DATA__.projects.totalPages,
         totalItems: (window as any).__INITIAL_DATA__.projects.totalItems,
