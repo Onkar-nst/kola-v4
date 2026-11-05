@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ProjectPage from "./ProjectsPage";
+import ProjectPage from "./ProjectDetail";
 import BlogPage from "./BlogPage";
 import NotFound from "./NotFound";
 import Loading from "@/components/Projectpageloader";

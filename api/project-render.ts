@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const apiRes = await fetch(
-      `${WP_API}/project?slug=${encodeURIComponent(slug)}&status=publish&_embed=1`,
+      `${WP_API}/project?slug=${encodeURIComponent(slug)}&status=publish&_embed=1&acf_format=standard`,
       { signal: AbortSignal.timeout(8000) } // 8s timeout
     );
 
@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const project   = projects[0];
     const seo       = (project.aioseo_head_json ?? {}) as Record<string, any>;
-    const title     = project.title.rendered;
+    const title     = (project.acf?.project_name as string) || project.title.rendered;
     const content   = project.content.rendered;
     const featImg   = project._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "https://kolacommunications.com/KolaFavicon.jpg";
     const canonical = `${SITE}/project/${encodeURIComponent(slug)}`;
@@ -79,6 +79,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const ogDesc     = escapeHtml((seo["og:description"] as string) ?? metaDesc);
     const robotsMeta = "index, follow";
     const jsonLd     = seo.schema ? safeJsonStringify(seo.schema) : null;
+
+    /* New case-study fields (ACF "Projects" group) */
+    const acf = (project.acf ?? {}) as Record<string, any>;
+    const txt = (v: unknown) => escapeHtml(String(v ?? "").trim());
+    const lines = (v: unknown) => String(v ?? "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const faqs = [1, 2, 3, 4, 5]
+      .map((n) => ({ q: String(acf[`faq_${n}_question`] ?? "").trim(), a: String(acf[`faq_${n}_answer`] ?? "").trim() }))
+      .filter((f) => f.q && f.a);
+    const isCaseStudy = Boolean(acf.brief || acf.approach);
+    const faqLd = faqs.length
+      ? safeJsonStringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+        })
+      : null;
 
     const seoTags = `
   <title>${metaTitle}</title>
@@ -98,13 +114,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:image"       content="${attrSafe(featImg)}"/>
   <script>window.__INITIAL_DATA__ = { project: ${safeJsonStringify(project)} };</script>
   ${jsonLd ? `<script type="application/ld+json" id="kola-project-jsonld">${jsonLd}</script>` : ""}
+  ${faqLd ? `<script type="application/ld+json" id="kola-project-faq">${faqLd}</script>` : ""}
     `;
 
     const bodyContent = `
 <div class="project-seo-render" style="padding: 2rem; max-width: 900px; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif;">
   <h1>${attrSafe(title)}</h1>
   ${featImg && featImg !== "https://kolacommunications.com/KolaFavicon.jpg" ? `<img src="${attrSafe(featImg)}" alt="${attrSafe(title)}" style="max-width:100%; height:auto; margin: 1rem 0; border-radius: 8px;" />` : ""}
-  <div class="content" style="line-height: 1.8; font-size: 1.1rem; color: #1a1a1a;">${content}</div>
+  ${isCaseStudy ? `
+  ${acf.tagline ? `<p><strong>${txt(acf.tagline)}</strong></p>` : ""}
+  <ul>
+    ${acf.industry ? `<li>Industry: ${txt(acf.industry)}</li>` : ""}
+    ${acf.platform ? `<li>Platform: ${txt(acf.platform)}</li>` : ""}
+    ${acf.location ? `<li>Location: ${txt(acf.location)}</li>` : ""}
+    ${acf.website_url ? `<li>Website: <a href="${attrSafe(acf.website_url)}">${txt(acf.website_url)}</a></li>` : ""}
+  </ul>
+  <h2>Overview</h2>
+  ${acf.about_client ? `<p>${txt(acf.about_client)}</p>` : ""}
+  <div class="content">${content}</div>
+  ${acf.brief ? `<h2>The brief</h2><p>${txt(acf.brief)}</p>` : ""}
+  ${acf.approach ? `<h2>${txt(acf.approach_heading || "Our approach")}</h2>${acf.approach}` : ""}
+  ${lines(acf.deliverables).length ? `<h2>What we delivered</h2><ul>${lines(acf.deliverables).map((d) => `<li>${txt(d)}</li>`).join("")}</ul>` : ""}
+  ${lines(acf.results).length ? `<h2>Results</h2><ul>${lines(acf.results).map((d) => `<li>${txt(d)}</li>`).join("")}</ul>` : ""}
+  ${faqs.length ? `<h2>Frequently asked questions</h2>${faqs.map((f) => `<h3>${txt(f.q)}</h3><p>${txt(f.a)}</p>`).join("")}` : ""}
+  ` : `<div class="content" style="line-height: 1.8; font-size: 1.1rem; color: #1a1a1a;">${content}</div>`}
 </div>
     `;
 
