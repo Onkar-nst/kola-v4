@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, memo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ArrowLeft, Check, Plus, Minus } from "lucide-react";
+import { ArrowUpRight, ArrowLeft, Check, Plus, Minus, Image as ImageIcon } from "lucide-react";
 import LegacyProjectPage from "./ProjectsPage";
 import NotFound from "./NotFound";
 import Loading from "@/components/Projectpageloader";
@@ -79,6 +79,18 @@ const SERVICE_ORDER = [
   "lead-generation-conversion", "social-media-marketing", "content-creation-strategy", "brand-identity-design",
 ];
 const serviceRank = (slug: string) => { const i = SERVICE_ORDER.indexOf(slug); return i === -1 ? 99 : i; };
+
+/* Show grey placeholders where images will go while projects have none.
+   Set to false (or add the images in WordPress) before launch. */
+const SHOW_IMAGE_PLACEHOLDERS = true;
+
+const ImagePlaceholder = ({ label, size, className = "" }: { label: string; size: string; className?: string }) => (
+  <div className={`flex flex-col items-center justify-center gap-2 bg-[repeating-linear-gradient(135deg,#f4f4f4_0_12px,#efefef_12px_24px)] text-black/35 ${className}`}>
+    <ImageIcon size={26} strokeWidth={1.5} />
+    <p className="text-[13px] font-medium text-black/45">{label}</p>
+    <p className="text-[11px]">{size}</p>
+  </div>
+);
 
 /* Static class names so Tailwind keeps them */
 const LG_COLS: Record<number, string> = { 1: "lg:grid-cols-1", 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" };
@@ -285,7 +297,7 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
           )}
 
           {/* ═══ HERO IMAGE ═══ */}
-          {heroImg && (
+          {(heroImg || SHOW_IMAGE_PLACEHOLDERS) && (
             <figure className="mb-10 md:mb-14 border border-border bg-white">
               <div className="flex items-center gap-1.5 px-4 h-9 border-b border-border bg-[#fafafa]">
                 <span className="keep-round w-2.5 h-2.5 bg-black/15" />
@@ -293,7 +305,11 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
                 <span className="keep-round w-2.5 h-2.5 bg-black/15" />
                 {site && <span className="ml-3 text-[11px] text-black/40">{site}</span>}
               </div>
-              <img src={heroImg} alt={`${name} website designed by Kola Communications`} className="w-full h-auto block" />
+              {heroImg ? (
+                <img src={heroImg} alt={`${name} website designed by Kola Communications`} className="w-full h-auto block" />
+              ) : (
+                <ImagePlaceholder label="Hero image" size="Website screenshot · 1600 × 1000" className="aspect-[16/10] w-full" />
+              )}
             </figure>
           )}
 
@@ -349,12 +365,16 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
               </SectionRow>
             )}
 
-            {gallery.length > 0 && (
+            {(gallery.length > 0 || SHOW_IMAGE_PLACEHOLDERS) && (
               <SectionRow label="Gallery">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {gallery.map((g, i) => (
-                    <img key={g.url} src={g.url} alt={g.alt || `${name} screen ${i + 1}`} loading="lazy" className="w-full h-auto border border-border" />
-                  ))}
+                  {gallery.length > 0
+                    ? gallery.map((g, i) => (
+                        <img key={g.url} src={g.url} alt={g.alt || `${name} screen ${i + 1}`} loading="lazy" className="w-full h-auto border border-border" />
+                      ))
+                    : [1, 2, 3, 4].map((n) => (
+                        <ImagePlaceholder key={n} label={`Gallery image ${n}`} size="Page or mobile screenshot · 1200 × 900" className="aspect-[4/3] w-full border border-border" />
+                      ))}
                 </div>
               </SectionRow>
             )}
