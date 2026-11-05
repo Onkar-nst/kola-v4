@@ -73,6 +73,13 @@ const fetchProject = (slug: string) =>
     .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.json() as Promise<WPProject[]>; })
     .then((d) => d[0] ?? null);
 
+/* Same order as the services list on the homepage and /services */
+const SERVICE_ORDER = [
+  "website-development", "seo-aeo-geo", "ai-automation", "mobile-app-development", "performance-marketing",
+  "lead-generation-conversion", "social-media-marketing", "content-creation-strategy", "brand-identity-design",
+];
+const serviceRank = (slug: string) => { const i = SERVICE_ORDER.indexOf(slug); return i === -1 ? 99 : i; };
+
 /* Static class names so Tailwind keeps them */
 const LG_COLS: Record<number, string> = { 1: "lg:grid-cols-1", 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" };
 
@@ -136,7 +143,10 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
 
   const name = a.project_name || decode(project.title.rendered);
   const terms = project._embedded?.["wp:term"]?.flat() ?? [];
-  const services = terms.filter((t) => t.taxonomy === "project-category").map((t) => decode(t.name));
+  const services = terms
+    .filter((t) => t.taxonomy === "project-category")
+    .sort((x, y) => serviceRank(x.slug) - serviceRank(y.slug))
+    .map((t) => decode(t.name));
   const heroImg = imgUrl(a.hero_image) || project._embedded?.["wp:featuredmedia"]?.[0]?.source_url || "";
   const gallery = [a.gallery_image_1, a.gallery_image_2, a.gallery_image_3, a.gallery_image_4]
     .map((g) => (g && typeof g === "object" ? g : null))
@@ -331,7 +341,7 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
             {results.length > 0 && (
               <SectionRow label="Results">
                 <h2 className="sr-only">Results</h2>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border border border-border max-w-[900px]">
+                <ul className={`grid grid-cols-1 ${results.length > 1 ? "sm:grid-cols-2" : ""} gap-px bg-border border border-border max-w-[900px]`}>
                   {results.map((r) => (
                     <li key={r} className="bg-black text-white p-6 md:p-8 text-[20px] md:text-[24px] font-semibold leading-snug tracking-[-0.01em]">{r}</li>
                   ))}
