@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,8 +16,10 @@ import {
   Share2,
   FileText,
   Cpu,
+  Smartphone,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { lenisInstance } from "@/App";
 
 import ColumnGuides from "@/components/ColumnGuides";
 import CustomCursor from "@/components/CustomCursor";
@@ -65,6 +67,8 @@ import {
    DETAILED SERVICES DATA
    ══════════════════════════════════════════ */
 
+/* Same order and names as the homepage services section. Each id is the
+   anchor the homepage and footer link to (e.g. /services#web-dev). */
 const detailedServices = [
   {
     id: "web-dev",
@@ -99,42 +103,42 @@ const detailedServices = [
     tech: ["Google Search Console", "Ahrefs", "Semrush", "Schema.org", "Analytics"],
   },
   {
-    id: "lead-gen",
-    icon: Target,
+    id: "ai-automation",
+    icon: Cpu,
     num: "03",
-    title: "Lead Generation & Conversion Funnels",
-    tagline: "Systematized pipelines that turn traffic into revenue.",
-    desc: "Traffic is meaningless without conversion. We construct multi-step lead generation funnels, high-converting landing pages, and automated nurture sequences that capture high-intent prospects and deliver sales-ready leads straight into your CRM.",
+    title: "AI Automation",
+    tagline: "Put repetitive work on autopilot with AI agents and workflows.",
+    desc: "We design and build AI automation that saves your team hours every week. From AI chatbots that answer customers and qualify leads around the clock to back-office workflows that connect your CRM, email, WhatsApp and spreadsheets, every automation is secure, measurable and built around how your business actually runs.",
     deliverables: [
-      "High-Converting Landing Page Design & Copywriting",
-      "Multi-Step Lead Qualification Funnels",
-      "Conversion Rate Optimization (CRO) & A/B Split Testing",
-      "Automated Email Nurture & Lead Scoring Workflows",
-      "Real-Time CRM & Webhook Integrations (HubSpot, Zapier)",
+      "AI Chatbots & WhatsApp Assistants for Sales and Support",
+      "AI Agents for Lead Qualification, Follow-Ups & Routing",
+      "Workflow Automation across CRM, Email, Sheets & WhatsApp",
+      "Custom GPT & LLM Integrations with Your Business Data",
+      "Document Processing, Reporting & Data Entry Automation",
     ],
-    tech: ["Figma", "Next.js", "HubSpot", "Zapier", "Analytics"],
+    tech: ["OpenAI", "Python", "Node.js", "Zapier", "Supabase"],
   },
   {
-    id: "brand-identity",
-    icon: Palette,
+    id: "mobile-app-development",
+    icon: Smartphone,
     num: "04",
-    title: "Brand Identity & Visual Design",
-    tagline: "Memorable design systems that command authority and trust.",
-    desc: "We define brand aesthetics that captivate modern audiences. From cohesive design systems and visual identity to comprehensive UI/UX guidelines and marketing collateral, we ensure every touchpoint conveys premium quality and credibility.",
+    title: "Mobile App Development",
+    tagline: "iOS and Android apps built to launch fast and scale.",
+    desc: "We design and develop mobile apps that people keep coming back to. From MVP to full launch, we build iOS and Android apps with fast performance, intuitive UX and a secure backend, then handle App Store and Google Play submission, analytics and ongoing updates so your app keeps improving after go-live.",
     deliverables: [
-      "Complete Visual Brand Identity & Logo Systems",
-      "Design Systems & Component Libraries in Figma",
-      "UI/UX Architecture for Web and Mobile Interfaces",
-      "Brand Guidelines (Typography, Color Palettes, Imagery)",
-      "Digital Marketing Assets & Pitch Deck Presentations",
+      "Cross-Platform iOS & Android App Development",
+      "MVP Scoping, UX Wireframes & Clickable Prototypes",
+      "Secure Backend, APIs, Login & Push Notifications",
+      "App Store & Google Play Submission and Optimisation",
+      "Analytics, Crash Monitoring & Ongoing Maintenance",
     ],
-    tech: ["Figma", "Canva", "Adobe Suite", "Design Tokens"],
+    tech: ["React Native", "Expo", "Firebase", "Supabase", "Node.js"],
   },
   {
     id: "performance-marketing",
     icon: BarChart3,
     num: "05",
-    title: "Performance Marketing & Paid Ads",
+    title: "Performance Marketing",
     tagline: "ROI-driven acquisition campaigns tuned for maximum ROAS.",
     desc: "Stop burning ad budget on vanity impressions. We structure, manage, and scale data-backed paid advertising campaigns across Meta Ads, Google Ads, and LinkedIn with relentless focus on customer acquisition cost (CAC) and verified ROAS.",
     deliverables: [
@@ -147,9 +151,25 @@ const detailedServices = [
     tech: ["Meta Ads Manager", "Google Ads", "GA4", "Looker Studio"],
   },
   {
+    id: "lead-gen",
+    icon: Target,
+    num: "06",
+    title: "Lead Generation & Conversion",
+    tagline: "Systematized pipelines that turn traffic into revenue.",
+    desc: "Traffic is meaningless without conversion. We construct multi-step lead generation funnels, high-converting landing pages, and automated nurture sequences that capture high-intent prospects and deliver sales-ready leads straight into your CRM.",
+    deliverables: [
+      "High-Converting Landing Page Design & Copywriting",
+      "Multi-Step Lead Qualification Funnels",
+      "Conversion Rate Optimization (CRO) & A/B Split Testing",
+      "Automated Email Nurture & Lead Scoring Workflows",
+      "Real-Time CRM & Webhook Integrations (HubSpot, Zapier)",
+    ],
+    tech: ["Figma", "Next.js", "HubSpot", "Zapier", "Analytics"],
+  },
+  {
     id: "social-media",
     icon: Share2,
-    num: "06",
+    num: "07",
     title: "Social Media Marketing",
     tagline: "Build a loyal, engaged community around your brand.",
     desc: "We turn social channels into brand growth engines. Our content strategy, video reel concepts, and community engagement tactics ensure your brand stays top-of-mind and builds compounding social proof.",
@@ -165,7 +185,7 @@ const detailedServices = [
   {
     id: "content-strategy",
     icon: FileText,
-    num: "07",
+    num: "08",
     title: "Content Creation & Strategy",
     tagline: "Authority-building editorial that ranks and converts.",
     desc: "Content is the bedrock of modern digital authority. We write compelling, deeply researched editorial pieces, case studies, and website copy that educates your prospective buyers and solidifies your market dominance.",
@@ -179,20 +199,20 @@ const detailedServices = [
     tech: ["SEO Copy", "Markdown", "WordPress CMS", "Grammarly"],
   },
   {
-    id: "ai-tools",
-    icon: Cpu,
-    num: "08",
-    title: "AI-Powered Tools & Intelligent Workflows",
-    tagline: "Automate operations and build smart digital tools.",
-    desc: "Leverage the power of generative AI to work smarter. We build custom conversational AI chatbots, internal process automations, and intelligent tools that eliminate manual tasks and provide seamless 24/7 client interactions.",
+    id: "brand-identity",
+    icon: Palette,
+    num: "09",
+    title: "Brand Identity & Design",
+    tagline: "Memorable design systems that command authority and trust.",
+    desc: "We define brand aesthetics that captivate modern audiences. From cohesive design systems and visual identity to comprehensive UI/UX guidelines and marketing collateral, we ensure every touchpoint conveys premium quality and credibility.",
     deliverables: [
-      "Custom AI Chatbots & Customer Support Assistants",
-      "Intelligent Lead Qualification & Automated Routing",
-      "Workflow Automations with OpenAI & Python Backends",
-      "Bespoke Internal Web Tools & Data Scraping Pipelines",
-      "AI Prompt Engineering & Team Workflow Integrations",
+      "Complete Visual Brand Identity & Logo Systems",
+      "Design Systems & Component Libraries in Figma",
+      "UI/UX Architecture for Web and Mobile Interfaces",
+      "Brand Guidelines (Typography, Color Palettes, Imagery)",
+      "Digital Marketing Assets & Pitch Deck Presentations",
     ],
-    tech: ["OpenAI", "Python", "Node.js", "Supabase", "FastAPI"],
+    tech: ["Figma", "Canva", "Adobe Suite", "Design Tokens"],
   },
 ];
 
@@ -258,6 +278,19 @@ const serviceFaqs = [
 const ServicesPage = () => {
   const [contactOpen, setContactOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const { hash } = useLocation();
+
+  // Jump to a service when arriving from a link like /services#web-dev
+  useEffect(() => {
+    if (!hash) return;
+    const t = window.setTimeout(() => {
+      const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+      if (!el) return;
+      if (lenisInstance) lenisInstance.scrollTo(el, { offset: -100 });
+      else el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, [hash]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -265,9 +298,30 @@ const ServicesPage = () => {
         <title>Services | Kola Communications — Website & Digital Marketing Agency</title>
         <meta
           name="description"
-          content="Explore Kola Communications' full suite of digital marketing and web development services: WordPress, Shopify, Custom Next.js, SEO, AEO & GEO, Lead Generation, and AI Tools."
+          content="Website development, SEO, AEO & GEO, AI automation, mobile app development, performance marketing, lead generation, social media, content and branding. Kola Communications, Mumbai."
         />
         <link rel="canonical" href="https://kolacommunications.com/services" />
+        <meta property="og:title" content="Services | Kola Communications" />
+        <meta property="og:url" content="https://kolacommunications.com/services" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "Kola Communications Services",
+            itemListElement: detailedServices.map((s, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              item: {
+                "@type": "Service",
+                name: s.title,
+                description: s.desc,
+                url: `https://kolacommunications.com/services#${s.id}`,
+                provider: { "@type": "ProfessionalService", name: "Kola Communications", url: "https://kolacommunications.com" },
+                areaServed: ["IN", "AU", "GB", "AE", "US"],
+              },
+            })),
+          })}
+        </script>
       </Helmet>
 
       <CustomCursor />
@@ -312,7 +366,7 @@ const ServicesPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-[1.3fr_1fr] lg:grid-cols-[1.4fr_1fr] gap-6 md:gap-8 items-start pt-2 md:pt-4">
               <p className="text-base md:text-[17px] lg:text-lg text-muted-foreground leading-relaxed">
-                From high-performance web engineering and search supremacy (SEO & AEO) to high-converting lead pipelines and bespoke AI tools—everything we engineer is designed to deliver measurable commercial returns.
+                From high-performance websites and mobile apps to SEO, AEO and GEO, AI automation and performance marketing, everything we build is designed to deliver measurable business growth.
               </p>
 
               <div className="flex flex-col sm:flex-row md:flex-col gap-3">
@@ -347,25 +401,27 @@ const ServicesPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {detailedServices.map((service) => {
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              {detailedServices.map((service, i) => {
                 const Icon = service.icon;
+                const isLastOdd = i === detailedServices.length - 1 && detailedServices.length % 2 === 1;
                 return (
                   <div
                     key={service.id}
-                    className="p-8 md:p-10 rounded-3xl border border-border bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:border-black/30 transition-all"
+                    id={service.id}
+                    className={`scroll-mt-28 ${isLastOdd ? "md:col-span-2 xl:col-span-1" : ""} p-6 sm:p-8 md:p-10 rounded-3xl border border-border bg-white shadow-[0_4px_24px_rgba(0,0,0,0.03)] flex flex-col justify-between hover:border-black/30 transition-all`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-6">
                         <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center shadow-md">
-                          <Icon size={22} />
+                          <Icon size={22} strokeWidth={1.6} aria-hidden="true" />
                         </div>
                         <span className="text-xs font-mono font-bold text-muted-foreground">
                           {service.num}
                         </span>
                       </div>
 
-                      <h3 className="text-2xl font-bold mb-2">{service.title}</h3>
+                      <h3 className="text-xl md:text-2xl font-bold mb-2">{service.title}</h3>
                       <p className="text-xs font-medium text-muted-foreground mb-4">
                         {service.tagline}
                       </p>
@@ -446,7 +502,7 @@ const ServicesPage = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
               {/* Retainer Card */}
               <div className="p-8 md:p-10 rounded-3xl border border-border bg-white shadow-sm flex flex-col justify-between">
                 <div>

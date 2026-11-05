@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Instagram,
@@ -13,15 +14,15 @@ const socials = [
 ];
 
 const services = [
-  "Website Development",
-  "SEO, AEO & GEO",
-  "AI Automation",
-  "Mobile App Development",
-  "Lead Generation & Conversion",
-  "Social Media Marketing",
-  "Content Creation & Strategy",
-  "Brand Identity & Design",
-  "Performance Marketing",
+  { label: "Website Development", id: "web-dev" },
+  { label: "SEO, AEO & GEO", id: "seo-aeo" },
+  { label: "AI Automation", id: "ai-automation" },
+  { label: "Mobile App Development", id: "mobile-app-development" },
+  { label: "Lead Generation & Conversion", id: "lead-gen" },
+  { label: "Social Media Marketing", id: "social-media" },
+  { label: "Content Creation & Strategy", id: "content-strategy" },
+  { label: "Brand Identity & Design", id: "brand-identity" },
+  { label: "Performance Marketing", id: "performance-marketing" },
 ];
 
 const fadeUp = {
@@ -85,9 +86,9 @@ const CTAFooter = () => (
           <p className="text-[11px] uppercase tracking-widest text-white/35 mb-4">Services</p>
           <div className="flex flex-col gap-2.5">
             {services.map((s) => (
-              <a key={s} href="/services" className="text-[13px] text-white/55 hover:text-white transition">
-                {s}
-              </a>
+              <Link key={s.id} to={`/services#${s.id}`} className="text-[13px] text-white/55 hover:text-white transition">
+                {s.label}
+              </Link>
             ))}
           </div>
         </motion.div>
