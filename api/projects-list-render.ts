@@ -51,7 +51,7 @@ const getArticleSection = (p: any): string => {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const apiRes = await fetch(
-      `${WP_API}/projects?per_page=6&page=1&status=publish&_embed=1`,
+      `${WP_API}/project?per_page=6&page=1&status=publish&_embed=1`,
       { signal: AbortSignal.timeout(8000) } // 8s timeout
     );
 
@@ -110,12 +110,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2.5rem;">
     ${normalizedProjects.map(p => `
       <article style="border: 1px solid #eaeaea; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #fff;">
-        ${p.img ? `<img src="${p.img}" alt="${p.title}" style="width: 100%; height: 240px; object-fit: cover;" />` : ""}
+        ${p.img ? `<img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 240px; object-fit: cover;" />` : ""}
         <div style="padding: 1.5rem; flex-grow: 1;">
           <h2 style="font-size: 1.4rem; margin-top: 0; margin-bottom: 1rem;">
-            <a href="/project/${p.slug}" style="color: #000; text-decoration: none;">${p.title}</a>
+            <a href="/project/${encodeURIComponent(p.slug)}" style="color: #000; text-decoration: none;">${escapeHtml(p.title)}</a>
           </h2>
-          <a href="/project/${p.slug}" style="color: #000; text-decoration: none; font-weight: 600; font-size: 0.95rem;">View Project Details &rarr;</a>
+          <a href="/project/${encodeURIComponent(p.slug)}" style="color: #000; text-decoration: none; font-weight: 600; font-size: 0.95rem;">View Project Details &rarr;</a>
         </div>
       </article>
     `).join("")}

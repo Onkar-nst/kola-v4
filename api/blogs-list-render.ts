@@ -114,13 +114,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
     ${normalizedPosts.map(p => `
       <article style="border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column;">
-        ${p.img ? `<img src="${p.img}" alt="${p.title}" style="width: 100%; height: 200px; object-fit: cover;" />` : ""}
+        ${p.img ? `<img src="${escapeHtml(p.img)}" alt="${escapeHtml(p.title)}" style="width: 100%; height: 200px; object-fit: cover;" />` : ""}
         <div style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column;">
           <h2 style="font-size: 1.5rem; margin-top: 0; margin-bottom: 0.75rem;">
-            <a href="/blogs/${p.slug}" style="color: #000; text-decoration: none;">${p.title}</a>
+            <a href="/blogs/${encodeURIComponent(p.slug)}" style="color: #000; text-decoration: none;">${escapeHtml(p.title)}</a>
           </h2>
-          <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; flex-grow: 1;">${p.excerpt}</p>
-          <a href="/blogs/${p.slug}" style="color: #000; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Read More &rarr;</a>
+          <p style="color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem; flex-grow: 1;">${escapeHtml(p.excerpt)}</p>
+          <a href="/blogs/${encodeURIComponent(p.slug)}" style="color: #000; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Read More &rarr;</a>
         </div>
       </article>
     `).join("")}

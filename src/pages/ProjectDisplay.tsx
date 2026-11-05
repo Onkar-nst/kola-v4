@@ -1033,10 +1033,10 @@ const ProjectDisplay = () => {
         <meta name="keywords" content="Kola Communications Portfolio, Kola Communications Projects, Kola Communications Case Studies, Website Portfolio Mumbai, WordPress Website Portfolio India, Shopify Store Portfolio India, Custom Coded Website Portfolio, Digital Marketing Portfolio Mumbai, Web Design Portfolio India, SEO Portfolio India, AEO Projects India, Lead Generation Portfolio India, Website Development Portfolio India, Kola Client Projects, Website Projects India, Kola Communications Work, Web Agency Portfolio Mumbai, E-commerce Website Portfolio India, WordPress Projects India, Shopify Projects India, Custom Website Projects India, Digital Agency Portfolio India, Kola Communications Clients, Brand Website Portfolio India, Website Design Case Studies India" />
         <meta property="og:title" content="Our Work | Kola Communications Project Portfolio" />
         <meta property="og:description" content="Kola Communications portfolio — 100+ WordPress, Shopify and custom coded websites for brands in India, UK, USA, UAE and Australia. Plus SEO, AEO and lead gen." />
-        <meta property="og:url" content="https://www.kolacommunications.com/projects" />
-        <meta property="og:image" content="https://www.kolacommunications.com/og-image.jpg" />
+        <meta property="og:url" content="https://kolacommunications.com/projects" />
+        <meta property="og:image" content="https://kolacommunications.com/KolaFavicon.jpg" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.kolacommunications.com/projects" />
+        <link rel="canonical" href="https://kolacommunications.com/projects" />
       </Helmet>
       <CustomCursor />
       <div className="relative overflow-hidden">

@@ -936,7 +936,7 @@ const BlogDisplay = () => {
         <title>Digital Marketing Insights | Kola Communications Blog</title>
         <meta name="description" content="Kola Communications blog covers website development, SEO, AEO, WordPress, Shopify, social media, content writing and AI tools for businesses growing online." />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.kolacommunications.com/blogs" />
+        <link rel="canonical" href="https://kolacommunications.com/blogs" />
       </Helmet>
       <CustomCursor />
       <div className="relative overflow-hidden">

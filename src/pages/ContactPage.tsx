@@ -25,6 +25,7 @@ const ContactPage = () => {
     email: "",
     companyName: "",
     message: "",
+    website: "", // honeypot
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
@@ -47,6 +48,7 @@ const ContactPage = () => {
           email: formData.email,
           companyName: formData.companyName,
           message: formData.message,
+          website: formData.website,
         }),
       });
 
@@ -69,7 +71,7 @@ const ContactPage = () => {
           name="description"
           content="Get in touch with Kola Communications. Start a project or book a discovery call for web development, SEO, and performance marketing."
         />
-        <link rel="canonical" href="https://www.kolacommunications.com/contact" />
+        <link rel="canonical" href="https://kolacommunications.com/contact" />
       </Helmet>
 
       <CustomCursor />
@@ -182,6 +184,7 @@ const ContactPage = () => {
                           required
                           type="text"
                           name="fullName"
+                          maxLength={100}
                           value={formData.fullName}
                           onChange={handleChange}
                           placeholder="Jane Smith"
@@ -198,6 +201,7 @@ const ContactPage = () => {
                           required
                           type="email"
                           name="email"
+                          maxLength={254}
                           value={formData.email}
                           onChange={handleChange}
                           placeholder="jane@company.com"
@@ -213,6 +217,7 @@ const ContactPage = () => {
                         <input
                           type="text"
                           name="companyName"
+                          maxLength={150}
                           value={formData.companyName}
                           onChange={handleChange}
                           placeholder="Acme Inc."
@@ -229,11 +234,20 @@ const ContactPage = () => {
                           required
                           rows={4}
                           name="message"
+                          maxLength={5000}
                           value={formData.message}
                           onChange={handleChange}
                           placeholder="What are your goals, timeline, and current challenges?"
                           className="w-full px-4 py-3 rounded-xl border border-border bg-background text-sm resize-none focus:outline-none focus:border-black transition"
                         />
+                      </div>
+
+                      {/* Honeypot: hidden from people, bots fill it in and get silently dropped */}
+                      <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+                        <label>
+                          Website
+                          <input type="text" name="website" tabIndex={-1} autoComplete="off" value={formData.website} onChange={handleChange} />
+                        </label>
                       </div>
 
                       <button
