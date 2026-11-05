@@ -82,7 +82,7 @@ const serviceRank = (slug: string) => { const i = SERVICE_ORDER.indexOf(slug); r
 
 /* Show grey placeholders where images will go while projects have none.
    Set to false (or add the images in WordPress) before launch. */
-const SHOW_IMAGE_PLACEHOLDERS = true;
+const SHOW_IMAGE_PLACEHOLDERS = false;
 
 const ImagePlaceholder = ({ label, size, className = "" }: { label: string; size: string; className?: string }) => (
   <div className={`flex flex-col items-center justify-center gap-2 bg-[repeating-linear-gradient(135deg,#f4f4f4_0_12px,#efefef_12px_24px)] text-black/35 ${className}`}>
@@ -240,7 +240,7 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
 
         <article className="section-container px-4 sm:px-6 md:px-8 lg:px-10 pt-28 md:pt-36 lg:pt-40">
           {/* ═══ HERO: title left, image right ═══ */}
-          <header className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center pb-10 md:pb-14">
+          <header className={`grid grid-cols-1 ${heroImg || SHOW_IMAGE_PLACEHOLDERS ? "lg:grid-cols-[1.05fr_0.95fr]" : ""} gap-10 lg:gap-14 items-center pb-10 md:pb-14`}>
             <div>
               <nav aria-label="Breadcrumb" className="mb-8 md:mb-10">
                 <Link to="/projects" className="inline-flex items-center gap-2 text-[13px] text-black/50 hover:text-black transition-colors">
