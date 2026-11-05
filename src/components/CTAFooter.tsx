@@ -14,8 +14,9 @@ const socials = [
 
 const services = [
   "Website Development",
-  "SEO & AEO",
-  "AI-Powered Tools & Applications",
+  "SEO, AEO & GEO",
+  "AI Automation",
+  "Mobile App Development",
   "Lead Generation & Conversion",
   "Social Media Marketing",
   "Content Creation & Strategy",
