@@ -115,7 +115,7 @@ const TestimonialsSection = () => {
           {/* <div className="flex items-center gap-3">
             <div className="flex -space-x-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <img key={i} src={avatarImg} className="w-8 h-8 rounded-full border-2 border-white" />
+                <img key={i} src={avatarImg} className="keep-round w-8 h-8 rounded-full border-2 border-white" />
               ))}
             </div>
             <div>

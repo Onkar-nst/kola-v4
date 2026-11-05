@@ -75,7 +75,7 @@ const ClientLogos = () => {
                   src={src}
                   alt={`Happy client ${i + 1}`}
                   loading="lazy"
-                  className="w-8 h-8 rounded-full border-2 border-background object-cover"
+                  className="keep-round w-8 h-8 rounded-full border-2 border-background object-cover"
                 />
               ))}
             </div>

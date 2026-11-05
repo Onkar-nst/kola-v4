@@ -50,7 +50,7 @@ const CustomCursor = () => {
     <div
       ref={cursorRef}
       className=" hidden md:block pointer-events-none fixed top-0 left-0 z-[50]
-                 w-3 h-3 rounded-full
+                 keep-round w-3 h-3 rounded-full
                  -translate-x-1/2 -translate-y-1/2
                  bg-black/70 backdrop-blur-[10px]"
     />
