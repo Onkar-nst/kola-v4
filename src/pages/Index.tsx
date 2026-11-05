@@ -40,19 +40,19 @@ const Index = () => {
           property="og:description"
           content="Kola Communications — WordPress websites, Shopify stores, custom coded web solutions, SEO, AEO, social media and lead generation. Trusted by brands worldwide."
         />
-        <meta property="og:url" content="https://www.kolacommunications.com" />
-        <meta property="og:image" content="https://www.kolacommunications.com/og-image.jpg" />
+        <meta property="og:url" content="https://kolacommunications.com" />
+        <meta property="og:image" content="https://kolacommunications.com/KolaFavicon.jpg" />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.kolacommunications.com" />
+        <link rel="canonical" href="https://kolacommunications.com" />
 
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": ["LocalBusiness", "ProfessionalService"],
             "name": "Kola Communications",
-            "url": "https://www.kolacommunications.com",
-            "logo": "https://www.kolacommunications.com/logo.png",
-            "image": "https://www.kolacommunications.com/og-image.jpg",
+            "url": "https://kolacommunications.com",
+            "logo": "https://kolacommunications.com/KolaLogo.jpg",
+            "image": "https://kolacommunications.com/KolaFavicon.jpg",
             "description": "Kola Communications is a Mumbai-based website and digital marketing agency specialising in WordPress, Shopify, custom coded development, SEO, AEO, social media and lead generation.",
             "address": {
               "@type": "PostalAddress",

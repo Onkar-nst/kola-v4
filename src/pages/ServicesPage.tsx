@@ -267,7 +267,7 @@ const ServicesPage = () => {
           name="description"
           content="Explore Kola Communications' full suite of digital marketing and web development services: WordPress, Shopify, Custom Next.js, SEO, AEO & GEO, Lead Generation, and AI Tools."
         />
-        <link rel="canonical" href="https://www.kolacommunications.com/services" />
+        <link rel="canonical" href="https://kolacommunications.com/services" />
       </Helmet>
 
       <CustomCursor />

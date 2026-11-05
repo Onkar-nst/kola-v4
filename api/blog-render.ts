@@ -23,6 +23,11 @@ const escapeHtml = (str: string): string =>
     .replace(/>/g, "&gt;");
 
 /* ── Prevent script injection in JSON data ── */
+/* WordPress titles arrive HTML-encoded already; only neutralise quotes/brackets
+   that could break out of an attribute or inject tags */
+const attrSafe = (str: string): string =>
+  String(str).replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 const safeJsonStringify = (obj: any): string =>
   JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
 
@@ -54,12 +59,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const posts = (await apiRes.json()) as Array<any>;
 
-    if (!posts.length) {
-      return res.status(404).send(
-        `<!DOCTYPE html><html><head><title>Not Found</title>
-         <meta name="robots" content="noindex"/></head>
-         <body><h1>404 – Page not found</h1></body></html>`
-      );
+    if (!Array.isArray(posts) || !posts.length) {
+      // Real 404 status, but still the site's own "not found" page for visitors
+      const shell = getSPAShell().replace(/<head>/i, `<head>\n  <meta name="robots" content="noindex"/>`);
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "s-maxage=60");
+      return res.status(404).send(shell);
     }
 
     const post      = posts[0];
@@ -68,14 +73,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const excerpt   = post.excerpt.rendered.replace(/<[^>]+>/g, "").trim();
     const content   = post.content.rendered;
     const featImg   = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url ?? "https://kolacommunications.com/KolaFavicon.jpg";
-    const canonical = `${SITE}/blogs/${slug}`;
+    const canonical = `${SITE}/blogs/${encodeURIComponent(slug)}`;
 
     const metaTitle  = escapeHtml((seo.title as string) ?? title);
     const metaDesc   = escapeHtml((seo.description as string) ?? excerpt);
     const ogTitle    = escapeHtml((seo["og:title"] as string) ?? title);
     const ogDesc     = escapeHtml((seo["og:description"] as string) ?? excerpt);
     const robotsMeta = "index, follow";
-    const jsonLd     = seo.schema ? JSON.stringify(seo.schema) : null;
+    const jsonLd     = seo.schema ? safeJsonStringify(seo.schema) : null;
 
     const seoTags = `
   <title>${metaTitle}</title>
@@ -87,20 +92,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:url"         content="${canonical}"/>
   <meta property="og:title"       content="${ogTitle}"/>
   <meta property="og:description" content="${ogDesc}"/>
-  <meta property="og:image"       content="${featImg}"/>
+  <meta property="og:image"       content="${attrSafe(featImg)}"/>
 
   <meta name="twitter:card"        content="summary_large_image"/>
   <meta name="twitter:title"       content="${ogTitle}"/>
   <meta name="twitter:description" content="${ogDesc}"/>
-  <meta name="twitter:image"       content="${featImg}"/>
+  <meta name="twitter:image"       content="${attrSafe(featImg)}"/>
   <script>window.__INITIAL_DATA__ = { post: ${safeJsonStringify(post)} };</script>
   ${jsonLd ? `<script type="application/ld+json" id="kola-blog-jsonld">${jsonLd}</script>` : ""}
     `;
 
     const bodyContent = `
 <div class="blog-post-seo-render" style="padding: 2rem; max-width: 800px; margin: 0 auto; font-family: system-ui, -apple-system, sans-serif;">
-  <h1>${title}</h1>
-  ${featImg && featImg !== "https://kolacommunications.com/KolaFavicon.jpg" ? `<img src="${featImg}" alt="${title}" style="max-width:100%; height:auto; margin: 1rem 0; border-radius: 8px;" />` : ""}
+  <h1>${attrSafe(title)}</h1>
+  ${featImg && featImg !== "https://kolacommunications.com/KolaFavicon.jpg" ? `<img src="${attrSafe(featImg)}" alt="${attrSafe(title)}" style="max-width:100%; height:auto; margin: 1rem 0; border-radius: 8px;" />` : ""}
   <div class="content" style="line-height: 1.8; font-size: 1.1rem; color: #1a1a1a;">${content}</div>
 </div>
     `;

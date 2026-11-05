@@ -84,17 +84,39 @@ Visit https://kolacommunications.com to start a project or get in touch with our
 async function getPageMarkdown(pathname: string): Promise<string | null> {
   try {
     // Blog post pages — fetch from WordPress
-    const blogMatch = pathname.match(/^\/blogs\/(.+)$/);
+    const blogMatch = pathname.match(/^\/blogs\/([^/]+)\/?$/);
     if (blogMatch) {
       const slug = blogMatch[1];
-      const res = await fetch(`${WP_BASE}/posts?slug=${slug}&_fields=title,content,excerpt`);
+      const res = await fetch(
+        `${WP_BASE}/posts?slug=${encodeURIComponent(slug)}&_fields=title,content,excerpt`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      if (!res.ok) throw new Error(`WP API ${res.status}`);
       const posts = await res.json();
-      if (!posts.length) return null;
+      if (!Array.isArray(posts) || !posts.length) return null;
 
       const post = posts[0];
       const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
 
-      return `# ${post.title.rendered}\n\n${td.turndown(post.content.rendered)}`;
+      return `# ${td.turndown(post.title.rendered)}\n\n${td.turndown(post.content.rendered)}`;
+    }
+
+    // Project pages — fetch from WordPress
+    const projectMatch = pathname.match(/^\/project\/([^/]+)\/?$/);
+    if (projectMatch) {
+      const slug = projectMatch[1];
+      const res = await fetch(
+        `${WP_BASE}/project?slug=${encodeURIComponent(slug)}&_fields=title,content`,
+        { signal: AbortSignal.timeout(8000) }
+      );
+      if (!res.ok) throw new Error(`WP API ${res.status}`);
+      const projects = await res.json();
+      if (!Array.isArray(projects) || !projects.length) return null;
+
+      const project = projects[0];
+      const td = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+
+      return `# ${td.turndown(project.title.rendered)}\n\n${td.turndown(project.content.rendered)}`;
     }
 
     // Homepage — use static markdown (content lives in React)

@@ -153,7 +153,7 @@ const AboutPage = () => {
           name="description"
           content="Kola Communications is a Mumbai-based website development and digital marketing agency empowering brands across India, Australia, the US, the UK, and UAE."
         />
-        <link rel="canonical" href="https://www.kolacommunications.com/about" />
+        <link rel="canonical" href="https://kolacommunications.com/about" />
       </Helmet>
 
       <CustomCursor />

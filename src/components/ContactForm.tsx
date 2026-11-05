@@ -12,10 +12,10 @@ interface ContactFormProps {
 }
 
 const fields = [
-  { name: "name",    label: "Your Name",                  type: "text",     placeholder: "Jane Smith",               required: true  },
-  { name: "email",   label: "Email Address",              type: "email",    placeholder: "jane@company.com",         required: true  },
-  { name: "company", label: "Company / Brand",            type: "text",     placeholder: "Acme Inc.",                required: false },
-  { name: "message", label: "Tell us about your project", type: "textarea", placeholder: "Goals, timeline, budget…", required: true  },
+  { name: "name",    label: "Your Name",                  type: "text",     placeholder: "Jane Smith",               required: true,  maxLength: 100  },
+  { name: "email",   label: "Email Address",              type: "email",    placeholder: "jane@company.com",         required: true,  maxLength: 254  },
+  { name: "company", label: "Company / Brand",            type: "text",     placeholder: "Acme Inc.",                required: false, maxLength: 150  },
+  { name: "message", label: "Tell us about your project", type: "textarea", placeholder: "Goals, timeline, budget…", required: true,  maxLength: 5000 },
 ];
 
 const useIsDesktop = () => {
@@ -32,7 +32,7 @@ const useIsDesktop = () => {
 };
 
 const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService = "" }) => {
-  const [values, setValues] = useState({ name: "", email: "", company: "", message: "" });
+  const [values, setValues] = useState({ name: "", email: "", company: "", message: "", website: "" });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const isDesktop = useIsDesktop();
 
@@ -50,6 +50,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
           email:       values.email,
           companyName: values.company,
           message:     values.message,
+          website:     values.website, // honeypot
         }),
       });
 
@@ -64,7 +65,7 @@ const ContactForm: React.FC<ContactFormProps> = ({ open, onClose, prefillService
     onClose();
     setTimeout(() => {
       setStatus("idle");
-      setValues({ name: "", email: "", company: "", message: "" });
+      setValues({ name: "", email: "", company: "", message: "", website: "" });
     }, 300);
   };
 
@@ -214,6 +215,7 @@ const FormInner: React.FC<InnerProps> = ({ status, values, handleChange, handleC
                   onChange={handleChange}
                   placeholder={field.placeholder}
                   rows={3}
+                  maxLength={field.maxLength}
                   className="w-full border border-black/10 px-3 py-2 rounded-xl text-[13px] resize-none focus:outline-none focus:border-black/30 transition"
                 />
               ) : (
@@ -223,11 +225,19 @@ const FormInner: React.FC<InnerProps> = ({ status, values, handleChange, handleC
                   value={values[field.name]}
                   onChange={handleChange}
                   placeholder={field.placeholder}
+                  maxLength={field.maxLength}
                   className="w-full border border-black/10 px-3 py-2 rounded-xl text-[13px] focus:outline-none focus:border-black/30 transition"
                 />
               )}
             </div>
           ))}
+          {/* Honeypot: hidden from people, bots fill it in and get silently dropped */}
+          <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+            <label>
+              Website
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" value={values.website} onChange={handleChange} />
+            </label>
+          </div>
         </div>
 
         <div className="px-5 pb-5">
