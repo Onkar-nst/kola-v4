@@ -239,49 +239,67 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
         <ColumnGuides />
 
         <article className="section-container px-4 sm:px-6 md:px-8 lg:px-10 pt-28 md:pt-36 lg:pt-40">
-          {/* ═══ HERO ═══ */}
-          <header className="pb-10 md:pb-14">
-            <nav aria-label="Breadcrumb" className="mb-8 md:mb-10">
-              <Link to="/projects" className="inline-flex items-center gap-2 text-[13px] text-black/50 hover:text-black transition-colors">
-                <ArrowLeft size={14} /> All projects
-              </Link>
-            </nav>
+          {/* ═══ HERO: title left, image right ═══ */}
+          <header className="grid grid-cols-1 lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center pb-10 md:pb-14">
+            <div>
+              <nav aria-label="Breadcrumb" className="mb-8 md:mb-10">
+                <Link to="/projects" className="inline-flex items-center gap-2 text-[13px] text-black/50 hover:text-black transition-colors">
+                  <ArrowLeft size={14} /> All projects
+                </Link>
+              </nav>
 
-            {services.length > 0 && (
-              <ul className="flex flex-wrap gap-2 mb-5 md:mb-6">
-                {services.map((s) => (
-                  <li key={s} className="border border-black/10 bg-white px-3 py-1 text-[12px] text-black/60">{s}</li>
-                ))}
-              </ul>
-            )}
-
-            <h1 className="text-[clamp(2.6rem,7vw,5.5rem)] font-semibold leading-[0.98] tracking-[-0.035em] mb-5 md:mb-6">{name}</h1>
-            {a.tagline && (
-              <p className="max-w-[880px] text-[clamp(1.25rem,2.4vw,1.9rem)] leading-[1.3] tracking-[-0.015em] text-muted-foreground font-medium mb-8 md:mb-10">
-                {a.tagline}
-              </p>
-            )}
-
-            <div className="flex flex-col sm:flex-row gap-3">
-              {a.website_url && (
-                <a
-                  href={a.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center justify-center gap-2.5 bg-black text-white px-6 py-3.5 text-[14px] font-medium hover:bg-black/85 transition-colors"
-                >
-                  Visit {site || "website"}
-                  <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
+              {services.length > 0 && (
+                <ul className="flex flex-wrap gap-2 mb-5 md:mb-6">
+                  {services.map((s) => (
+                    <li key={s} className="border border-black/10 bg-white px-3 py-1 text-[12px] text-black/60">{s}</li>
+                  ))}
+                </ul>
               )}
-              <button
-                type="button"
-                onClick={() => setContactOpen(true)}
-                className="inline-flex items-center justify-center gap-2 border border-black/15 bg-white px-6 py-3.5 text-[14px] font-medium hover:border-black/40 transition-colors"
-              >
-                Start a similar project
-              </button>
+
+              <h1 className="text-[clamp(2.5rem,5.5vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.035em] mb-5 md:mb-6">{name}</h1>
+              {a.tagline && (
+                <p className="max-w-[640px] text-[clamp(1.2rem,2vw,1.6rem)] leading-[1.3] tracking-[-0.015em] text-muted-foreground font-medium mb-8 md:mb-10">
+                  {a.tagline}
+                </p>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                {a.website_url && (
+                  <a
+                    href={a.website_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center justify-center gap-2.5 bg-black text-white px-6 py-3.5 text-[14px] font-medium hover:bg-black/85 transition-colors"
+                  >
+                    Visit {site || "website"}
+                    <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setContactOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 border border-black/15 bg-white px-6 py-3.5 text-[14px] font-medium hover:border-black/40 transition-colors"
+                >
+                  Start a similar project
+                </button>
+              </div>
             </div>
+
+            {(heroImg || SHOW_IMAGE_PLACEHOLDERS) && (
+              <figure className="border border-border bg-white shadow-[0_16px_48px_rgba(0,0,0,0.06)]">
+                <div className="flex items-center gap-1.5 px-3.5 h-8 border-b border-border bg-[#fafafa]">
+                  <span className="keep-round w-2 h-2 bg-black/15" />
+                  <span className="keep-round w-2 h-2 bg-black/15" />
+                  <span className="keep-round w-2 h-2 bg-black/15" />
+                  {site && <span className="ml-2.5 text-[11px] text-black/40 truncate">{site}</span>}
+                </div>
+                {heroImg ? (
+                  <img src={heroImg} alt={`${name} website designed by Kola Communications`} className="w-full aspect-[16/10] object-cover object-top block" />
+                ) : (
+                  <ImagePlaceholder label="Featured image" size="Website screenshot · 1600 × 1000" className="aspect-[16/10] w-full" />
+                )}
+              </figure>
+            )}
           </header>
 
           {/* ═══ KEY DETAILS ═══ */}
@@ -294,23 +312,6 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
                 </div>
               ))}
             </dl>
-          )}
-
-          {/* ═══ HERO IMAGE ═══ */}
-          {(heroImg || SHOW_IMAGE_PLACEHOLDERS) && (
-            <figure className="mb-10 md:mb-14 border border-border bg-white">
-              <div className="flex items-center gap-1.5 px-4 h-9 border-b border-border bg-[#fafafa]">
-                <span className="keep-round w-2.5 h-2.5 bg-black/15" />
-                <span className="keep-round w-2.5 h-2.5 bg-black/15" />
-                <span className="keep-round w-2.5 h-2.5 bg-black/15" />
-                {site && <span className="ml-3 text-[11px] text-black/40">{site}</span>}
-              </div>
-              {heroImg ? (
-                <img src={heroImg} alt={`${name} website designed by Kola Communications`} className="w-full h-auto block" />
-              ) : (
-                <ImagePlaceholder label="Hero image" size="Website screenshot · 1600 × 1000" className="aspect-[16/10] w-full" />
-              )}
-            </figure>
           )}
 
           {/* ═══ BODY ═══ */}
