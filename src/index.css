@@ -144,3 +144,15 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
 }
+
+/* ── Design: square corners everywhere ──────────────────────────
+   Overrides every Tailwind rounded-* class and inline borderRadius.
+   Add the "keep-round" class to anything that must stay circular
+   (e.g. people's photos). */
+*, *::before, *::after {
+  border-radius: 0 !important;
+}
+
+.keep-round {
+  border-radius: 9999px !important;
+}
