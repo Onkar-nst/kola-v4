@@ -269,9 +269,12 @@ const BlogSection = () => {
         {/* Grid — Single row of 3 cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 mb-10 md:mb-14 items-stretch">
           {loading
-            ? [0, 1, 2].map((i) => <CardSkeleton key={i} />)
+            ? [0, 1, 2].map((i) => <div key={i} className={i === 2 ? "sm:hidden lg:block" : ""}><CardSkeleton /></div>)
             : posts.slice(0, 3).map((post, i) => (
-                <BlogCard key={post.slug} post={post} index={i} />
+                // Tablet grid is 2 columns: hide the third card there so none sits alone
+                <div key={post.slug} className={i === 2 ? "sm:hidden lg:block h-full" : "h-full"}>
+                  <BlogCard post={post} index={i} />
+                </div>
               ))}
         </div>
 
