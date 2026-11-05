@@ -78,6 +78,9 @@ const SERVICE_ORDER = [
   "website-development", "seo-aeo-geo", "ai-automation", "mobile-app-development", "performance-marketing",
   "lead-generation-conversion", "social-media-marketing", "content-creation-strategy", "brand-identity-design",
 ];
+// Tech-stack tags first (what the site is built on), then everything else
+const TECH_TAGS = ["wordpress", "woocommerce", "shopify", "custom-theme", "elementor", "next-js", "nuxt-js", "react-js", "node-js", "tailwind-css", "headless-cms", "custom-coded"];
+const tagRank = (slug: string) => { const i = TECH_TAGS.indexOf(slug); return i === -1 ? 99 : i; };
 const serviceRank = (slug: string) => { const i = SERVICE_ORDER.indexOf(slug); return i === -1 ? 99 : i; };
 
 /* Show grey placeholders where images will go while projects have none.
@@ -162,6 +165,7 @@ const CaseStudy = ({ project }: { project: WPProject }) => {
   const heroImg = imgUrl(a.hero_image) || project._embedded?.["wp:featuredmedia"]?.[0]?.source_url || "";
   const tags = terms
     .filter((t) => t.taxonomy === "project-tag")
+    .sort((x, y) => tagRank(x.slug) - tagRank(y.slug))
     .map((t) => ({ slug: t.slug, name: decode(t.name) }));
   const deliverables = lines(a.deliverables);
   const results = lines(a.results);
