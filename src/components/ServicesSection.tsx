@@ -102,13 +102,13 @@ const services: Service[] = [
     icon: Bot,
     title: "AI Automation",
     desc: "Put repetitive work on autopilot. We build AI agents, chatbots and automated workflows that connect your CRM, email, WhatsApp and internal tools, saving hours every week and replying to leads in seconds.",
-    href: "/services#ai-tools",
+    href: "/services#ai-automation",
   },
   {
     icon: Smartphone,
     title: "Mobile App Development",
     desc: "iOS and Android apps built for real users, from MVP to full launch. We design, develop and publish fast, intuitive apps, with the backend, analytics and App Store support you need to grow after go-live.",
-    href: "/services",
+    href: "/services#mobile-app-development",
   },
   {
     icon: Target,
